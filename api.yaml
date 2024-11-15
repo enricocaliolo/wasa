@@ -1,0 +1,180 @@
+openapi: 3.0.0
+info:
+  title: WasaText
+  description: |
+    This API allows users to get and send messages.
+  version: 0.0.1
+paths:
+  /session:
+    post:
+      tags: ["login"]
+      summary: Logs in the user
+      description: |-
+        If the user does not exist, it will be created,
+        and an identifier is returned.
+        If the user exists, the user identifier is returned.
+      operationId: doLogin
+      requestBody:
+        description: User details
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Maria
+                  pattern: "ˆ.*?$"
+                  minLength: 3
+                  maxLength: 16
+        required: true
+      responses:
+        "201":
+          description: User log-in action successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  identifier:
+                    # change here if you decide to use an integer
+                    # or any other type of identifier
+                    type: string
+                    example: "abcdef012345"
+
+  /set-username:
+    put:
+      summary: set a new username
+      description: Change the username of said user
+      responses:
+        "200":
+          description: succesfully changed username
+        "409":
+          description: username already taken
+
+  /set-photo:
+    put:
+      summary: set a new photo
+      description: Change the photo of said user
+      responses:
+        "200":
+          description: succesfully changed user photo
+
+  # retrieve all the conversations and groups from a user
+  /conversations:
+    get:
+      summary: get user conversations
+      description: get all the conversations from a user
+      responses:
+        "200":
+          description: sucessfully got all the conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Conversation"
+
+  # send message (reply to message)
+  /messages/{id}?replied-to-message-id={reply_message_id}:
+    parameters:
+      - $ref: "#/components/parameters/message_id"
+      - name: reply_message_id
+        in: query
+        required: false
+        description: in case of replying to a message, send the reply message as well
+        schema:
+          type: integer
+          description: id of the replied message
+    post:
+      description: Send a new message in a direct conversation
+      responses:
+        "200":
+          description: message succesfully sent
+
+    delete:
+      description: Delete message
+      responses:
+        "200":
+          description: succesfully deleted message
+
+  # forward message
+  /messages/{id}/forward-message:
+    parameters:
+      - $ref: "#/components/parameters/message_id"
+    post:
+      description: forward a message
+      requestBody:
+        description: Sending the id of the conversation to the forwarded message
+        required: true
+        content:
+          application/json:
+            schema:
+              type: integer
+      responses:
+        "200":
+          description: succesfully forwarded the message
+
+  # add user to a group
+  /conversation/{conversation_id}/{user_id}:
+    parameters:
+      - $ref: "#/components/parameters/conversation_id"
+      - $ref: "#/components/parameters/user_id"
+    post:
+      description: add a user to the group
+      responses:
+        "200":
+          description: succesfully added the user to the group
+
+  # leave a group
+  /conversation/{conversation_id}:
+    parameters:
+      - $ref: "#/components/parameters/conversation_id"
+    delete:
+      description: User leave a group
+      responses:
+        "200":
+          description: succesfully left the group
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          minimum: 0
+        username:
+          type: string
+          minimum: 1
+          maximum: 64
+        icon:
+          type: string
+        created_at:
+          type: integer
+    Message:
+      type: object
+    Conversation:
+      type: object
+  parameters:
+    message_id:
+      name: message_id
+      in: path
+      required: true
+      description: this is the message id
+      schema:
+        type: integer
+    user_id:
+      name: user_id
+      in: path
+      required: true
+      description: this is the user id
+      schema:
+        type: integer
+    conversation_id:
+      name: conversation_id
+      in: path
+      required: true
+      description: this is the conversation id
+      schema:
+        type: integer
