@@ -42,7 +42,7 @@ paths:
                     type: string
                     example: "abcdef012345"
 
-  /set-username:
+  /{user-id}/set-username:
     put:
       summary: set a new username
       description: Change the username of said user
@@ -52,7 +52,7 @@ paths:
         "409":
           description: username already taken
 
-  /set-photo:
+  /{user-id}/set-photo:
     put:
       summary: set a new photo
       description: Change the photo of said user
@@ -61,7 +61,7 @@ paths:
           description: succesfully changed user photo
 
   # retrieve all the conversations and groups from a user
-  /conversations:
+  /{user-id}/conversations:
     get:
       summary: get user conversations
       description: get all the conversations from a user
@@ -75,10 +75,10 @@ paths:
                 items:
                   $ref: "#/components/schemas/Conversation"
 
-  # send message (reply to message)
-  /messages/{id}?replied-to-message-id={reply_message_id}:
+  # send message
+  /{conversation-id}/message:
     parameters:
-      - $ref: "#/components/parameters/message_id"
+      - $ref: "#/components/parameters/conversation_id"
       - name: reply_message_id
         in: query
         required: false
@@ -88,15 +88,59 @@ paths:
           description: id of the replied message
     post:
       description: Send a new message in a direct conversation
+      requestBody:
+        description: body of a new message
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                content:
+                  type: string
+
       responses:
-        "200":
+        "201":
           description: message succesfully sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
 
     delete:
       description: Delete message
       responses:
         "200":
           description: succesfully deleted message
+
+    # reply to message
+
+  /messages/{id}/reply:
+    parameters:
+      - $ref: "#/components/parameters/message_id"
+    post:
+      description: reply to a message
+      requestBody:
+        description: sending the id of the conversation and the user to be replied
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                content:
+                  type: string
+      responses:
+        "201":
+          description: succesfully replied to a message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
 
   # forward message
   /messages/{id}/forward-message:
@@ -115,6 +159,27 @@ paths:
         "200":
           description: succesfully forwarded the message
 
+  /messages/{id}/reaction:
+    parameters:
+      - $ref: "#/components/parameters/message_id"
+    post:
+      description: react to a message
+      requestBody:
+        description: sending the id of the user and the reaction to the message
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                reaction:
+                  type: integer
+      responses:
+        "200":
+          description: succesfuly reacted to the message
+
   # add user to a group
   /conversation/{conversation_id}/{user_id}:
     parameters:
@@ -132,6 +197,16 @@ paths:
       - $ref: "#/components/parameters/conversation_id"
     delete:
       description: User leave a group
+      requestBody:
+        description: leaving from a group
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
       responses:
         "200":
           description: succesfully left the group
