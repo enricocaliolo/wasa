@@ -44,6 +44,15 @@ CREATE TABLE `Message` (
     FOREIGN KEY (forwarded_from) REFERENCES `Message`(message_id)
 );
 
+CREATE TABLE `Reactions` (
+    reaction_id INT AUTO_INCREMENT PRIMARY KEY,
+    message_id INT NOT NULL,
+    user_id INT NOT NULL,
+    reaction BLOB NOT NULL,
+    FOREIGN KEY (message_id) REFERENCES `Message`(message_id),
+    FOREIGN KEY (user_id) REFERENCES `User`(user_id)
+)
+
 -- users
 
 INSERT INTO User (user_id, username)
