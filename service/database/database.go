@@ -34,7 +34,7 @@ import (
 	"database/sql"
 	"errors"
 	"wasa/service/database/schema"
-	"wasa/service/database/user"
+	"wasa/service/database/userDB"
 	"wasa/service/shared/models"
 )
 
@@ -43,7 +43,8 @@ type AppDatabase interface {
 	Ping() error
 
 	GetAllUsers() []models.User
-	GetUser(username string) int
+	GetUser(username string) models.User
+	CreateUser(username string) models.User
 }
 
 type appdbimpl struct {
@@ -70,16 +71,13 @@ func (db *appdbimpl) Ping() error {
 }
 
 func (db *appdbimpl) GetAllUsers() []models.User {
-	return user.GetAllUsers(db.c)
+	return userDB.GetAllUsers(db.c)
 }
 
-func (db *appdbimpl) GetUser(username string) int {
-	var id int
-	id = user.GetUser(db.c, username)
+func (db *appdbimpl) GetUser(username string) models.User {
+	return userDB.GetUser(db.c, username)
+}
 
-	if id == -1 {
-		id = user.CreateUser(db.c, username)
-	}
-
-	return id
+func (db *appdbimpl) CreateUser(username string) models.User {
+	return userDB.CreateUser(db.c, username)
 }

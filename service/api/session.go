@@ -20,9 +20,13 @@ func (rt *_router) session(w http.ResponseWriter, r *http.Request, ps httprouter
 		return
 	}
 
-	id := rt.db.GetUser(username)
+	user := rt.db.GetUser(username)
+
+	if user.ID == -1 {
+		user = rt.db.CreateUser(username)
+	}
 
 	w.Header().Set("content-type", "application/json")
-	json.NewEncoder(w).Encode(id)
+	json.NewEncoder(w).Encode(user)
 
 }

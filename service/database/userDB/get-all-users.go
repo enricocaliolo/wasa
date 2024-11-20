@@ -1,4 +1,4 @@
-package user
+package userDB
 
 import (
 	"database/sql"
