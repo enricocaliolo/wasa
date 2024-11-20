@@ -34,11 +34,16 @@ import (
 	"database/sql"
 	"errors"
 	"wasa/service/database/schema"
+	"wasa/service/database/user"
+	"wasa/service/shared/models"
 )
 
 // AppDatabase is the high level interface for the DB
 type AppDatabase interface {
 	Ping() error
+
+	GetAllUsers() []models.User
+	GetUser(username string) int
 }
 
 type appdbimpl struct {
@@ -62,4 +67,19 @@ func New(db *sql.DB) (AppDatabase, error) {
 
 func (db *appdbimpl) Ping() error {
 	return db.c.Ping()
+}
+
+func (db *appdbimpl) GetAllUsers() []models.User {
+	return user.GetAllUsers(db.c)
+}
+
+func (db *appdbimpl) GetUser(username string) int {
+	var id int
+	id = user.GetUser(db.c, username)
+
+	if id == -1 {
+		id = user.CreateUser(db.c, username)
+	}
+
+	return id
 }
