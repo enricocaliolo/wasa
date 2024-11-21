@@ -26,7 +26,8 @@ VALUES  (1, 1),
 		`INSERT INTO "Message" (content, sender_id, conversation_id)
 VALUES  ('oi, tudo bem?', 1, 1),
         ('tudo bem, e vc?', 2, 1),
-        ('tudo bem tbm', 1, 1);
+        ('tudo bem tbm', 1, 1),
+		('fala cara, deixa eu te falar', 3, 2);
 	`,
 	}
 

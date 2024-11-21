@@ -82,6 +82,21 @@ paths:
                 items:
                   $ref: "#/components/schemas/Conversation"
 
+  /conversations/{id}:
+    parameters:
+      - $ref: "#/components/parameters/conversation_id"
+    get:
+      description: get all messages from a conversation
+      responses:
+        "201":
+          description: succesfully retrieved all the messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+
   # send message
   /conversations/{conversation-id}/message:
     parameters:
@@ -122,8 +137,7 @@ paths:
         "200":
           description: succesfully deleted message
 
-    # reply to message
-
+  # reply to message
   /messages/{id}/reply:
     parameters:
       - $ref: "#/components/parameters/message_id"

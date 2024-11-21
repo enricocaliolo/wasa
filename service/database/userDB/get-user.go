@@ -3,22 +3,20 @@ package userDB
 import (
 	"database/sql"
 	"log"
-	. "wasa/service/shared/models"
 )
 
-func GetUser(db *sql.DB, username string) User {
-	statement, err := db.Prepare("SELECT * from User WHERE username = ?")
+func GetUser(db *sql.DB, username string) (int, error) {
+	statement, err := db.Prepare("SELECT user_id from User WHERE username = ?")
 	if err != nil {
 		log.Fatal(err)
+		return -1, err
 	}
 	defer statement.Close()
-	var user User
-	err = statement.QueryRow(username).Scan(&user.ID, &user.Username, &user.Icon, &user.Created_at)
+	var id int
+	err = statement.QueryRow(username).Scan(&id)
 	if err != nil {
-		return User{
-			ID: -1,
-		}
+		return -1, err
 	}
 
-	return user
+	return id, nil
 }

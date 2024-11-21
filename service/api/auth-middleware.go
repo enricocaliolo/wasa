@@ -1,7 +1,6 @@
 package api
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -26,7 +25,8 @@ func (rt *APIRouter) authMiddleware(next httprouter.Handle) httprouter.Handle {
 		token := parts[1]
 		num, err := strconv.Atoi(token)
 		if err != nil {
-			log.Fatal(err)
+			http.Error(w, "Invalid syntax for token", http.StatusBadRequest)
+			return
 		}
 
 		// validating

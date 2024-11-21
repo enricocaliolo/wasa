@@ -37,6 +37,7 @@ func CreateTables(db *sql.DB) {
 		CREATE TABLE IF NOT EXISTS "Message" (
 			message_id INTEGER PRIMARY KEY,
 			content BLOB NOT NULL,
+			content_type TEXT NOT NULL DEFAULT 'text',
 			sent_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			edited_time TIMESTAMP,
 			deleted_time TIMESTAMP,

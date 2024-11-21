@@ -34,7 +34,6 @@ import (
 	"database/sql"
 	"errors"
 	"wasa/service/database/conversationDB"
-	"wasa/service/database/messagesDB"
 	"wasa/service/database/schema"
 	"wasa/service/database/userDB"
 	"wasa/service/shared/models"
@@ -47,13 +46,15 @@ type AppDatabase interface {
 	// user operations
 	ValidateUser(id int) bool
 	GetAllUsers() []models.User
-	GetUser(username string) models.User
-	CreateUser(username string) models.User
+	GetUser(username string) (int, error)
+	CreateUser(username string) (int, error)
 	UpdateProfile(user models.User) bool
 
 	// conversation operations
 	GetAllConversations(id int) []models.Conversation
 	GetMessagesFromConversation(id int) []models.Message
+	IsUserInConversation(conversation_id int, user_id int) (bool, error)
+	SendMessage(models.Message) (int, error)
 }
 
 type appdbimpl struct {
@@ -83,11 +84,11 @@ func (db *appdbimpl) GetAllUsers() []models.User {
 	return userDB.GetAllUsers(db.c)
 }
 
-func (db *appdbimpl) GetUser(username string) models.User {
+func (db *appdbimpl) GetUser(username string) (int, error) {
 	return userDB.GetUser(db.c, username)
 }
 
-func (db *appdbimpl) CreateUser(username string) models.User {
+func (db *appdbimpl) CreateUser(username string) (int, error) {
 	return userDB.CreateUser(db.c, username)
 }
 
@@ -104,5 +105,13 @@ func (db *appdbimpl) GetAllConversations(id int) []models.Conversation {
 }
 
 func (db *appdbimpl) GetMessagesFromConversation(id int) []models.Message {
-	return messagesDB.GetMessagesFromConversation(db.c, id)
+	return conversationDB.GetMessagesFromConversation(db.c, id)
+}
+
+func (db *appdbimpl) IsUserInConversation(conversation_id int, user_id int) (bool, error) {
+	return conversationDB.IsUserInConversation(db.c, conversation_id, user_id)
+}
+
+func (db *appdbimpl) SendMessage(message models.Message) (int, error) {
+	return conversationDB.SendMessage(db.c, message)
 }

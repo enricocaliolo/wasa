@@ -21,15 +21,15 @@ func (rt *APIRouter) login(w http.ResponseWriter, r *http.Request, ps httprouter
 		return
 	}
 
-	user := rt.db.GetUser(username)
+	id, err := rt.db.GetUser(username)
 
-	if user.ID == -1 {
-		user = rt.db.CreateUser(username)
+	if id == -1 {
+		id, err = rt.db.CreateUser(username)
 	}
 
-	w.Header().Set("Authorization", "Bearer "+string(rune(user.ID)))
+	w.Header().Set("Authorization", "Bearer "+string(rune(id)))
 	w.Header().Set("content-type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	json.NewEncoder(w).Encode(id)
 
 }
 
@@ -46,17 +46,17 @@ func (rt *APIRouter) findUser(w http.ResponseWriter, r *http.Request, ps httprou
 
 	username := query.Get("username")
 
-	user := rt.db.GetUser(username)
-
-	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusNotFound)
-
-	if user.ID == -1 {
-		json.NewEncoder(w).Encode("User Not Found")
+	id, err := rt.db.GetUser(username)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode("User not found")
 		return
 	}
 
-	json.NewEncoder(w).Encode(user)
+	w.Header().Set("content-type", "application/json")
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(id)
 
 }
 
