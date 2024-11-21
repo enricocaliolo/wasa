@@ -14,7 +14,7 @@ CREATE TABLE `User` (
 CREATE TABLE `Conversation` (
     conversation_id INT AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(64),
-    is_group BOOLEAN,
+    is_group BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -35,7 +35,6 @@ CREATE TABLE `Message` (
     deleted_time TIMESTAMP,
     sender_id INT,
     conversation_id INT,
-    group_id INT,
     replied_to INT,
     forwarded_from INT,
     FOREIGN KEY (sender_id) REFERENCES `User`(user_id),
@@ -51,7 +50,7 @@ CREATE TABLE `Reactions` (
     reaction BLOB NOT NULL,
     FOREIGN KEY (message_id) REFERENCES `Message`(message_id),
     FOREIGN KEY (user_id) REFERENCES `User`(user_id)
-)
+);
 
 -- users
 

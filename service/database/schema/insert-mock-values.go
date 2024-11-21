@@ -12,9 +12,9 @@ VALUES  ('enrico'),
         ('manu'),
         ('teste');`,
 
-		`INSERT INTO "Conversation" (conversation_id)
-VALUES  (1),
-        (2);`,
+		`INSERT INTO "Conversation" (conversation_id, name, is_group)
+VALUES  (1, "teste", true),
+        (2, "teste", false);`,
 
 		`INSERT INTO "ConversationParticipants" (conversation_id, user_id)
 VALUES  (1, 1),

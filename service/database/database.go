@@ -33,6 +33,7 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"wasa/service/database/conversationDB"
 	"wasa/service/database/schema"
 	"wasa/service/database/userDB"
 	"wasa/service/shared/models"
@@ -42,11 +43,15 @@ import (
 type AppDatabase interface {
 	Ping() error
 
+	// user operations
 	ValidateUser(id int) bool
 	GetAllUsers() []models.User
 	GetUser(username string) models.User
 	CreateUser(username string) models.User
 	UpdateProfile(user models.User) bool
+
+	// conversation operations
+	GetAllConversations(id int) []models.Conversation
 }
 
 type appdbimpl struct {
@@ -90,4 +95,8 @@ func (db *appdbimpl) UpdateProfile(user models.User) bool {
 
 func (db *appdbimpl) ValidateUser(id int) bool {
 	return userDB.ValidateUser(db.c, id)
+}
+
+func (db *appdbimpl) GetAllConversations(id int) []models.Conversation {
+	return conversationDB.GetAllConversations(db.c, id)
 }

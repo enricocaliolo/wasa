@@ -35,7 +35,6 @@ func (rt *APIRouter) login(w http.ResponseWriter, r *http.Request, ps httprouter
 
 func (rt *APIRouter) TestUsers(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	users := rt.db.GetAllUsers()
-	print(users)
 
 	w.Header().Set("content-type", "application/json")
 	json.NewEncoder(w).Encode(users)

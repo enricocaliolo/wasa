@@ -42,26 +42,33 @@ paths:
                     type: string
                     example: "abcdef012345"
 
-  /{user-id}/set-username:
+  /settings/profile:
     put:
-      summary: set a new username
-      description: Change the username of said user
+      summary: update user profile
+      description: Update user profile with username, icon or both
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                  maxLength: 64
       responses:
         "200":
-          description: succesfully changed username
+          description: username update succesfully
+          content:
+            application/json:
+              schema:
+                type: string
         "409":
           description: username already taken
 
-  /{user-id}/set-photo:
-    put:
-      summary: set a new photo
-      description: Change the photo of said user
-      responses:
-        "200":
-          description: succesfully changed user photo
-
   # retrieve all the conversations and groups from a user
-  /{user-id}/conversations:
+  /conversations:
     get:
       summary: get user conversations
       description: get all the conversations from a user
@@ -76,7 +83,7 @@ paths:
                   $ref: "#/components/schemas/Conversation"
 
   # send message
-  /{conversation-id}/message:
+  /conversations/{conversation-id}/message:
     parameters:
       - $ref: "#/components/parameters/conversation_id"
       - name: reply_message_id
@@ -229,8 +236,68 @@ components:
           type: integer
     Message:
       type: object
+      properties:
+        message_id:
+          type: integer
+          format: int64
+        content:
+          type: string
+        sent_time:
+          type: string
+          format: date-time
+        edited_time:
+          type: string
+          format: date-time
+        deleted_time:
+          type: string
+          format: date-time
+        sender:
+          $ref: "#/components/schemas/User"
+        conversation_id:
+          type: integer
+          format: int64
+        replied_to:
+          $ref: "#/components/schemas/Message"
+        forwarded_from:
+          $ref: "#/components/schemas/Message"
+        reactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Reaction"
+        status:
+          type: string
+          enum: [sent, delivered, read]
     Conversation:
       type: object
+      properties:
+        conversation_id:
+          type: integer
+        name:
+          type: string
+          maxLength: 64
+        is_group:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        participants:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+    Reaction:
+      type: object
+      properties:
+        reaction_id:
+          type: integer
+          format: int64
+        message_id:
+          type: integer
+          format: int64
+        user:
+          $ref: "#/components/schemas/User"
+        reaction:
+          type: string
+
   parameters:
     message_id:
       name: message_id
@@ -253,3 +320,12 @@ components:
       description: this is the conversation id
       schema:
         type: integer
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: string
+
+security:
+  - bearerAuth: []

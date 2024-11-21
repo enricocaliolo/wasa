@@ -18,7 +18,7 @@ func CreateTables(db *sql.DB) {
 		`DROP TABLE IF EXISTS "Conversation";
 		CREATE TABLE IF NOT EXISTS "Conversation" (
 			conversation_id INTEGER PRIMARY KEY,
-			"name" VARCHAR(64),
+			"name" VARCHAR(64) DEFAULT FALSE,
 			is_group BOOLEAN,
 			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 		);`,
@@ -42,7 +42,6 @@ func CreateTables(db *sql.DB) {
 			deleted_time TIMESTAMP,
 			sender_id INTEGER,
 			conversation_id INTEGER,
-			group_id INTEGER,
 			replied_to INTEGER,
 			forwarded_from INTEGER,
 			FOREIGN KEY (sender_id) REFERENCES "User"(user_id),

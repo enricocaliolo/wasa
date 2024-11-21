@@ -12,5 +12,8 @@ func (rt *APIRouter) Handler() http.Handler {
 	rt.router.GET("/users/search", rt.authMiddleware(rt.findUser))
 	rt.router.PUT("/settings/profile", rt.authMiddleware(rt.changeProfile))
 
+	// conversation operations
+	rt.router.GET("/conversations", rt.authMiddleware(rt.conversations))
+
 	return rt.router
 }
