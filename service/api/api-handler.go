@@ -5,15 +5,12 @@ import (
 )
 
 // Handler returns an instance of httprouter.Router that handle APIs registered here
-func (rt *_router) Handler() http.Handler {
-	// Register routes
-	rt.router.GET("/test-users", rt.TestUsers)
-
-	// login
-	rt.router.POST("/session", rt.session)
-
-	// find user
-	rt.router.GET("/users/search", rt.findUser)
+func (rt *APIRouter) Handler() http.Handler {
+	// user operations
+	rt.router.GET("/test-users", rt.authMiddleware(rt.TestUsers))
+	rt.router.PUT("/session", rt.login)
+	rt.router.GET("/users/search", rt.authMiddleware(rt.findUser))
+	rt.router.PUT("/settings/profile", rt.authMiddleware(rt.changeProfile))
 
 	return rt.router
 }
