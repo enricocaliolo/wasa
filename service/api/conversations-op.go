@@ -10,6 +10,13 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+type reqMessageBody struct {
+	Content       string `json:"content"`
+	ContentType   string `json:"content_type"`
+	RepliedTo     *int   `json:"replied_to"`
+	ForwardedFrom *int   `json:"forwarded_from"`
+}
+
 func (rt *APIRouter) conversations(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	id := getToken(r)
@@ -49,12 +56,7 @@ func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps http
 	message.SenderID = getToken(r)
 	message.ConversationID, _ = strconv.Atoi(ps.ByName("id"))
 
-	var reqBody struct {
-		Content       string `json:"content"`
-		ContentType   string `json:"content_type"`
-		RepliedTo     *int
-		ForwardedFrom *int
-	}
+	var reqBody reqMessageBody
 
 	err := json.NewDecoder(r.Body).Decode(&reqBody)
 	if err != nil {
@@ -64,6 +66,10 @@ func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps http
 	}
 	defer r.Body.Close()
 
+	if reqBody.ContentType == "" {
+		reqBody.ContentType = "text"
+	}
+
 	message.Content = []byte(reqBody.Content)
 	message.ContentType = reqBody.ContentType
 
@@ -72,6 +78,8 @@ func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps http
 			Int64: int64(*reqBody.RepliedTo),
 			Valid: true,
 		}
+	} else {
+		message.RepliedTo.Int64 = -1
 	}
 
 	if reqBody.ForwardedFrom != nil {
@@ -79,6 +87,8 @@ func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps http
 			Int64: int64(*reqBody.ForwardedFrom),
 			Valid: true,
 		}
+	} else {
+		message.ForwardedFrom.Int64 = -1
 	}
 
 	id, err := rt.db.SendMessage(message)

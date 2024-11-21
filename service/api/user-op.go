@@ -83,5 +83,4 @@ func (rt *APIRouter) changeProfile(w http.ResponseWriter, r *http.Request, ps ht
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)
-
 }

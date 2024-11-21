@@ -38,18 +38,11 @@ func (m Message) MarshalJSON() ([]byte, error) {
 		SentTime:       m.SentTime,
 		EditedTime:     nullTimeToPtr(m.EditedTime),
 		DeletedTime:    nullTimeToPtr(m.DeletedTime),
-		SenderID:       m.SenderID,
-		ConversationID: m.ConversationID,
 		RepliedTo:      nullInt64ToPtr(m.RepliedTo),
 		ForwardedFrom:  nullInt64ToPtr(m.ForwardedFrom),
+		SenderID:       m.SenderID,
+		ConversationID: m.ConversationID,
 	})
-}
-
-func nullInt64ToPtr(n sql.NullInt64) *int64 {
-	if !n.Valid {
-		return nil
-	}
-	return &n.Int64
 }
 
 func nullTimeToPtr(t sql.NullTime) *time.Time {
@@ -57,4 +50,11 @@ func nullTimeToPtr(t sql.NullTime) *time.Time {
 		return nil
 	}
 	return &t.Time
+}
+
+func nullInt64ToPtr(n sql.NullInt64) *int64 {
+	if !n.Valid {
+		return nil
+	}
+	return &n.Int64
 }

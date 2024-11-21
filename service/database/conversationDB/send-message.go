@@ -17,7 +17,7 @@ func SendMessage(db *sql.DB, message models.Message) (int, error) {
             forwarded_from
         ) VALUES (?, ?, ?, ?, ?, ?)`
 
-	result, err := db.Exec(query, message.Content, message.ContentType, message.SenderID, message.ConversationID, message.RepliedTo, message.ForwardedFrom)
+	result, err := db.Exec(query, message.Content, message.ContentType, message.SenderID, message.ConversationID, message.RepliedTo.Int64, message.ForwardedFrom.Int64)
 
 	if err != nil {
 		return 0, err
