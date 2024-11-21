@@ -34,6 +34,7 @@ import (
 	"database/sql"
 	"errors"
 	"wasa/service/database/conversationDB"
+	messagesdb "wasa/service/database/messagesDB"
 	"wasa/service/database/schema"
 	"wasa/service/database/userDB"
 	"wasa/service/shared/models"
@@ -55,6 +56,9 @@ type AppDatabase interface {
 	GetMessagesFromConversation(id int) []models.Message
 	IsUserInConversation(conversation_id int, user_id int) (bool, error)
 	SendMessage(models.Message) (int, error)
+
+	// message operations
+	GetMessage(message_id int, conversation_id int) (models.Message, error)
 }
 
 type appdbimpl struct {
@@ -114,4 +118,8 @@ func (db *appdbimpl) IsUserInConversation(conversation_id int, user_id int) (boo
 
 func (db *appdbimpl) SendMessage(message models.Message) (int, error) {
 	return conversationDB.SendMessage(db.c, message)
+}
+
+func (db *appdbimpl) GetMessage(message_id int, conversation_id int) (models.Message, error) {
+	return messagesdb.GetMessage(db.c, message_id, conversation_id)
 }

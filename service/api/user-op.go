@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"wasa/service/shared/models"
 
@@ -22,9 +23,17 @@ func (rt *APIRouter) login(w http.ResponseWriter, r *http.Request, ps httprouter
 	}
 
 	id, err := rt.db.GetUser(username)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 
 	if id == -1 {
 		id, err = rt.db.CreateUser(username)
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
 	}
 
 	w.Header().Set("Authorization", "Bearer "+string(rune(id)))

@@ -17,6 +17,7 @@ func (rt *APIRouter) Handler() http.Handler {
 	rt.router.GET("/conversations/:id", rt.authMiddleware(rt.getConversation))
 	rt.router.POST("/conversations/:id", rt.authMiddleware(rt.sendMessage))
 	rt.router.POST("/conversations/:id/reply", rt.authMiddleware(rt.sendMessage))
+	rt.router.POST("/conversations/:id/forward", rt.authMiddleware(rt.forwardMessage))
 
 	return rt.router
 }
