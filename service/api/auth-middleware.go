@@ -1,7 +1,9 @@
 package api
 
 import (
+	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
@@ -22,10 +24,13 @@ func (rt *APIRouter) authMiddleware(next httprouter.Handle) httprouter.Handle {
 		}
 
 		token := parts[1]
+		num, err := strconv.Atoi(token)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		// validating
-		user := rt.db.GetUser(token)
-		if user.ID == -1 {
+		if !rt.db.ValidateUser(num) {
 			http.Error(w, "Invalid token", http.StatusUnauthorized)
 			return
 		}

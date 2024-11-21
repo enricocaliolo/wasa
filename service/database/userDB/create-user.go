@@ -7,16 +7,22 @@ import (
 )
 
 func CreateUser(db *sql.DB, username string) models.User {
-	sqlStatement := "INSERT INTO User(username) VALUES (?)"
-	result, err := db.Exec(sqlStatement, username)
+	statement, err := db.Prepare("INSERT INTO User(username) VALUES (?)")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer statement.Close()
+
+	result, err := statement.Exec(username)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	id, err := result.LastInsertId()
+	id64, err := result.LastInsertId()
 	if err != nil {
 		log.Fatal(err)
 	}
+	id := int(id64)
 
 	var user models.User
 	err = db.QueryRow("SELECT user_id, username, icon, created_at FROM User WHERE user_id = ?", id).Scan(

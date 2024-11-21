@@ -42,9 +42,11 @@ import (
 type AppDatabase interface {
 	Ping() error
 
+	ValidateUser(id int) bool
 	GetAllUsers() []models.User
 	GetUser(username string) models.User
 	CreateUser(username string) models.User
+	UpdateProfile(user models.User) string
 }
 
 type appdbimpl struct {
@@ -80,4 +82,12 @@ func (db *appdbimpl) GetUser(username string) models.User {
 
 func (db *appdbimpl) CreateUser(username string) models.User {
 	return userDB.CreateUser(db.c, username)
+}
+
+func (db *appdbimpl) UpdateProfile(user models.User) string {
+	return userDB.UpdateProfile(db.c, user)
+}
+
+func (db *appdbimpl) ValidateUser(id int) bool {
+	return userDB.ValidateUser(db.c, id)
 }

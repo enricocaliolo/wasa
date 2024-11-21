@@ -8,7 +8,7 @@ the Router.Handler() function that returns a handler that can be used in a http.
 Example:
 
 	// Create the API router
-	apirouter, err := api.New(api.Config{
+	Router, err := api.New(api.Config{
 		Logger:   logger,
 		Database: appdb,
 	})
@@ -16,7 +16,7 @@ Example:
 		logger.WithError(err).Error("error creating the API server instance")
 		return fmt.Errorf("error creating the API server instance: %w", err)
 	}
-	router := apirouter.Handler()
+	router := Router.Handler()
 
 	// ... other stuff here, like middleware chaining, etc.
 
@@ -55,7 +55,7 @@ type Config struct {
 }
 
 // Router is the package API interface representing an API handler builder
-type Router interface {
+type RouterInterface interface {
 	// Handler returns an HTTP handler for APIs provided in this package
 	Handler() http.Handler
 
@@ -64,7 +64,7 @@ type Router interface {
 }
 
 // New returns a new Router instance
-func New(cfg Config) (Router, error) {
+func New(cfg Config) (RouterInterface, error) {
 	// Check if the configuration is correct
 	if cfg.Logger == nil {
 		return nil, errors.New("logger is required")
@@ -79,14 +79,14 @@ func New(cfg Config) (Router, error) {
 	router.RedirectTrailingSlash = false
 	router.RedirectFixedPath = false
 
-	return &_router{
+	return &APIRouter{
 		router:     router,
 		baseLogger: cfg.Logger,
 		db:         cfg.Database,
 	}, nil
 }
 
-type _router struct {
+type APIRouter struct {
 	router *httprouter.Router
 
 	// baseLogger is a logger for non-requests contexts, like goroutines or background tasks not started by a request.
@@ -97,6 +97,6 @@ type _router struct {
 }
 
 // Close implements Router.
-func (rt *_router) Close() error {
+func (rt *APIRouter) Close() error {
 	panic("unimplemented")
 }
