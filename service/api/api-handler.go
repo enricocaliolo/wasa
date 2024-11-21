@@ -14,6 +14,7 @@ func (rt *APIRouter) Handler() http.Handler {
 
 	// conversation operations
 	rt.router.GET("/conversations", rt.authMiddleware(rt.conversations))
+	rt.router.GET("/conversations/:id", rt.authMiddleware(rt.getConversation))
 
 	return rt.router
 }

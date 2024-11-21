@@ -34,6 +34,7 @@ import (
 	"database/sql"
 	"errors"
 	"wasa/service/database/conversationDB"
+	"wasa/service/database/messagesDB"
 	"wasa/service/database/schema"
 	"wasa/service/database/userDB"
 	"wasa/service/shared/models"
@@ -52,6 +53,7 @@ type AppDatabase interface {
 
 	// conversation operations
 	GetAllConversations(id int) []models.Conversation
+	GetMessagesFromConversation(id int) []models.Message
 }
 
 type appdbimpl struct {
@@ -99,4 +101,8 @@ func (db *appdbimpl) ValidateUser(id int) bool {
 
 func (db *appdbimpl) GetAllConversations(id int) []models.Conversation {
 	return conversationDB.GetAllConversations(db.c, id)
+}
+
+func (db *appdbimpl) GetMessagesFromConversation(id int) []models.Message {
+	return messagesDB.GetMessagesFromConversation(db.c, id)
 }
