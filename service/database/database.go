@@ -46,7 +46,7 @@ type AppDatabase interface {
 	GetAllUsers() []models.User
 	GetUser(username string) models.User
 	CreateUser(username string) models.User
-	UpdateProfile(user models.User) string
+	UpdateProfile(user models.User) bool
 }
 
 type appdbimpl struct {
@@ -84,7 +84,7 @@ func (db *appdbimpl) CreateUser(username string) models.User {
 	return userDB.CreateUser(db.c, username)
 }
 
-func (db *appdbimpl) UpdateProfile(user models.User) string {
+func (db *appdbimpl) UpdateProfile(user models.User) bool {
 	return userDB.UpdateProfile(db.c, user)
 }
 

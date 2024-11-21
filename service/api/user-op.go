@@ -72,10 +72,17 @@ func (rt *APIRouter) changeProfile(w http.ResponseWriter, r *http.Request, ps ht
 	}
 	defer r.Body.Close()
 
-	userUpdated := rt.db.UpdateProfile(user)
+	isUserUpdated := rt.db.UpdateProfile(user)
+
+	if !isUserUpdated {
+		w.WriteHeader(http.StatusConflict)
+		w.Header().Set("content-type", "application/json")
+		json.NewEncoder(w).Encode("Username already taken!")
+		return
+	}
 
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(userUpdated)
+	json.NewEncoder(w).Encode(user)
 
 }

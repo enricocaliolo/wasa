@@ -6,7 +6,11 @@ import (
 	"wasa/service/shared/models"
 )
 
-func UpdateProfile(db *sql.DB, user models.User) string {
+func UpdateProfile(db *sql.DB, user models.User) bool {
+	if isUsernameTaken(db, user.Username) {
+		return false
+	}
+
 	statement, err := db.Prepare(`
     UPDATE User
     SET username = COALESCE(?, username),
@@ -19,5 +23,15 @@ func UpdateProfile(db *sql.DB, user models.User) string {
 	defer statement.Close()
 	_, err = statement.Exec(user.Username, user.Icon, user.ID)
 
-	return user.Username
+	return true
+}
+
+func isUsernameTaken(db *sql.DB, username string) bool {
+	var exists bool
+	query := "SELECT EXISTS(SELECT 1 FROM User WHERE LOWER(username) = LOWER(?))"
+	err := db.QueryRow(query, username).Scan(&exists)
+	if err != nil {
+		return true
+	}
+	return exists
 }
