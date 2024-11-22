@@ -4,16 +4,25 @@ info:
   description: |
     This API allows users to get and send messages.
   version: 0.0.1
+tags:
+  - name: auth
+    description: Authentication endpoints
+  - name: users
+    description: User management endpoints
+  - name: conversations
+    description: Conversation and messaging endpoints
+  - name: messages
+    description: Message management endpoints
 paths:
   /session:
     post:
       tags: ["login"]
       summary: Logs in the user
+      operationId: doLogin
       description: |-
         If the user does not exist, it will be created,
         and an identifier is returned.
         If the user exists, the user identifier is returned.
-      operationId: doLogin
       requestBody:
         description: User details
         content:
@@ -37,15 +46,16 @@ paths:
                 type: object
                 properties:
                   identifier:
-                    # change here if you decide to use an integer
-                    # or any other type of identifier
                     type: string
                     example: "abcdef012345"
 
-  /settings/profile:
+  # set new username
+  /settings/profile/username:
     put:
-      summary: update user profile
-      description: Update user profile with username, icon or both
+      tags: ["users"]
+      summary: update username
+      description: Update username
+      operationId: setMyUserName
       requestBody:
         required: true
         content:
@@ -57,6 +67,7 @@ paths:
                   type: string
                   minLength: 3
                   maxLength: 64
+                  pattern: "^[a-zA-Z0-9_-]{3,64}$"
       responses:
         "200":
           description: username update succesfully
@@ -67,9 +78,41 @@ paths:
         "409":
           description: username already taken
 
+  # set new photo
+  /settings/profile/photo:
+    put:
+      tags: ["users"]
+      summary: update user photo
+      description: update user photo
+      operationId: setMyPhoto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - photo_url
+              properties:
+                icon:
+                  type: string
+                  description: URL of the user phot
+                  minLength: 3
+                  maxLength: 2048
+                  pattern: "^https?://.*$"
+      responses:
+        "200":
+          description: photo updated succesfully
+          content:
+            application/json:
+              schema:
+                type: string
+
   # retrieve all the conversations and groups from a user
   /conversations:
     get:
+      tags: ["conversations"]
+      operationId: getMyConversations
       summary: get user conversations
       description: get all the conversations from a user
       responses:
@@ -79,14 +122,20 @@ paths:
             application/json:
               schema:
                 type: array
+                description: list of conversations
+                minItems: 0
+                maxItems: 100
                 items:
                   $ref: "#/components/schemas/Conversation"
 
-  /conversations/{id}:
+  # get messages from conversation and send message in said conversation
+  /conversations/{conversation-id}:
     parameters:
       - $ref: "#/components/parameters/conversation_id"
     get:
+      tags: ["messages"]
       description: get all messages from a conversation
+      operationId: getConversation
       responses:
         "201":
           description: succesfully retrieved all the messages
@@ -94,22 +143,15 @@ paths:
             application/json:
               schema:
                 type: array
+                description: list of messages
+                minimum: 0
+                maxItems: 100
                 items:
                   $ref: "#/components/schemas/Message"
-
-  # send message
-  /conversations/{conversation-id}/message:
-    parameters:
-      - $ref: "#/components/parameters/conversation_id"
-      - name: reply_message_id
-        in: query
-        required: false
-        description: in case of replying to a message, send the reply message as well
-        schema:
-          type: integer
-          description: id of the replied message
     post:
+      tags: ["messages"]
       description: Send a new message in a direct conversation
+      operationId: sendMessage
       requestBody:
         description: body of a new message
         required: true
@@ -118,10 +160,15 @@ paths:
             schema:
               type: object
               properties:
-                user_id:
-                  type: integer
                 content:
                   type: string
+                  description: message content
+                  minLength: 1
+                  maxLength: 4096
+                content_type:
+                  type: string
+                  description: type of message content
+                  enum: [text, image]
 
       responses:
         "201":
@@ -131,17 +178,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Message"
 
-    delete:
-      description: Delete message
-      responses:
-        "200":
-          description: succesfully deleted message
-
   # reply to message
-  /messages/{id}/reply:
+  /conversations/{conversation-id}/reply:
     parameters:
-      - $ref: "#/components/parameters/message_id"
+      - $ref: "#/components/parameters/conversation_id"
     post:
+      tags: ["messages"]
       description: reply to a message
       requestBody:
         description: sending the id of the conversation and the user to be replied
@@ -151,40 +193,81 @@ paths:
             schema:
               type: object
               properties:
-                user_id:
-                  type: integer
                 content:
                   type: string
+                  description: reply content
+                  minLength: 1
+                  maxLength: 4096
+                content_type:
+                  type: string
+                  description: type of reply content
+                  enum: [text, image]
+                replied_to:
+                  type: integer
       responses:
         "201":
           description: succesfully replied to a message
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Message"
+                type: integer
 
   # forward message
-  /messages/{id}/forward-message:
+  /conversations/{conversation-id}/forward-message:
     parameters:
-      - $ref: "#/components/parameters/message_id"
+      - $ref: "#/components/parameters/conversation_id"
     post:
+      tags: ["messages"]
       description: forward a message
+      operationId: forwardMessage
       requestBody:
-        description: Sending the id of the conversation to the forwarded message
+        description: Sending the id of the conversation to the forwarded message, along with the content, content_type and original_message_id
         required: true
         content:
           application/json:
             schema:
-              type: integer
+              type: object
+              properties:
+                destination_conversation_id:
+                  type: integer
+                  description: target conversation id
+                content:
+                  type: string
+                  description: reply content
+                  minLength: 1
+                  maxLength: 4096
+                content_type:
+                  type: string
+                  description: type of reply content
+                  enum: [text, image]
+                original_message_id:
+                  type: integer
       responses:
         "200":
           description: succesfully forwarded the message
 
-  /messages/{id}/reaction:
+  # delete message
+  /conversations/{conversation_id}/messages/{message_id}:
     parameters:
+      - $ref: "#/components/parameters/conversation_id"
+      - $ref: "#/components/parameters/message_id"
+    delete:
+      tags: ["conversations"]
+      description: Delete message
+      operationId: deleteMessage
+      responses:
+        "200":
+          description: succesfully deleted message
+
+  # comment and uncomment message
+  /conversations/{conversation-id}/message/{message-id}/reaction:
+    parameters:
+      - $ref: "#/components/parameters/conversation_id"
       - $ref: "#/components/parameters/message_id"
     post:
+      tags: ["messages"]
       description: react to a message
+      operationId: commentMessage
       requestBody:
         description: sending the id of the user and the reaction to the message
         required: true
@@ -193,44 +276,104 @@ paths:
             schema:
               type: object
               properties:
-                user_id:
-                  type: integer
                 reaction:
                   type: integer
+                  description: emoji
+      responses:
+        "200":
+          description: succesfuly reacted to the message
+    delete:
+      tags: ["messages"]
+      description: remove reaction from message
+      operationId: uncommentMessage
       responses:
         "200":
           description: succesfuly reacted to the message
 
   # add user to a group
-  /conversation/{conversation_id}/{user_id}:
+  /conversations/{conversation_id}/users:
     parameters:
       - $ref: "#/components/parameters/conversation_id"
-      - $ref: "#/components/parameters/user_id"
     post:
+      tags: ["conversations"]
       description: add a user to the group
-      responses:
-        "200":
-          description: succesfully added the user to the group
-
-  # leave a group
-  /conversation/{conversation_id}:
-    parameters:
-      - $ref: "#/components/parameters/conversation_id"
-    delete:
-      description: User leave a group
+      operationId: addToGroup
       requestBody:
-        description: leaving from a group
+        description: adding a user to a conversation
         required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - user_id
               properties:
                 user_id:
                   type: integer
+                  description: id of user to add
+      responses:
+        "200":
+          description: succesfully added the user to the group
+
+  # leave a group
+  /conversations/{conversation_id}:
+    parameters:
+      - $ref: "#/components/parameters/conversation_id"
+    delete:
+      tags: ["conversations"]
+      description: User leave a group
+      operationId: leaveGroup
       responses:
         "200":
           description: succesfully left the group
+
+  # change the name of a conversation
+  /conversations/{conversation_id}/name:
+    parameters:
+      - $ref: "#/components/parameters/conversation_id"
+    put:
+      description: changing the name of a group
+      operationId: setGroupName
+      requestBody:
+        description: new name of the group
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: new name of conversation
+                  minLength: 3
+                  maximum: 128
+      responses:
+        "201":
+          description: succesfully changed the name of the group
+
+  # change the photo of the conversation
+  /conversations/{conversation_id}/photo:
+    parameters:
+      - $ref: "#/components/parameters/conversation_id"
+    put:
+      tags: ["conversations"]
+      description: changing the photo of a group
+      operationId: setGroupPhoto
+      requestBody:
+        description: new photo of the group
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                photo:
+                  type: string
+                  description: URL of the photo
+                  minLength: 3
+                  maxLength: 2048
+                  pattern: "^https?://.*$"
+      responses:
+        "201":
+          description: succesfully changed the photo of the group
 
 components:
   schemas:
@@ -242,104 +385,152 @@ components:
           minimum: 0
         username:
           type: string
-          minimum: 1
+          minimum: 3
           maximum: 64
         icon:
           type: string
+          description: url to user's profile photo
         created_at:
           type: integer
+          description: user creation timestamp
+          format: date-time
+
     Message:
       type: object
+      description: Message information
+      required:
+        - message_id
+        - content
+        - sender_id
+        - conversation_id
       properties:
         message_id:
           type: integer
+          description: Unique message identifier
           format: int64
         content:
           type: string
+          description: Message content
         sent_time:
           type: string
+          description: Message send timestamp
           format: date-time
         edited_time:
           type: string
+          description: Last edit timestamp
           format: date-time
         deleted_time:
           type: string
+          description: Deletion timestamp
           format: date-time
-        sender:
-          $ref: "#/components/schemas/User"
+        sender_id:
+          type: integer
+          description: Message sender ID
         conversation_id:
           type: integer
-          format: int64
-        replied_to:
-          $ref: "#/components/schemas/Message"
-        forwarded_from:
-          $ref: "#/components/schemas/Message"
+          description: Parent conversation ID
+        replied_to_id:
+          type: integer
+          description: ID of replied message
+        forwarded_from_id:
+          type: integer
+          description: ID of original message
         reactions:
           type: array
+          description: Message reactions
           items:
             $ref: "#/components/schemas/Reaction"
         status:
           type: string
+          description: Message delivery status
           enum: [sent, delivered, read]
+
     Conversation:
       type: object
+      description: Conversation information
+      required:
+        - conversation_id
+        - is_group
       properties:
         conversation_id:
           type: integer
+          description: Unique conversation identifier
         name:
           type: string
+          description: Conversation name (for groups)
           maxLength: 64
         is_group:
           type: boolean
+          description: Whether conversation is a group
         created_at:
           type: string
+          description: Creation timestamp
           format: date-time
         participants:
           type: array
+          description: Conversation participants
           items:
             $ref: "#/components/schemas/User"
+          minItems: 2
+          maxItems: 256
+
     Reaction:
       type: object
+      description: Message reaction information
+      required:
+        - reaction_id
+        - message_id
+        - user_id
+        - reaction_type
       properties:
         reaction_id:
           type: integer
+          description: Unique reaction identifier
           format: int64
         message_id:
           type: integer
+          description: Parent message ID
           format: int64
-        user:
-          $ref: "#/components/schemas/User"
-        reaction:
+        user_id:
+          type: integer
+          description: User who reacted
+        reaction_type:
           type: string
+          description: Type of reaction
 
   parameters:
-    message_id:
-      name: message_id
-      in: path
-      required: true
-      description: this is the message id
-      schema:
-        type: integer
     user_id:
       name: user_id
       in: path
       required: true
-      description: this is the user id
+      description: Unique user identifier
       schema:
         type: integer
+        minimum: 1
+
+    message_id:
+      name: message_id
+      in: path
+      required: true
+      description: Unique message identifier
+      schema:
+        type: integer
+        minimum: 1
+
     conversation_id:
       name: conversation_id
       in: path
       required: true
-      description: this is the conversation id
+      description: Unique conversation identifier
       schema:
         type: integer
+        minimum: 1
 
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: string
+      description: Authentication using Bearer token
 
 security:
   - bearerAuth: []
