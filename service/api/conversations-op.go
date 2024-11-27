@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"wasa/service/api/responses"
@@ -168,7 +169,7 @@ func (rt *APIRouter) deleteConversation(w http.ResponseWriter, r *http.Request, 
 	count, err := rt.db.CountParticipants(conversationID)
 
 	if count <= 2 {
-		responses.SendError(w, err, http.StatusBadRequest)
+		responses.SendError(w, errors.New("can't delete a direct conversation"), http.StatusBadRequest)
 		return
 	}
 
