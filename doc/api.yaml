@@ -129,7 +129,7 @@ paths:
                   $ref: "#/components/schemas/Conversation"
 
   # get messages from conversation and send message in said conversation
-  /conversations/{conversation-id}:
+  /conversations/{conversation_id}:
     parameters:
       - $ref: "#/components/parameters/conversation_id"
     get:
@@ -178,8 +178,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/Message"
 
+    # leave a group
+    delete:
+      tags: ["conversations"]
+      description: User leave a group
+      operationId: leaveGroup
+      responses:
+        "200":
+          description: succesfully left the group
+
   # reply to message
-  /conversations/{conversation-id}/reply:
+  /conversations/{conversation_id}/reply:
     parameters:
       - $ref: "#/components/parameters/conversation_id"
     post:
@@ -213,7 +222,7 @@ paths:
                 type: integer
 
   # forward message
-  /conversations/{conversation-id}/forward-message:
+  /conversations/{conversation_id}/forward-message:
     parameters:
       - $ref: "#/components/parameters/conversation_id"
     post:
@@ -259,8 +268,8 @@ paths:
         "200":
           description: succesfully deleted message
 
-  # comment and uncomment message
-  /conversations/{conversation-id}/message/{message-id}/reaction:
+  # comment
+  /conversations/{conversation_id}/message/{message_id}/reaction:
     parameters:
       - $ref: "#/components/parameters/conversation_id"
       - $ref: "#/components/parameters/message_id"
@@ -282,6 +291,12 @@ paths:
       responses:
         "200":
           description: succesfuly reacted to the message
+
+  /conversations/{conversation_id}/message/{message_id}/reaction/{reaction_id}:
+    parameters:
+      - $ref: "#/components/parameters/conversation_id"
+      - $ref: "#/components/parameters/message_id"
+      - $ref: "#/components/parameters/reaction_id"
     delete:
       tags: ["messages"]
       description: remove reaction from message
@@ -314,18 +329,6 @@ paths:
       responses:
         "200":
           description: succesfully added the user to the group
-
-  # leave a group
-  /conversations/{conversation_id}:
-    parameters:
-      - $ref: "#/components/parameters/conversation_id"
-    delete:
-      tags: ["conversations"]
-      description: User leave a group
-      operationId: leaveGroup
-      responses:
-        "200":
-          description: succesfully left the group
 
   # change the name of a conversation
   /conversations/{conversation_id}/name:
@@ -522,6 +525,15 @@ components:
       in: path
       required: true
       description: Unique conversation identifier
+      schema:
+        type: integer
+        minimum: 1
+
+    reaction_id:
+      name: reaction_id
+      in: path
+      required: true
+      description: Unique reaction identifier
       schema:
         type: integer
         minimum: 1
