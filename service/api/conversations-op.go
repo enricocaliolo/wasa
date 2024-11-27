@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"wasa/service/api/responses"
 	"wasa/service/shared/models"
 
 	"github.com/julienschmidt/httprouter"
@@ -15,6 +16,10 @@ type reqMessageBody struct {
 	ContentType string `json:"content_type"`
 	RepliedTo   *int   `json:"replied_to"`
 }
+
+// func (rt *APIRouter) a(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+
+// }
 
 func (rt *APIRouter) conversations(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
@@ -145,5 +150,44 @@ func (rt *APIRouter) forwardMessage(w http.ResponseWriter, r *http.Request, ps h
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("content-type", "application/json")
 	json.NewEncoder(w).Encode(id)
+
+}
+
+func (rt *APIRouter) deleteConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	user_id := getToken(r)
+	conversationID, _ := strconv.Atoi(ps.ByName("id"))
+
+	exists, _ := rt.db.IsUserInConversation(user_id, conversationID)
+	if !exists {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Header().Set("content-type", "application/json")
+		json.NewEncoder(w).Encode("User is not on the conversation.")
+		return
+	}
+
+	count, err := rt.db.CountParticipants(conversationID)
+
+	if count <= 2 {
+		responses.SendError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	_, err = rt.db.RemoveUserFromConversation(conversationID, user_id)
+	if err != nil {
+		responses.SendError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	if count == 1 {
+		_, err = rt.db.DeleteConversation(conversationID)
+		if err != nil {
+			responses.SendError(w, err, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+	w.Header().Set("content-type", "application/json")
+	json.NewEncoder(w).Encode("succesfully left group")
 
 }
