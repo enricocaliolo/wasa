@@ -77,6 +77,13 @@ paths:
                 type: string
         "409":
           description: username already taken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
 
   # set new photo
   /settings/profile/photo:
@@ -254,6 +261,13 @@ paths:
       responses:
         "200":
           description: succesfully forwarded the message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
 
   # delete message
   /conversations/{conversation_id}/messages/{message_id}:
@@ -267,6 +281,13 @@ paths:
       responses:
         "200":
           description: succesfully deleted message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
 
   # comment
   /conversations/{conversation_id}/message/{message_id}/reaction:
@@ -291,6 +312,13 @@ paths:
       responses:
         "200":
           description: succesfuly reacted to the message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
 
   /conversations/{conversation_id}/message/{message_id}/reaction/{reaction_id}:
     parameters:
@@ -304,6 +332,13 @@ paths:
       responses:
         "200":
           description: succesfuly reacted to the message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
 
   # add user to a group
   /conversations/{conversation_id}/users:
@@ -329,6 +364,13 @@ paths:
       responses:
         "200":
           description: succesfully added the user to the group
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
 
   # change the name of a conversation
   /conversations/{conversation_id}/name:
@@ -348,10 +390,17 @@ paths:
                   type: string
                   description: new name of conversation
                   minLength: 3
-                  maximum: 128
+                  maxLength: 128
       responses:
         "201":
           description: succesfully changed the name of the group
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
 
   # change the photo of the conversation
   /conversations/{conversation_id}/photo:
@@ -377,6 +426,13 @@ paths:
       responses:
         "201":
           description: succesfully changed the photo of the group
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
 
 components:
   schemas:
@@ -388,8 +444,8 @@ components:
           minimum: 0
         username:
           type: string
-          minimum: 3
-          maximum: 64
+          minLength: 3
+          maxLength: 64
         icon:
           type: string
           description: url to user's profile photo
