@@ -16,7 +16,7 @@ tags:
 paths:
   /session:
     post:
-      tags: ["login"]
+      tags: ["auth"]
       summary: Logs in the user
       operationId: doLogin
       description: |-
@@ -74,7 +74,11 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success confirmation message
         "409":
           description: username already taken
           content:
@@ -84,6 +88,7 @@ paths:
                 properties:
                   error:
                     type: string
+                    description: error message explaining the conflict
 
   # set new photo
   /settings/profile/photo:
@@ -113,7 +118,11 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success confirmation message
 
   # retrieve all the conversations and groups from a user
   /conversations:
@@ -141,6 +150,7 @@ paths:
       - $ref: "#/components/parameters/conversation_id"
     get:
       tags: ["messages"]
+      summary: retrieve conversation Messages
       description: get all messages from a conversation
       operationId: getConversation
       responses:
@@ -151,12 +161,13 @@ paths:
               schema:
                 type: array
                 description: list of messages
-                minimum: 0
+                minItems: 0
                 maxItems: 100
                 items:
                   $ref: "#/components/schemas/Message"
     post:
       tags: ["messages"]
+      summary: send new message
       description: Send a new message in a direct conversation
       operationId: sendMessage
       requestBody:
@@ -193,6 +204,14 @@ paths:
       responses:
         "200":
           description: succesfully left the group
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success confirmation message
 
   # reply to message
   /conversations/{conversation_id}/reply:
@@ -226,7 +245,11 @@ paths:
           content:
             application/json:
               schema:
-                type: integer
+                type: object
+                properties:
+                  message:
+                    type: integer
+                    description: id of message
 
   # forward message
   /conversations/{conversation_id}/forward-message:
@@ -438,12 +461,17 @@ components:
   schemas:
     User:
       type: object
+      description: schema for the user
+      required:
+        - user_id
       properties:
         user_id:
           type: integer
+          description: unique identifier of user
           minimum: 0
         username:
           type: string
+          description: unique identifier for the app
           minLength: 3
           maxLength: 64
         icon:
@@ -499,6 +527,8 @@ components:
           description: Message reactions
           items:
             $ref: "#/components/schemas/Reaction"
+          minItems: 0
+          maxItems: 64
         status:
           type: string
           description: Message delivery status
