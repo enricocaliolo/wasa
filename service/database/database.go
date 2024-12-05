@@ -66,6 +66,9 @@ type AppDatabase interface {
 	// message operations
 	GetMessage(message_id int, conversation_id int) (models.Message, error)
 	DeleteMessage(message_id int) (bool, error)
+	CommentMessage(user_id int, message_id int, reaction []byte) (bool, error)
+	UncommentMessage(reaction_id int) (bool, error)
+	IsReactionFromUser(user_id int, reaction_id int) (bool, error)
 }
 
 type appdbimpl struct {
@@ -153,4 +156,16 @@ func (db *appdbimpl) DeleteMessage(message_id int) (bool, error) {
 
 func (db *appdbimpl) CountParticipants(conversation_id int) (int, error) {
 	return conversationDB.CountParticipants(db.c, conversation_id)
+}
+
+func (db *appdbimpl) CommentMessage(user_id int, message_id int, reaction []byte) (bool, error) {
+	return messagesdb.CommentMessage(db.c, message_id, user_id, reaction)
+}
+
+func (db *appdbimpl) UncommentMessage(reaction_id int) (bool, error) {
+	return messagesdb.UncommentMessage(db.c, reaction_id)
+}
+
+func (db *appdbimpl) IsReactionFromUser(user_id int, reaction_id int) (bool, error) {
+	return messagesdb.IsReactionFromUser(db.c, reaction_id, user_id)
 }

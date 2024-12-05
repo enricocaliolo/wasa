@@ -231,3 +231,76 @@ func (rt *APIRouter) deleteMessage(w http.ResponseWriter, r *http.Request, ps ht
 	json.NewEncoder(w).Encode("succesfully deleted message")
 
 }
+
+func (rt *APIRouter) commentMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	user_id := getToken(r)
+	conversationID, _ := strconv.Atoi(ps.ByName("conversation_id"))
+	message_id, _ := strconv.Atoi(ps.ByName("message_id"))
+
+	exists, _ := rt.db.IsUserInConversation(user_id, conversationID)
+	if !exists {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Header().Set("content-type", "application/json")
+		json.NewEncoder(w).Encode("User is not on the conversation.")
+		return
+	}
+
+	var req struct {
+		Reaction string `json:"reaction"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	reactionBytes := []byte(req.Reaction)
+
+	_, err := rt.db.CommentMessage(user_id, message_id, reactionBytes)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Header().Set("content-type", "application/json")
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+	w.Header().Set("content-type", "application/json")
+	json.NewEncoder(w).Encode("succesfully commented message")
+
+}
+
+func (rt *APIRouter) uncommentMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	user_id := getToken(r)
+	conversationID, _ := strconv.Atoi(ps.ByName("conversation_id"))
+	reaction_id, _ := strconv.Atoi(ps.ByName("reaction_id"))
+
+	exists, _ := rt.db.IsUserInConversation(user_id, conversationID)
+	if !exists {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Header().Set("content-type", "application/json")
+		json.NewEncoder(w).Encode("User is not on the conversation.")
+		return
+	}
+
+	_, err := rt.db.IsReactionFromUser(user_id, reaction_id)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Header().Set("content-type", "application/json")
+		json.NewEncoder(w).Encode("Reaction is not from the user.")
+		return
+	}
+
+	_, err = rt.db.UncommentMessage(reaction_id)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Header().Set("content-type", "application/json")
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+	w.Header().Set("content-type", "application/json")
+	json.NewEncoder(w).Encode("succesfully uncommented message")
+
+}

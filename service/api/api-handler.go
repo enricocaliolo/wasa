@@ -22,12 +22,13 @@ func (rt *APIRouter) Handler() http.Handler {
 	rt.router.POST("/conversations/:conversation_id/forward", rt.authMiddleware(rt.forwardMessage))
 	rt.router.DELETE("/conversations/:conversation_id/messages/:message_id", rt.authMiddleware(rt.deleteMessage))
 
+	rt.router.PUT("/conversations/:conversation_id/messages/:message_id", rt.authMiddleware(rt.commentMessage))
+	rt.router.DELETE("/conversations/:conversation_id/messages/:message_id/reactions/:reaction_id", rt.authMiddleware(rt.uncommentMessage))
+
 	// rt.router.POST("/conversations")
 	// rt.router.PUT("/conversations/:id/users")
 	// rt.router.PUT("/conversations/:id/name")
 	// rt.router.PUT("/conversations/:id/photo")
-	// rt.router.PUT("/conversations/{conversation_id}/messages/{message_id}")
-	// rt.router.DELETE("/conversations/{conversation_id}/messages/{message_id}/reactions/{reaction_id}")
 
 	return rt.router
 }
