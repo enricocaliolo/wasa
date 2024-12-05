@@ -6,7 +6,25 @@ import (
 	"wasa/service/shared/models"
 )
 
-func UpdateProfile(db *sql.DB, user models.User) bool {
+func UpdateUsername(db *sql.DB, user models.User) bool {
+	if isUsernameTaken(db, user.Username) {
+		return false
+	}
+
+	statement, err := db.Prepare(`
+    UPDATE User
+    SET username = COALESCE(?, username)
+    WHERE user_id = ?
+	`)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer statement.Close()
+	_, err = statement.Exec(user.Username, user.ID)
+	return err == nil
+}
+
+func UpdatePhoto(db *sql.DB, user models.User) bool {
 	if isUsernameTaken(db, user.Username) {
 		return false
 	}
@@ -18,12 +36,11 @@ func UpdateProfile(db *sql.DB, user models.User) bool {
     WHERE user_id = ?
 	`)
 	if err != nil {
-		log.Fatal(err)
+		return false
 	}
 	defer statement.Close()
-	_, err = statement.Exec(user.Username, user.Icon, user.ID)
-
-	return true
+	_, err = statement.Exec(user.Username, user.ID)
+	return err == nil
 }
 
 func isUsernameTaken(db *sql.DB, username string) bool {

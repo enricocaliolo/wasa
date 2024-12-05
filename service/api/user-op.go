@@ -69,7 +69,7 @@ func (rt *APIRouter) findUser(w http.ResponseWriter, r *http.Request, ps httprou
 
 }
 
-func (rt *APIRouter) changeProfile(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *APIRouter) changeUsername(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var user models.User
 	user.ID = getToken(r)
 
@@ -80,7 +80,32 @@ func (rt *APIRouter) changeProfile(w http.ResponseWriter, r *http.Request, ps ht
 	}
 	defer r.Body.Close()
 
-	isUserUpdated := rt.db.UpdateProfile(user)
+	isUserUpdated := rt.db.UpdateUsername(user)
+
+	if !isUserUpdated {
+		w.WriteHeader(http.StatusConflict)
+		w.Header().Set("content-type", "application/json")
+		json.NewEncoder(w).Encode("Username already taken!")
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(user)
+}
+
+func (rt *APIRouter) changePhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	var user models.User
+	user.ID = getToken(r)
+
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	isUserUpdated := rt.db.UpdatePhoto(user)
 
 	if !isUserUpdated {
 		w.WriteHeader(http.StatusConflict)
