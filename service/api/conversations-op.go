@@ -304,3 +304,85 @@ func (rt *APIRouter) uncommentMessage(w http.ResponseWriter, r *http.Request, ps
 	json.NewEncoder(w).Encode("succesfully uncommented message")
 
 }
+
+func (rt *APIRouter) updateGroupName(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	user_id := getToken(r)
+	conversation_id, _ := strconv.Atoi(ps.ByName("id"))
+
+	isGroup, err := rt.db.IsGroup(conversation_id)
+	if err != nil || !isGroup {
+		http.Error(w, "Not a group conversation", http.StatusBadRequest)
+		return
+	}
+
+	exists, _ := rt.db.IsUserInConversation(user_id, conversation_id)
+	if !exists {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Header().Set("content-type", "application/json")
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+
+	var req struct {
+		Name string `json:"name"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("content-type", "application/json")
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+
+	_, err = rt.db.UpdateGroupName(conversation_id, req.Name)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Header().Set("content-type", "application/json")
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode("Group name updated successfully")
+}
+
+func (rt *APIRouter) UpdateGroupPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	user_id := getToken(r)
+	conversation_id, _ := strconv.Atoi(ps.ByName("id"))
+
+	isGroup, err := rt.db.IsGroup(conversation_id)
+	if err != nil || !isGroup {
+		http.Error(w, "Not a group conversation", http.StatusBadRequest)
+		return
+	}
+
+	exists, _ := rt.db.IsUserInConversation(user_id, conversation_id)
+	if !exists {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Header().Set("content-type", "application/json")
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+
+	var req struct {
+		Photo string `json:"photo"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("content-type", "application/json")
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+
+	_, err = rt.db.UpdateGroupPhoto(conversation_id, req.Photo)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Header().Set("content-type", "application/json")
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode("Group photo updated successfully")
+}

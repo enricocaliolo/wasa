@@ -69,6 +69,10 @@ type AppDatabase interface {
 	CommentMessage(user_id int, message_id int, reaction []byte) (bool, error)
 	UncommentMessage(reaction_id int) (bool, error)
 	IsReactionFromUser(user_id int, reaction_id int) (bool, error)
+
+	UpdateGroupName(conversation_id int, name string) (bool, error)
+	UpdateGroupPhoto(conversation_id int, photo string) (bool, error)
+	IsGroup(conversation_id int) (bool, error)
 }
 
 type appdbimpl struct {
@@ -168,4 +172,15 @@ func (db *appdbimpl) UncommentMessage(reaction_id int) (bool, error) {
 
 func (db *appdbimpl) IsReactionFromUser(user_id int, reaction_id int) (bool, error) {
 	return messagesdb.IsReactionFromUser(db.c, reaction_id, user_id)
+}
+
+func (db *appdbimpl) UpdateGroupName(conversation_id int, name string) (bool, error) {
+	return conversationDB.UpdateGroupName(db.c, conversation_id, name)
+}
+
+func (db *appdbimpl) UpdateGroupPhoto(conversation_id int, photo string) (bool, error) {
+	return conversationDB.UpdateGroupPhoto(db.c, conversation_id, photo)
+}
+func (db *appdbimpl) IsGroup(conversation_id int) (bool, error) {
+	return conversationDB.IsGroup(db.c, conversation_id)
 }

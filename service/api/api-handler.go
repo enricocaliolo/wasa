@@ -27,8 +27,8 @@ func (rt *APIRouter) Handler() http.Handler {
 
 	// rt.router.POST("/conversations")
 	// rt.router.PUT("/conversations/:id/users")
-	// rt.router.PUT("/conversations/:id/name")
-	// rt.router.PUT("/conversations/:id/photo")
+	rt.router.PUT("/conversations/:id/name", rt.authMiddleware(rt.updateGroupName))
+	rt.router.PUT("/conversations/:id/photo", rt.authMiddleware(rt.UpdateGroupPhoto))
 
 	return rt.router
 }
