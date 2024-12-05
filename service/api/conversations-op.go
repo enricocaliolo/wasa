@@ -386,3 +386,64 @@ func (rt *APIRouter) UpdateGroupPhoto(w http.ResponseWriter, r *http.Request, ps
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode("Group photo updated successfully")
 }
+
+func (rt *APIRouter) createConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	creator_id := getToken(r)
+
+	var req struct {
+		Members []int `json:"members"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if len(req.Members) < 1 {
+		http.Error(w, "Conversation must have at least one other member", http.StatusBadRequest)
+		return
+	}
+
+	conversation_id, err := rt.db.CreateConversation(creator_id, req.Members)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(conversation_id)
+}
+
+func (rt *APIRouter) addGroupMembers(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	user_id := getToken(r)
+	conversation_id, _ := strconv.Atoi(ps.ByName("id"))
+
+	isGroup, err := rt.db.IsGroup(conversation_id)
+	if err != nil || !isGroup {
+		http.Error(w, "Not a group conversation", http.StatusBadRequest)
+		return
+	}
+
+	exists, _ := rt.db.IsUserInConversation(user_id, conversation_id)
+	if !exists {
+		http.Error(w, "User not in group", http.StatusUnauthorized)
+		return
+	}
+
+	var req struct {
+		Members []int `json:"members"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := rt.db.AddGroupMembers(conversation_id, req.Members); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode("Members added successfully")
+}
