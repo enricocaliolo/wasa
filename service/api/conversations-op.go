@@ -39,7 +39,7 @@ func (rt *APIRouter) conversations(w http.ResponseWriter, r *http.Request, ps ht
 }
 
 func (rt *APIRouter) getConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	conversationID, _ := strconv.Atoi(ps.ByName("id"))
+	conversationID, _ := strconv.Atoi(ps.ByName("conversation_id"))
 
 	exists, _ := rt.db.IsUserInConversation(getToken(r), conversationID)
 	if !exists {
@@ -59,7 +59,7 @@ func (rt *APIRouter) getConversation(w http.ResponseWriter, r *http.Request, ps 
 func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var message models.Message
 	message.SenderID = getToken(r)
-	message.ConversationID, _ = strconv.Atoi(ps.ByName("id"))
+	message.ConversationID, _ = strconv.Atoi(ps.ByName("conversation_id"))
 
 	var reqBody reqMessageBody
 
@@ -100,7 +100,7 @@ func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps http
 
 func (rt *APIRouter) forwardMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
-	source_conversation_id, err := strconv.Atoi(ps.ByName("id"))
+	source_conversation_id, err := strconv.Atoi(ps.ByName("conversation_id"))
 	if err != nil {
 		http.Error(w, "Invalid conversation ID", http.StatusBadRequest)
 		return
@@ -156,7 +156,7 @@ func (rt *APIRouter) forwardMessage(w http.ResponseWriter, r *http.Request, ps h
 
 func (rt *APIRouter) deleteConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	user_id := getToken(r)
-	conversationID, _ := strconv.Atoi(ps.ByName("id"))
+	conversationID, _ := strconv.Atoi(ps.ByName("conversation_id"))
 
 	exists, _ := rt.db.IsUserInConversation(user_id, conversationID)
 	if !exists {
@@ -190,5 +190,44 @@ func (rt *APIRouter) deleteConversation(w http.ResponseWriter, r *http.Request, 
 	w.WriteHeader(http.StatusAccepted)
 	w.Header().Set("content-type", "application/json")
 	json.NewEncoder(w).Encode("succesfully left group")
+
+}
+
+func (rt *APIRouter) deleteMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	user_id := getToken(r)
+	conversationID, _ := strconv.Atoi(ps.ByName("conversation_id"))
+	message_id, _ := strconv.Atoi(ps.ByName("message_id"))
+
+	exists, _ := rt.db.IsUserInConversation(user_id, conversationID)
+	if !exists {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Header().Set("content-type", "application/json")
+		json.NewEncoder(w).Encode("User is not on the conversation.")
+		return
+	}
+
+	// todo: might need to check if message is from conversation for API calls
+	// since, from the UI, we always will delete from the conversation itself,
+	// might not need it
+
+	exists, _ = rt.db.IsMessageFromUser(message_id, user_id)
+	if !exists {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Header().Set("content-type", "application/json")
+		json.NewEncoder(w).Encode("Message not from this user.")
+		return
+	}
+
+	_, err := rt.db.DeleteMessage(message_id)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Header().Set("content-type", "application/json")
+		json.NewEncoder(w).Encode("Couldn't delete message.")
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+	w.Header().Set("content-type", "application/json")
+	json.NewEncoder(w).Encode("succesfully deleted message")
 
 }

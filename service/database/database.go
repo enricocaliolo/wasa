@@ -61,9 +61,11 @@ type AppDatabase interface {
 	RemoveUserFromConversation(conversation_id int, user_id int) (bool, error)
 	DeleteConversation(conversation_id int) (bool, error)
 	CountParticipants(conversation_id int) (int, error)
+	IsMessageFromUser(message_id int, user_id int) (bool, error)
 
 	// message operations
 	GetMessage(message_id int, conversation_id int) (models.Message, error)
+	DeleteMessage(message_id int) (bool, error)
 }
 
 type appdbimpl struct {
@@ -125,6 +127,10 @@ func (db *appdbimpl) IsUserInConversation(conversation_id int, user_id int) (boo
 	return conversationDB.IsUserInConversation(db.c, conversation_id, user_id)
 }
 
+func (db *appdbimpl) IsMessageFromUser(message_id int, user_id int) (bool, error) {
+	return conversationDB.IsMessageFromUser(db.c, message_id, user_id)
+}
+
 func (db *appdbimpl) SendMessage(message models.Message) (int, error) {
 	return conversationDB.SendMessage(db.c, message)
 }
@@ -139,6 +145,10 @@ func (db *appdbimpl) RemoveUserFromConversation(conversation_id int, user_id int
 
 func (db *appdbimpl) DeleteConversation(conversation_id int) (bool, error) {
 	return conversationDB.DeleteConversation(db.c, conversation_id)
+}
+
+func (db *appdbimpl) DeleteMessage(message_id int) (bool, error) {
+	return conversationDB.DeleteMessage(db.c, message_id)
 }
 
 func (db *appdbimpl) CountParticipants(conversation_id int) (int, error) {
