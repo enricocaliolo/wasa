@@ -343,6 +343,7 @@ paths:
                   message:
                     type: string
 
+  # uncomment
   /conversations/{conversation_id}/message/{message_id}/reaction/{reaction_id}:
     parameters:
       - $ref: "#/components/parameters/conversation_id"
