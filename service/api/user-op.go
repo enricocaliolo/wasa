@@ -30,9 +30,14 @@ func (rt *APIRouter) login(w http.ResponseWriter, r *http.Request, ps httprouter
 			return
 		}
 	}
+	resp := struct {
+        Username string `json:"username"`
+    }{
+        Username: req.Username,
+    }
 
-	w.Header().Set("content-type", "application/json")
-	json.NewEncoder(w).Encode(username)
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(resp)
 
 }
 

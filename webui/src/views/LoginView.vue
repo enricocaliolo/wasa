@@ -1,10 +1,20 @@
 <script setup lang="ts">
+import { authAPI } from '@/api/auth-api'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const username = ref('')
 
-function login() {
-  alert(username.value)
+const handleLogin = async () => {
+  try {
+    await authAPI.login(username.value)
+    router.push('/')
+  } catch (error) {
+    alert(error)
+    console.error('Login failed:', error)
+  }
 }
 </script>
 
@@ -17,7 +27,7 @@ function login() {
           <div class="input-form">
             <h2>Username</h2>
             <input v-model="username" />
-            <button @click="login">LOGIN</button>
+            <button @click="handleLogin">LOGIN</button>
           </div>
         </div>
       </div>
