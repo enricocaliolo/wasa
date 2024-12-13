@@ -307,7 +307,7 @@ func (rt *APIRouter) uncommentMessage(w http.ResponseWriter, r *http.Request, ps
 
 func (rt *APIRouter) updateGroupName(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	user_id := getToken(r)
-	conversation_id, _ := strconv.Atoi(ps.ByName("id"))
+	conversation_id, _ := strconv.Atoi(ps.ByName("conversation_id"))
 
 	isGroup, err := rt.db.IsGroup(conversation_id)
 	if err != nil || !isGroup {
@@ -348,7 +348,7 @@ func (rt *APIRouter) updateGroupName(w http.ResponseWriter, r *http.Request, ps 
 
 func (rt *APIRouter) UpdateGroupPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	user_id := getToken(r)
-	conversation_id, _ := strconv.Atoi(ps.ByName("id"))
+	conversation_id, _ := strconv.Atoi(ps.ByName("conversation_id"))
 
 	isGroup, err := rt.db.IsGroup(conversation_id)
 	if err != nil || !isGroup {
@@ -416,7 +416,7 @@ func (rt *APIRouter) createConversation(w http.ResponseWriter, r *http.Request, 
 
 func (rt *APIRouter) addGroupMembers(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	user_id := getToken(r)
-	conversation_id, _ := strconv.Atoi(ps.ByName("id"))
+	conversation_id, _ := strconv.Atoi(ps.ByName("conversation_id"))
 
 	isGroup, err := rt.db.IsGroup(conversation_id)
 	if err != nil || !isGroup {

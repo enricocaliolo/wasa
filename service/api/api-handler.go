@@ -26,9 +26,9 @@ func (rt *APIRouter) Handler() http.Handler {
 	rt.router.DELETE("/conversations/:conversation_id/messages/:message_id/reactions/:reaction_id", rt.authMiddleware(rt.uncommentMessage))
 
 	rt.router.POST("/conversations", rt.authMiddleware(rt.createConversation))
-	rt.router.PUT("/conversations/:id/name", rt.authMiddleware(rt.updateGroupName))
-	rt.router.PUT("/conversations/:id/photo", rt.authMiddleware(rt.UpdateGroupPhoto))
-	rt.router.PUT("/conversations/:id/users", rt.authMiddleware(rt.addGroupMembers))
+	rt.router.PUT("/conversations/:conversation_id/name", rt.authMiddleware(rt.updateGroupName))
+	rt.router.PUT("/conversations/:conversation_id/photo", rt.authMiddleware(rt.UpdateGroupPhoto))
+	rt.router.PUT("/conversations/:conversation_id/users", rt.authMiddleware(rt.addGroupMembers))
 
 	return rt.router
 }
