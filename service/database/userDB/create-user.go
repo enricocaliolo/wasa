@@ -2,29 +2,19 @@ package userDB
 
 import (
 	"database/sql"
-	"log"
 )
 
-func CreateUser(db *sql.DB, username string) (int, error) {
+func CreateUser(db *sql.DB, username string) (string, error) {
 	statement, err := db.Prepare("INSERT INTO User(username) VALUES (?)")
 	if err != nil {
-		log.Fatal(err)
-		return -1, err
+		return "", err
 	}
 	defer statement.Close()
 
-	result, err := statement.Exec(username)
+	_, err = statement.Exec(username)
 	if err != nil {
-		log.Fatal(err)
-		return -1, err
+		return "", err
 	}
 
-	id64, err := result.LastInsertId()
-	if err != nil {
-		log.Fatal(err)
-		return -1, err
-	}
-	id := int(id64)
-
-	return id, nil
+	return username, nil
 }

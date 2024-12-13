@@ -1,8 +1,8 @@
 package api
 
 import (
+	"database/sql"
 	"encoding/json"
-	"log"
 	"net/http"
 	"wasa/service/shared/models"
 
@@ -10,35 +10,29 @@ import (
 )
 
 func (rt *APIRouter) login(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Error parsing form", http.StatusBadRequest)
-		return
-	}
-	username := r.FormValue("username")
+	// type req struct {
+	// 	username string
+	// }
 
-	if username == "" {
-		http.Error(w, "Username is required", http.StatusBadRequest)
+	var req struct {
+		Username string `json:"username"`
+	 }
+	 if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
-	}
+	 }
+	 username := req.Username
 
-	id, err := rt.db.GetUser(username)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-
-	if id == -1 {
-		id, err = rt.db.CreateUser(username)
+	_, err := rt.db.GetUser(username)
+	if err == sql.ErrNoRows {
+		_, err = rt.db.CreateUser(username)
 		if err != nil {
-			log.Fatal(err)
 			return
 		}
 	}
 
-	w.Header().Set("Authorization", "Bearer "+string(rune(id)))
 	w.Header().Set("content-type", "application/json")
-	json.NewEncoder(w).Encode(id)
+	json.NewEncoder(w).Encode(username)
 
 }
 
