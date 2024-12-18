@@ -9,4 +9,12 @@ const api = axios.create({
   },
 })
 
+// api.interceptors.request.use((config) => {
+//   const username = localStorage.getItem('username')
+//   if (username) {
+//     config.headers.Authorization = `Bearer ${username}`
+//   }
+//   return config
+// })
+
 export default api

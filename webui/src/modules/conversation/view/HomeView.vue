@@ -1,12 +1,18 @@
 <script setup lang="ts">
-import { conversationAPI } from '@/modules/conversation/api/conversation-api'
+// import { conversationAPI } from '@/modules/conversation/api/conversation-api'
 import LoadingSpinner from '@/shared/components/LoadingSpinner.vue'
 import { onMounted, ref } from 'vue'
+import { conversationAPI } from '../api/conversation-api'
 
-const isLoading = ref(false)
+const isLoading = ref(true)
 
 onMounted(async () => {
-  const messages = await conversationAPI.getUserConversation()
+  try {
+    const response = await conversationAPI.getUserConversation()
+    console.log(response)
+  } catch (error) {
+    console.error('Failed to fetch conversations:', error)
+  }
 })
 </script>
 

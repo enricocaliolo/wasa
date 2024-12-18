@@ -1,12 +1,12 @@
 import type { Message } from '@/modules/message/models/message'
-import type { ConversationParticipant } from './conversation_participant'
+import { ConversationParticipant } from './conversation_participant'
 
 export class Conversation {
   public conversationId: number
   public name?: string
   public isGroup: boolean
   public createdAt: Date
-  public participants?: ConversationParticipant[]
+  public participants: ConversationParticipant[]
   public messages?: Message[]
 
   constructor(data: ConversationDTO) {
@@ -14,6 +14,7 @@ export class Conversation {
     this.name = data.name
     this.isGroup = data.is_group
     this.createdAt = new Date(data.created_at)
+    this.participants = data.participants
   }
 
   static fromJSON(json: ConversationDTO): Conversation {
@@ -26,6 +27,7 @@ export class Conversation {
       name: this.name,
       is_group: this.isGroup,
       created_at: this.createdAt.toISOString(),
+      participants: this.participants,
     }
   }
 }
@@ -35,4 +37,5 @@ export interface ConversationDTO {
   name?: string
   is_group: boolean
   created_at: string
+  participants: ConversationParticipant[]
 }

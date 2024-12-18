@@ -7,8 +7,8 @@ export const authAPI = {
         username: _username,
       })
 
-      if (response.data.username) {
-        localStorage.setItem('username', response.data.username)
+      if (response.data.id) {
+        localStorage.setItem('username', response.data.id)
       }
 
       return response.data

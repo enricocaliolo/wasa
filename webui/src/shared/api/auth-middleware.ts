@@ -5,8 +5,7 @@ export function authMiddleware(
   from: RouteLocationNormalized,
   next: NavigationGuardNext,
 ) {
-  const username = localStorage.getItem('username')
-  if (!username && to.path !== '/login') {
+  if (to.path !== '/login' && !localStorage.getItem('username')) {
     next('/login')
   } else {
     next()
