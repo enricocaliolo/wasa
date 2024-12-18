@@ -4,4 +4,8 @@
   <RouterView />
 </template>
 
-<style scoped></style>
+<style>
+body {
+  background-color: rgba(210, 202, 202, 0.692);
+}
+</style>
