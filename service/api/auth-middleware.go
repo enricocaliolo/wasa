@@ -29,7 +29,6 @@ func (rt *APIRouter) authMiddleware(next httprouter.Handle) httprouter.Handle {
 			return
 		}
 
-		// validating
 		if !rt.db.ValidateUser(num) {
 			http.Error(w, "Invalid token", http.StatusUnauthorized)
 			return

@@ -47,8 +47,8 @@ type AppDatabase interface {
 	// user operations
 	ValidateUser(id int) bool
 	GetAllUsers() []models.User
-	GetUser(username string) (string, error)
-	CreateUser(username string) (string, error)
+	GetUser(username string) (int, error)
+	CreateUser(username string) (int, error)
 	// UpdateProfile(user models.User) bool
 	UpdateUsername(user models.User) bool
 	UpdatePhoto(user models.User) bool
@@ -104,11 +104,11 @@ func (db *appdbimpl) GetAllUsers() []models.User {
 	return userDB.GetAllUsers(db.c)
 }
 
-func (db *appdbimpl) GetUser(username string) (string, error) {
+func (db *appdbimpl) GetUser(username string) (int, error) {
 	return userDB.GetUser(db.c, username)
 }
 
-func (db *appdbimpl) CreateUser(username string) (string, error) {
+func (db *appdbimpl) CreateUser(username string) (int, error) {
 	return userDB.CreateUser(db.c, username)
 }
 

@@ -23,21 +23,18 @@ func (rt *APIRouter) login(w http.ResponseWriter, r *http.Request, ps httprouter
 	 }
 	 username := req.Username
 
-	_, err := rt.db.GetUser(username)
+	id, err := rt.db.GetUser(username)
 	if err == sql.ErrNoRows {
-		_, err = rt.db.CreateUser(username)
+		id, err = rt.db.CreateUser(username)
 		if err != nil {
 			return
 		}
 	}
-	resp := struct {
-        Username string `json:"username"`
-    }{
-        Username: req.Username,
-    }
 
     w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(resp)
+    json.NewEncoder(w).Encode(struct {
+		ID int `json:"id"`
+	 }{ID: id})
 
 }
 
