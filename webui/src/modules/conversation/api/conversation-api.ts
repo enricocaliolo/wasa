@@ -1,12 +1,12 @@
 import api from '../../../shared/api/api'
+import { Conversation, type ConversationDTO } from '../models/conversation'
 
 export const conversationAPI = {
   getUserConversation: async () => {
     const response = await api.get('/conversations', { headers: { Authorization: `Bearer 1` } })
 
     if (response.status == 200) {
-      alert('mensagens')
-      console.log(response.data)
+      return response.data.map((json: ConversationDTO) => new Conversation(json))
     }
   },
 }

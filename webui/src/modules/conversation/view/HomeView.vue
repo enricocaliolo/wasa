@@ -1,15 +1,17 @@
 <script setup lang="ts">
 // import { conversationAPI } from '@/modules/conversation/api/conversation-api'
 import LoadingSpinner from '@/shared/components/LoadingSpinner.vue'
-import { onMounted, ref } from 'vue'
+import ConversationComponent from '../components/ConversationComponent.vue'
+import { computed, onMounted, ref } from 'vue'
 import { conversationAPI } from '../api/conversation-api'
+import type { Conversation } from '../models/conversation'
 
 const isLoading = ref(true)
+const conversations = ref<Conversation[]>([])
 
 onMounted(async () => {
   try {
-    const response = await conversationAPI.getUserConversation()
-    console.log(response)
+    conversations.value = await conversationAPI.getUserConversation()
   } catch (error) {
     console.error('Failed to fetch conversations:', error)
   }
@@ -18,7 +20,17 @@ onMounted(async () => {
 
 <template>
   <main v-if="isLoading">
-    <div class="conversations-box"></div>
+    <div class="conversations-box">
+      <header>
+        <h1>Search</h1>
+      </header>
+      <ConversationComponent
+        v-for="conversation in conversations"
+        :key="conversation.conversationId"
+        :conversation="conversation"
+      >
+      </ConversationComponent>
+    </div>
     <div class="current-conversation"></div>
   </main>
   <main v-else>

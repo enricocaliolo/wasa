@@ -14,7 +14,7 @@ export class Conversation {
     this.name = data.name
     this.isGroup = data.is_group
     this.createdAt = new Date(data.created_at)
-    this.participants = data.participants
+    this.participants = data.conversation_participants
   }
 
   static fromJSON(json: ConversationDTO): Conversation {
@@ -27,7 +27,7 @@ export class Conversation {
       name: this.name,
       is_group: this.isGroup,
       created_at: this.createdAt.toISOString(),
-      participants: this.participants,
+      conversation_participants: this.participants,
     }
   }
 }
@@ -37,5 +37,5 @@ export interface ConversationDTO {
   name?: string
   is_group: boolean
   created_at: string
-  participants: ConversationParticipant[]
+  conversation_participants: ConversationParticipant[]
 }
