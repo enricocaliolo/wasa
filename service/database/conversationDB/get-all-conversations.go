@@ -3,100 +3,116 @@ package conversationDB
 import (
 	"database/sql"
 	"log"
-	"strconv"
-	"strings"
 	"wasa/service/shared/models"
 )
 
-func GetAllConversations(db *sql.DB, user_id int) []models.Conversation {
+
+func GetAllConversations(db *sql.DB, userID int) []models.Conversation {
     query := `SELECT 
     c.conversation_id,
-    COALESCE(c.name, '') as name,
-    COALESCE(c.is_group, false) as is_group,
-    COALESCE(c.created_at, '') as created_at,
-    GROUP_CONCAT(
-        CASE 
-            WHEN cp2.user_id = cp1.user_id THEN NULL 
-            ELSE cp2.user_id 
-        END
-    ) as participant_ids,
-    GROUP_CONCAT(
-        CASE 
-            WHEN cp2.user_id = cp1.user_id THEN NULL 
-            ELSE COALESCE(cp2.joined_at, '')
-        END
-    ) as joined_ats,
-    GROUP_CONCAT(
-        CASE 
-            WHEN cp2.user_id = cp1.user_id THEN NULL 
-            ELSE u.username 
-        END
-    ) as participant_names
-    FROM ConversationParticipants cp1
-    JOIN Conversation c ON cp1.conversation_id = c.conversation_id
-    JOIN ConversationParticipants cp2 ON c.conversation_id = cp2.conversation_id
-    JOIN User u ON cp2.user_id = u.user_id
-    WHERE cp1.user_id = ?
-    GROUP BY c.conversation_id;`
+    CASE 
+        WHEN c.name IS NULL AND c.is_group = FALSE THEN 
+            (SELECT u.username 
+             FROM ConversationParticipants cp 
+             JOIN User u ON cp.user_id = u.user_id 
+             WHERE cp.conversation_id = c.conversation_id 
+               AND cp.user_id != 1 
+             LIMIT 1)
+        ELSE c.name 
+    END AS conversation_name,
+    c.is_group,
+    c.created_at AS conversation_created_at,
+    m.message_id,
+    m.content,
+    m.content_type,
+    m.sent_time,
+    m.sender_id,
+    u.username AS sender_username,
+    u.icon AS sender_icon
+    FROM Conversation c
+    JOIN ConversationParticipants cp ON c.conversation_id = cp.conversation_id
+    LEFT JOIN Message m ON c.conversation_id = m.conversation_id
+    LEFT JOIN User u ON m.sender_id = u.user_id
+    WHERE cp.user_id = 1
+    ORDER BY c.conversation_id, m.sent_time;`
 
-
-    rows, err := db.Query(query, user_id)
+    rows, err := db.Query(query, userID)
     if err != nil {
         log.Fatal(err)
         return nil
     }
     defer rows.Close()
 
-    var conversations []models.Conversation
+    conversations := make(map[int]*models.Conversation)
 
-    for rows.Next() {
-        var conversation models.Conversation
-        var participantIdsStr, joinedAtsStr, participantNamesStr string
+for rows.Next() {
+    var (
+        conversationId int
+        conversationName sql.NullString
+        isGroup bool
+        conversation_created_at sql.NullString
+        messageId int
+        content []byte
+        contentType string
+        sentTime sql.NullTime
+        senderID int
+        senderName sql.NullString
+        senderIcon sql.NullString
+    )
 
-        err := rows.Scan(
-            &conversation.ID,
-            &conversation.Name,
-            &conversation.Is_group,
-            &conversation.Created_at,
-            &participantIdsStr,
-            &joinedAtsStr,
-            &participantNamesStr,  // Add this line
-        )
-        if err != nil {
-            log.Fatal(err)
-            return nil
-        }
-
-        // Convert comma-separated strings to slices
-        participantIds := strings.Split(participantIdsStr, ",")
-        joinedAts := strings.Split(joinedAtsStr, ",")
-        participantNames := strings.Split(participantNamesStr, ",")  // Add this line
-        
-        // Create participants slice
-        conversation.ConversationParticipant = make([]models.ConversationParticipant, 0, len(participantIds))
-        
-        for i, idStr := range participantIds {
-            id, err := strconv.Atoi(idStr)
-            if err != nil {
-                log.Fatal(err)
-                return nil
-            }
-            
-            participant := models.ConversationParticipant{
-                User_id:   id,
-                Joined_at: joinedAts[i],
-                Name:      participantNames[i],
-            }
-            conversation.ConversationParticipant = append(conversation.ConversationParticipant, participant)
-        }
-
-        conversations = append(conversations, conversation)
-    }
-
-    if err = rows.Err(); err != nil {
+    err := rows.Scan(
+        &conversationId,
+        &conversationName,
+        &isGroup,
+        &conversation_created_at,
+        &messageId,
+        &content,
+        &contentType,
+        &sentTime,
+        &senderID,
+        &senderName,
+        &senderIcon,
+    )
+    if err != nil {
         log.Fatal(err)
         return nil
     }
 
-    return conversations
+    conv, exists := conversations[conversationId]
+    if !exists {
+        conv = &models.Conversation{
+            ID:         conversationId,
+            Name:       conversationName,
+            Is_group:   sql.NullBool{Bool: isGroup, Valid: true},
+            Created_at: conversation_created_at,
+            Messages:   make([]models.Message, 0),
+        }
+        conversations[conversationId] = conv
+    }
+
+    if sentTime.Valid {
+        message := models.Message{
+            ID:             messageId,
+            Content:        content,
+            ContentType:    "text",
+            SentTime:       sentTime.Time,
+            SenderID:       senderID,
+            ConversationID: conversationId,
+            Sender: models.User{
+                ID:      senderID,
+                Username: senderName.String,
+                Icon:   senderIcon,
+             },
+        }
+        conv.Messages = append(conv.Messages, message)
+    }
+}
+
+result := make([]models.Conversation, 0, len(conversations))
+for _, conv := range conversations {
+    result = append(result, *conv)
+}
+
+return result
+
 }

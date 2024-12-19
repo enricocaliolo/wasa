@@ -13,9 +13,8 @@ export class Message {
   public conversationId: number
   public repliedTo?: number
   public forwardedFrom?: number
-  public sender?: User
-  public conversation?: Conversation
   public reactions?: Reaction[]
+  public sender: User
 
   constructor(data: MessageDTO) {
     this.messageId = data.message_id
@@ -28,6 +27,7 @@ export class Message {
     this.conversationId = data.conversation_id
     this.repliedTo = data.replied_to
     this.forwardedFrom = data.forwarded_from
+    this.sender = data.sender
   }
 
   static fromJSON(json: MessageDTO): Message {
@@ -47,6 +47,7 @@ export class Message {
       replied_to: this.repliedTo,
       forwarded_from: this.forwardedFrom,
       created_at: this.sentTime.toISOString(),
+      sender: this.sender,
     }
   }
 
@@ -71,4 +72,5 @@ export interface MessageDTO {
   replied_to?: number
   forwarded_from?: number
   created_at: string
+  sender: User
 }

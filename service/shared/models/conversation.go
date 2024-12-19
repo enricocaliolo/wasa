@@ -6,7 +6,7 @@ import (
 )
 
 type Conversation struct {
-    ID                        int                       `json:"id"`
+    ID                        int                       `json:"conversation_id"`
     Name                      sql.NullString           `json:"-"`
     Is_group                  sql.NullBool             `json:"-"`
     Created_at               sql.NullString           `json:"-"`
@@ -16,7 +16,7 @@ type Conversation struct {
 
 func (c *Conversation) MarshalJSON() ([]byte, error) {
     return json.Marshal(&struct {
-        ID                        int                       `json:"id"`
+        ID                        int                       `json:"conversation_id"`
         Name                      string                    `json:"name"`
         Is_group                  bool                      `json:"is_group"`
         Created_at               string                    `json:"created_at"`

@@ -15,6 +15,7 @@ func CreateTables(db *sql.DB) {
 		icon VARCHAR(64),
 		created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 		);`,
+
 		`DROP TABLE IF EXISTS "Conversation";
 		CREATE TABLE IF NOT EXISTS "Conversation" (
 			conversation_id INTEGER PRIMARY KEY,

@@ -17,6 +17,7 @@ type Message struct {
 	ConversationID int           `json:"conversation_id"`
 	RepliedTo      sql.NullInt64 `json:"-"`
 	ForwardedFrom  sql.NullInt64 `json:"-"`
+	Sender 	   User          `json:"sender"`
 }
 
 func (m Message) MarshalJSON() ([]byte, error) {
@@ -31,6 +32,7 @@ func (m Message) MarshalJSON() ([]byte, error) {
 		ConversationID int        `json:"conversation_id"`
 		RepliedTo      *int64     `json:"replied_to,omitempty"`
 		ForwardedFrom  *int64     `json:"forwarded_from,omitempty"`
+		Sender		 User       `json:"sender"`
 	}{
 		ID:             m.ID,
 		Content:        string(m.Content),
@@ -42,6 +44,7 @@ func (m Message) MarshalJSON() ([]byte, error) {
 		ForwardedFrom:  nullInt64ToPtr(m.ForwardedFrom),
 		SenderID:       m.SenderID,
 		ConversationID: m.ConversationID,
+		Sender: 	   	m.Sender,
 	})
 }
 
