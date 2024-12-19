@@ -16,7 +16,7 @@ func GetAllConversations(db *sql.DB, userID int) []models.Conversation {
              FROM ConversationParticipants cp 
              JOIN User u ON cp.user_id = u.user_id 
              WHERE cp.conversation_id = c.conversation_id 
-               AND cp.user_id != 1 
+               AND cp.user_id != ?
              LIMIT 1)
         ELSE c.name 
     END AS conversation_name,
@@ -33,10 +33,10 @@ func GetAllConversations(db *sql.DB, userID int) []models.Conversation {
     JOIN ConversationParticipants cp ON c.conversation_id = cp.conversation_id
     LEFT JOIN Message m ON c.conversation_id = m.conversation_id
     LEFT JOIN User u ON m.sender_id = u.user_id
-    WHERE cp.user_id = 1
+    WHERE cp.user_id = ?
     ORDER BY c.conversation_id, m.sent_time;`
 
-    rows, err := db.Query(query, userID)
+    rows, err := db.Query(query, userID, userID)
     if err != nil {
         log.Fatal(err)
         return nil

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Conversation } from '../models/conversation'
+import { MessageComponent } from './index'
 
 const props = defineProps<{
   conversation: Conversation
@@ -7,16 +8,42 @@ const props = defineProps<{
 </script>
 
 <template>
-  <header>
-    <h1>{{ conversation.name == '' ? conversation.participants[0].name : conversation.name }}</h1>
-  </header>
-  <div class="messages-box">
-    <!-- <MessageComponent
-      v-for="message in conversation.messages"
-      :key="message.messageId"
-      :message="message"
-    /> -->
+  <div class="conversation-wrapper">
+    <header>
+      <h1>{{ conversation.name }}</h1>
+    </header>
+    <div class="messages-box">
+      <MessageComponent
+        v-for="message in conversation.messages"
+        :key="message.messageId"
+        :message="message"
+      />
+    </div>
+    <footer class="message-input">w</footer>
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+header {
+  padding: 1em;
+  background-color: grey;
+}
+
+.conversation-wrapper {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.messages-box {
+  background-color: lightblue;
+  overflow-y: auto;
+  padding: 1em;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 10px;
+}
+
+.message-input {
+  background-color: sandybrown;
+}
+</style>

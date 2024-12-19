@@ -1,12 +1,10 @@
 <script setup lang="ts">
-// import { conversationAPI } from '@/modules/conversation/api/conversation-api'
 import LoadingSpinner from '@/shared/components/LoadingSpinner.vue'
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { conversationAPI } from '../api/conversation-api'
 import { Conversation } from '../models/conversation'
 import { ConversationListItem, ConversationView } from '../components/index.ts'
 
-const isLoading = ref(true)
 const conversations = ref<Conversation[]>([])
 const currentConversation = ref<Conversation>()
 
@@ -20,12 +18,11 @@ onMounted(async () => {
 
 function changeCurrentConversation(conversation: Conversation) {
   currentConversation.value = conversation
-  debugger
 }
 </script>
 
 <template>
-  <main v-if="isLoading">
+  <main>
     <div class="conversations-box">
       <header>
         <h1>Search</h1>
@@ -41,12 +38,13 @@ function changeCurrentConversation(conversation: Conversation) {
     <ConversationView v-if="currentConversation" :conversation="currentConversation" />
     <div v-else class="current-conversation"></div>
   </main>
-  <main v-else>
-    <LoadingSpinner />
-  </main>
 </template>
 
 <style scoped>
+* {
+  border: 1px solid red;
+}
+
 main {
   height: 100vh;
   width: 90vw;
