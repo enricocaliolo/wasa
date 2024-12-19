@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '@/modules/auth/view/LoginView.vue'
 import HomeView from '@/modules/conversation/view/HomeView.vue'
+import { authMiddleware } from '../api/auth-middleware'
 // import { authMiddleware } from '../api/auth-middleware'
 
 const router = createRouter({
@@ -15,6 +16,6 @@ const router = createRouter({
   ],
 })
 
-// router.beforeEach(authMiddleware)
+router.beforeEach(authMiddleware)
 
 export default router

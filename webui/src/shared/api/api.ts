@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useUserStore } from '../stores/user'
 
 const api = axios.create({
   baseURL: 'http://localhost:3000',
@@ -9,12 +10,12 @@ const api = axios.create({
   },
 })
 
-// api.interceptors.request.use((config) => {
-//   const username = localStorage.getItem('username')
-//   if (username) {
-//     config.headers.Authorization = `Bearer ${username}`
-//   }
-//   return config
-// })
+api.interceptors.request.use((config) => {
+  const userStore = useUserStore()
+  if (userStore.user !== -1) {
+    config.headers.Authorization = `Bearer ${userStore.user}`
+  }
+  return config
+})
 
 export default api
