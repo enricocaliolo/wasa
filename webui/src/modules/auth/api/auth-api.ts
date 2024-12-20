@@ -1,5 +1,6 @@
 import { useUserStore } from '@/shared/stores/user'
 import api from '../../../shared/api/api'
+import { User, type UserDTO } from '../models/user'
 
 export const authAPI = {
   login: async (_username: string): Promise<string> => {
@@ -10,7 +11,12 @@ export const authAPI = {
       })
 
       if (response.data.id) {
-        userStore.setUserId(response.data.id)
+        const user: UserDTO = {
+          user_id: response.data.id,
+          username: response.data.username,
+          created_at: response.data.created_at,
+        }
+        userStore.setUser(User.fromJSON(user))
       }
 
       return response.data

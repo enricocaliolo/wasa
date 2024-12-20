@@ -12,8 +12,8 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const userStore = useUserStore()
-  if (userStore.user !== -1) {
-    config.headers.Authorization = `Bearer ${userStore.user}`
+  if (userStore.user !== undefined) {
+    config.headers.Authorization = `Bearer ${userStore.user.userId}`
   }
   return config
 })

@@ -15,7 +15,7 @@ export function authMiddleware(
   }
 
   // Check user ID in store
-  if (userStore.user === -1) {
+  if (userStore.user === undefined) {
     next('/login')
   } else {
     next()

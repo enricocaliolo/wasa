@@ -1,11 +1,12 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
+import { User } from '@/modules/auth/models/user'
 
 export const useUserStore = defineStore('user', () => {
-  const user = ref(-1)
-  function setUserId(id: number) {
-    user.value = id
+  const user = ref<User | undefined>()
+  function setUser(_user: User) {
+    user.value = _user
   }
 
-  return { user, setUserId }
+  return { user, setUser }
 })
