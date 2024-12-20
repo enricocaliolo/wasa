@@ -33,6 +33,7 @@ header {
 .conversation-wrapper {
   display: grid;
   grid-template-rows: auto 1fr auto;
+  min-height: 0;
 }
 
 .messages-box {
@@ -40,7 +41,9 @@ header {
   overflow-y: auto;
   padding: 1em;
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 0;
   gap: 10px;
 }
 </style>

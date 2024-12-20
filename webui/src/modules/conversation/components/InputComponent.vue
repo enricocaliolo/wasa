@@ -5,8 +5,10 @@ import { ref } from 'vue'
 const currentConversationStore = useCurrentConversationStore()
 const messageInput = ref('')
 
-const sendMessage = () => {
-  currentConversationStore.sendMessage(messageInput.value)
+const sendMessage = async () => {
+  await currentConversationStore.sendMessage(messageInput.value).then(() => {
+    messageInput.value = ''
+  })
 }
 </script>
 
