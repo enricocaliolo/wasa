@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import LoadingSpinner from '@/shared/components/LoadingSpinner.vue'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { conversationAPI } from '../api/conversation-api'
 import { Conversation } from '../models/conversation'
 import { ConversationListItem, ConversationView } from '../components/index.ts'
@@ -8,6 +8,7 @@ import { useCurrentConversationStore } from '@/shared/stores/current_conversatio
 
 const currentConversationStore = useCurrentConversationStore()
 const conversations = ref<Conversation[]>([])
+const searchInput = ref('')
 
 onMounted(async () => {
   try {
@@ -20,16 +21,22 @@ onMounted(async () => {
 function changeCurrentConversation(conversation: Conversation) {
   currentConversationStore.setCurrentConversation(conversation)
 }
+
+const filteredConversations = computed(() => {
+  return conversations.value.filter((conv) =>
+    conv.name.toLowerCase().includes(searchInput.value.toLowerCase()),
+  )
+})
 </script>
 
 <template>
   <main>
     <div class="conversations-box">
       <header>
-        <h1>Search</h1>
+        <input type="text" placeholder="Type a message..." v-model="searchInput" />
       </header>
       <ConversationListItem
-        v-for="conversation in conversations"
+        v-for="conversation in filteredConversations"
         :key="conversation.conversationId"
         :conversation="conversation"
         @click="changeCurrentConversation(conversation)"
