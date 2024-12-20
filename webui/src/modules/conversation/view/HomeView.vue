@@ -4,9 +4,10 @@ import { onMounted, ref } from 'vue'
 import { conversationAPI } from '../api/conversation-api'
 import { Conversation } from '../models/conversation'
 import { ConversationListItem, ConversationView } from '../components/index.ts'
+import { useCurrentConversationStore } from '@/shared/stores/current_conversation_store.ts'
 
+const currentConversationStore = useCurrentConversationStore()
 const conversations = ref<Conversation[]>([])
-const currentConversation = ref<Conversation>()
 
 onMounted(async () => {
   try {
@@ -17,7 +18,7 @@ onMounted(async () => {
 })
 
 function changeCurrentConversation(conversation: Conversation) {
-  currentConversation.value = conversation
+  currentConversationStore.setCurrentConversation(conversation)
 }
 </script>
 
@@ -35,7 +36,10 @@ function changeCurrentConversation(conversation: Conversation) {
       >
       </ConversationListItem>
     </div>
-    <ConversationView v-if="currentConversation" :conversation="currentConversation" />
+    <ConversationView
+      v-if="currentConversationStore.currentConversation"
+      :conversation="currentConversationStore.currentConversation"
+    />
     <div v-else class="current-conversation"></div>
   </main>
 </template>

@@ -10,7 +10,7 @@ const props = defineProps<{
 const useStore = useUserStore()
 
 const isFromUser = computed(() => {
-  return props.message.senderId === useStore.user
+  return props.message.senderId === useStore.user?.userId
 })
 </script>
 

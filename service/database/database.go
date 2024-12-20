@@ -57,7 +57,7 @@ type AppDatabase interface {
 	GetAllConversations(id int) []models.Conversation
 	GetMessagesFromConversation(id int) []models.Message
 	IsUserInConversation(conversation_id int, user_id int) (bool, error)
-	SendMessage(models.Message) (int, error)
+	SendMessage(models.Message) (*models.Message, error)
 	RemoveUserFromConversation(conversation_id int, user_id int) (bool, error)
 	DeleteConversation(conversation_id int) (bool, error)
 	CountParticipants(conversation_id int) (int, error)
@@ -140,7 +140,7 @@ func (db *appdbimpl) IsMessageFromUser(message_id int, user_id int) (bool, error
 	return conversationDB.IsMessageFromUser(db.c, message_id, user_id)
 }
 
-func (db *appdbimpl) SendMessage(message models.Message) (int, error) {
+func (db *appdbimpl) SendMessage(message models.Message) (*models.Message, error) {
 	return conversationDB.SendMessage(db.c, message)
 }
 

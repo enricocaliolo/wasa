@@ -1,4 +1,4 @@
-import type { User } from '@/modules/auth/models/user'
+import { User, type UserDTO } from '@/modules/auth/models/user'
 import type { Conversation } from '@/modules/conversation/models/conversation'
 import type { Reaction } from './reaction'
 
@@ -27,7 +27,7 @@ export class Message {
     this.conversationId = data.conversation_id
     this.repliedTo = data.replied_to
     this.forwardedFrom = data.forwarded_from
-    this.sender = data.sender
+    this.sender = new User(data.sender)
   }
 
   static fromJSON(json: MessageDTO): Message {
@@ -47,7 +47,7 @@ export class Message {
       replied_to: this.repliedTo,
       forwarded_from: this.forwardedFrom,
       created_at: this.sentTime.toISOString(),
-      sender: this.sender,
+      sender: this.sender.toJSON(),
     }
   }
 
@@ -72,5 +72,5 @@ export interface MessageDTO {
   replied_to?: number
   forwarded_from?: number
   created_at: string
-  sender: User
+  sender: UserDTO
 }

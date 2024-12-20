@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Conversation } from '../models/conversation'
-import { MessageComponent } from './index'
+import { InputComponent } from './index'
+import MessageComponent from '@/modules/message/components/MessageComponent.vue'
 
 const props = defineProps<{
   conversation: Conversation
@@ -19,7 +20,7 @@ const props = defineProps<{
         :message="message"
       />
     </div>
-    <footer class="message-input">w</footer>
+    <InputComponent />
   </div>
 </template>
 
@@ -41,9 +42,5 @@ header {
   display: flex;
   flex-direction: column-reverse;
   gap: 10px;
-}
-
-.message-input {
-  background-color: sandybrown;
 }
 </style>

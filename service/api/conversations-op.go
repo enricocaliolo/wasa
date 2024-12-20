@@ -16,6 +16,7 @@ type reqMessageBody struct {
 	Content     string `json:"content"`
 	ContentType string `json:"content_type"`
 	RepliedTo   *int   `json:"replied_to"`
+	ForwardedFrom *int `json:"forwarded_from"`
 }
 
 // func (rt *APIRouter) a(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -87,7 +88,16 @@ func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps http
 		message.RepliedTo.Int64 = -1
 	}
 
-	id, err := rt.db.SendMessage(message)
+	if reqBody.ForwardedFrom != nil {
+		message.ForwardedFrom = sql.NullInt64{
+			Int64: int64(*reqBody.ForwardedFrom),
+			Valid: true,
+		}
+	} else {
+		message.ForwardedFrom.Int64 = -1
+	}
+
+	insertedMessage, err := rt.db.SendMessage(message)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -95,7 +105,7 @@ func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps http
 
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("content-type", "application/json")
-	json.NewEncoder(w).Encode(id)
+	json.NewEncoder(w).Encode(insertedMessage)
 }
 
 func (rt *APIRouter) forwardMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
