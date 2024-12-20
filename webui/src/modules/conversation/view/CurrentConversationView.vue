@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Conversation } from '../models/conversation'
-import { InputComponent } from './index'
+import { InputComponent } from '../components/index'
 import MessageComponent from '@/modules/message/components/MessageComponent.vue'
 
 const props = defineProps<{
