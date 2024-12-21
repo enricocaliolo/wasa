@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { authAPI } from '@/modules/auth/api/auth-api'
+import { userAPI } from '@/modules/auth/api/user-api'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -9,7 +9,7 @@ const username = ref('')
 
 const handleLogin = async () => {
   try {
-    await authAPI.login(username.value)
+    await userAPI.login(username.value)
     router.push('/')
   } catch (error) {
     alert(error)

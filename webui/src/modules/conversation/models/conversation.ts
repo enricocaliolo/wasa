@@ -7,7 +7,7 @@ export class Conversation {
   public isGroup: boolean
   public createdAt: Date
   public participants: ConversationParticipant[]
-  public messages: Message[]
+  public messages?: Message[]
 
   constructor(data: ConversationDTO) {
     this.conversationId = data.conversation_id
@@ -15,7 +15,7 @@ export class Conversation {
     this.isGroup = data.is_group
     this.createdAt = new Date(data.created_at)
     this.participants = data.conversation_participants
-    this.messages = data.messages.map((messageDto) => new Message(messageDto))
+    this.messages = data.messages ? data.messages.map((messageDto) => new Message(messageDto)) : []
   }
 
   static fromJSON(json: ConversationDTO): Conversation {
@@ -29,7 +29,7 @@ export class Conversation {
       is_group: this.isGroup,
       created_at: this.createdAt.toISOString(),
       conversation_participants: this.participants,
-      messages: this.messages.map((message) => message.toJSON()),
+      messages: this.messages?.map((message) => message.toJSON()) || [],
     }
   }
 }
@@ -40,5 +40,5 @@ export interface ConversationDTO {
   is_group: boolean
   created_at: string
   conversation_participants: ConversationParticipant[]
-  messages: MessageDTO[]
+  messages?: MessageDTO[]
 }

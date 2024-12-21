@@ -13,11 +13,11 @@ type Message struct {
 	SentTime       time.Time     `json:"sent_time"`
 	EditedTime     sql.NullTime  `json:"-"`
 	DeletedTime    sql.NullTime  `json:"-"`
-	SenderID       int           `json:"sender_id"`
+	senderID       int           `json:"-"`
 	ConversationID int           `json:"conversation_id"`
 	RepliedTo      sql.NullInt64 `json:"-"`
 	ForwardedFrom  sql.NullInt64 `json:"-"`
-	Sender 	   User          `json:"sender"`
+	Sender 	   User          `json:"user"`
 }
 
 func (m Message) MarshalJSON() ([]byte, error) {
@@ -28,7 +28,7 @@ func (m Message) MarshalJSON() ([]byte, error) {
 		SentTime       time.Time  `json:"sent_time"`
 		EditedTime     *time.Time `json:"edited_time,omitempty"`
 		DeletedTime    *time.Time `json:"deleted_time,omitempty"`
-		SenderID       int        `json:"sender_id"`
+		SenderID       int        `json:"-"`
 		ConversationID int        `json:"conversation_id"`
 		RepliedTo      *int64     `json:"replied_to,omitempty"`
 		ForwardedFrom  *int64     `json:"forwarded_from,omitempty"`
@@ -42,7 +42,7 @@ func (m Message) MarshalJSON() ([]byte, error) {
 		DeletedTime:    nullTimeToPtr(m.DeletedTime),
 		RepliedTo:      nullInt64ToPtr(m.RepliedTo),
 		ForwardedFrom:  nullInt64ToPtr(m.ForwardedFrom),
-		SenderID:       m.SenderID,
+		SenderID:       m.senderID,
 		ConversationID: m.ConversationID,
 		Sender: 	   	m.Sender,
 	})

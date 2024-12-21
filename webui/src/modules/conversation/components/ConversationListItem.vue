@@ -1,30 +1,43 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Conversation } from '../models/conversation'
+import { useCurrentConversationStore } from '@/shared/stores/current_conversation_store'
+import api from '@/shared/api/api'
+import { conversationAPI } from '../api/conversation-api'
 
 const props = defineProps<{
   conversation: Conversation
 }>()
 
-const getLastMessage = computed(() => {
-  const lastMessage = props.conversation.messages[props.conversation.messages.length - 1]
-  return lastMessage ? lastMessage.content : ''
-})
+// const getLastMessage = computed(() => {
+//   const lastMessage = props.conversation.messages[props.conversation.messages.length - 1]
+//   return lastMessage ? lastMessage.content : ''
+// })
 
-const getLastMessageSender = computed(() => {
-  const lastMessage = props.conversation.messages[props.conversation.messages.length - 1]
-  return lastMessage ? lastMessage.sender.username : ''
-})
+// const getLastMessageSender = computed(() => {
+//   const lastMessage = props.conversation.messages[props.conversation.messages.length - 1]
+//   return lastMessage ? lastMessage.sender.username : ''
+// })
+
+const currentConversationStore = useCurrentConversationStore()
+
+async function getConversation(conversation: Conversation) {
+  const messages = await conversationAPI.getConversation(conversation.conversationId)
+  console.log(messages)
+  conversation.messages = messages
+
+  currentConversationStore.setCurrentConversation(conversation)
+}
 </script>
 
 <template>
-  <div class="conversation-preview">
+  <div class="conversation-preview" @click="getConversation(conversation)">
     <span class="name">
       {{ conversation.name }}
     </span>
-    <p>
+    <!-- <p>
       <span>{{ getLastMessageSender }}: </span>{{ getLastMessage }}
-    </p>
+    </p> -->
   </div>
 </template>
 

@@ -1,30 +1,33 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import type { Conversation } from '../models/conversation'
 import { conversationAPI } from '../api/conversation-api'
 import { useCurrentConversationStore } from '@/shared/stores/current_conversation_store'
 import { ConversationListItem } from './index'
+import ModalComponent from './ModalComponent.vue'
 
 const currentConversationStore = useCurrentConversationStore()
 const conversations = ref<Conversation[]>([])
 const searchInput = ref('')
+const showModal = ref(false)
 
 onMounted(async () => {
   try {
-    conversations.value = await conversationAPI.getUserConversation()
+    conversations.value = await conversationAPI.getUserConversations()
   } catch (error) {
     console.error('Failed to fetch conversations:', error)
   }
 })
 
-function changeCurrentConversation(conversation: Conversation) {
-  currentConversationStore.setCurrentConversation(conversation)
-}
-
 const filteredConversations = computed(() => {
   return conversations.value.filter((conv) =>
     conv.name.toLowerCase().includes(searchInput.value.toLowerCase()),
   )
+})
+
+watch(showModal, async (isOpen) => {
+  if (isOpen) {
+  }
 })
 </script>
 
@@ -32,13 +35,13 @@ const filteredConversations = computed(() => {
   <div class="conversations-box">
     <header>
       <input type="text" placeholder="Type a message..." v-model="searchInput" />
-      <button>+</button>
+      <button @click="showModal = true">+</button>
+      <ModalComponent :show="showModal" @close="showModal = false" />
     </header>
     <ConversationListItem
       v-for="conversation in filteredConversations"
       :key="conversation.conversationId"
       :conversation="conversation"
-      @click="changeCurrentConversation(conversation)"
     >
     </ConversationListItem>
   </div>

@@ -59,7 +59,7 @@ func (rt *APIRouter) getConversation(w http.ResponseWriter, r *http.Request, ps 
 
 func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var message models.Message
-	message.SenderID = getToken(r)
+	message.Sender.ID = getToken(r)
 	message.ConversationID, _ = strconv.Atoi(ps.ByName("conversation_id"))
 
 	var reqBody reqMessageBody
@@ -145,7 +145,7 @@ func (rt *APIRouter) forwardMessage(w http.ResponseWriter, r *http.Request, ps h
 	message.ConversationID = reqBody.Destination_conversation_id
 	message.Content = []byte(reqBody.Content)
 	message.ContentType = reqBody.Content_type
-	message.SenderID = userID
+	message.Sender.ID = userID
 	message.ForwardedFrom = sql.NullInt64{
 		Int64: int64(reqBody.Original_message_id),
 		Valid: true,
@@ -398,7 +398,6 @@ func (rt *APIRouter) UpdateGroupPhoto(w http.ResponseWriter, r *http.Request, ps
 }
 
 func (rt *APIRouter) createConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	creator_id := getToken(r)
 
 	var req struct {
 		Members []int `json:"members"`
@@ -414,7 +413,7 @@ func (rt *APIRouter) createConversation(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	conversation_id, err := rt.db.CreateConversation(creator_id, req.Members)
+	conversation_id, err := rt.db.CreateConversation(req.Members)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

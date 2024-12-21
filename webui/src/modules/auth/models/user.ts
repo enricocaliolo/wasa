@@ -2,13 +2,13 @@ export class User {
   public userId: number
   public username: string
   public icon?: string
-  public createdAt: Date
+  public createdAt?: Date
 
   constructor(data: UserDTO) {
     this.userId = data.user_id
     this.username = data.username
     this.icon = data.icon
-    this.createdAt = new Date(data.created_at)
+    this.createdAt = data.created_at ? new Date(data.created_at) : undefined
   }
 
   static fromJSON(json: UserDTO): User {
@@ -20,7 +20,7 @@ export class User {
       user_id: this.userId,
       username: this.username,
       icon: this.icon,
-      created_at: this.createdAt.toISOString(),
+      created_at: this.createdAt?.toISOString(),
     }
   }
 }
@@ -29,5 +29,5 @@ export interface UserDTO {
   user_id: number
   username: string
   icon?: string
-  created_at: string
+  created_at?: string
 }
