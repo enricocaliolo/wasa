@@ -73,7 +73,7 @@ type AppDatabase interface {
 	UpdateGroupName(conversation_id int, name string) (bool, error)
 	UpdateGroupPhoto(conversation_id int, photo string) (bool, error)
 	IsGroup(conversation_id int) (bool, error)
-	CreateConversation(members []int) (int, error)
+	CreateConversation(members []int) (models.Conversation, error)
 	AddGroupMembers(conversation_id int, members []int) error
 }
 
@@ -186,7 +186,7 @@ func (db *appdbimpl) UpdateGroupPhoto(conversation_id int, photo string) (bool, 
 func (db *appdbimpl) IsGroup(conversation_id int) (bool, error) {
 	return conversationDB.IsGroup(db.c, conversation_id)
 }
-func (db *appdbimpl) CreateConversation(members []int) (int, error) {
+func (db *appdbimpl) CreateConversation(members []int) (models.Conversation, error) {
 	return conversationDB.CreateConversation(db.c, members)
 }
 func (db *appdbimpl) AddGroupMembers(conversation_id int, members []int) error {

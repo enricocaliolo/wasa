@@ -2,25 +2,24 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import type { Conversation } from '../models/conversation'
 import { conversationAPI } from '../api/conversation-api'
-import { useCurrentConversationStore } from '@/shared/stores/current_conversation_store'
+import { useConversationStore } from '@/shared/stores/conversation_store'
 import { ConversationListItem } from './index'
 import ModalComponent from './ModalComponent.vue'
 
-const currentConversationStore = useCurrentConversationStore()
-const conversations = ref<Conversation[]>([])
+const conversationStore = useConversationStore()
 const searchInput = ref('')
 const showModal = ref(false)
 
 onMounted(async () => {
   try {
-    conversations.value = await conversationAPI.getUserConversations()
+    conversationStore.conversations = await conversationAPI.getUserConversations()
   } catch (error) {
     console.error('Failed to fetch conversations:', error)
   }
 })
 
 const filteredConversations = computed(() => {
-  return conversations.value.filter((conv) =>
+  return conversationStore.conversations.filter((conv) =>
     conv.name.toLowerCase().includes(searchInput.value.toLowerCase()),
   )
 })

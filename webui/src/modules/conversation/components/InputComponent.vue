@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useCurrentConversationStore } from '@/shared/stores/current_conversation_store'
+import { useConversationStore } from '@/shared/stores/conversation_store'
 import { ref } from 'vue'
 
-const currentConversationStore = useCurrentConversationStore()
+const currentConversationStore = useConversationStore()
 const messageInput = ref('')
 
 const sendMessage = async () => {

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"time"
+	"wasa/service/shared/helper"
 )
 
 type Message struct {
@@ -38,26 +39,13 @@ func (m Message) MarshalJSON() ([]byte, error) {
 		Content:        string(m.Content),
 		ContentType:    m.ContentType,
 		SentTime:       m.SentTime,
-		EditedTime:     nullTimeToPtr(m.EditedTime),
-		DeletedTime:    nullTimeToPtr(m.DeletedTime),
-		RepliedTo:      nullInt64ToPtr(m.RepliedTo),
-		ForwardedFrom:  nullInt64ToPtr(m.ForwardedFrom),
+		EditedTime:     helper.NullTimeToPtr(m.EditedTime),
+		DeletedTime:    helper.NullTimeToPtr(m.DeletedTime),
+		RepliedTo:      helper.NullInt64ToPtr(m.RepliedTo),
+		ForwardedFrom:  helper.NullInt64ToPtr(m.ForwardedFrom),
 		SenderID:       m.senderID,
 		ConversationID: m.ConversationID,
 		Sender: 	   	m.Sender,
 	})
 }
 
-func nullTimeToPtr(t sql.NullTime) *time.Time {
-	if !t.Valid {
-		return nil
-	}
-	return &t.Time
-}
-
-func nullInt64ToPtr(n sql.NullInt64) *int64 {
-	if !n.Valid {
-		return nil
-	}
-	return &n.Int64
-}

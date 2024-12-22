@@ -19,7 +19,7 @@ func CreateTables(db *sql.DB) {
 		`DROP TABLE IF EXISTS "Conversation";
 		CREATE TABLE IF NOT EXISTS "Conversation" (
 			conversation_id INTEGER PRIMARY KEY,
-			"name" VARCHAR(64) DEFAULT FALSE,
+			"name" VARCHAR(64) DEFAULT '',
 			is_group BOOLEAN,
 			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 		);`,

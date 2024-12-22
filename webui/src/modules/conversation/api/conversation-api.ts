@@ -14,7 +14,10 @@ export const conversationAPI = {
     const response = await api.get(`/conversations/${conversation_id}`)
     return response.data.map((json: MessageDTO) => new Message(json))
   },
-  createConversation: async () => {
-    const response = await api.post('/conversations')
+  createConversation: async (members: number[]): Promise<Conversation> => {
+    const response = await api.post('/conversations', {
+      members: members,
+    })
+    return new Conversation(response.data)
   },
 }

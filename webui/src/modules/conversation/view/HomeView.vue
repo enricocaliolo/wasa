@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useCurrentConversationStore } from '@/shared/stores/current_conversation_store.ts'
+import { useConversationStore } from '@/shared/stores/conversation_store'
 import SidebarComponent from '../components/SidebarComponent.vue'
 import CurrentConversationView from './CurrentConversationView.vue'
 
-const currentConversationStore = useCurrentConversationStore()
+const currentConversationStore = useConversationStore()
 </script>
 
 <template>

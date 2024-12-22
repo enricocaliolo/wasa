@@ -7,7 +7,7 @@ export class Conversation {
   public isGroup: boolean
   public createdAt: Date
   public participants: ConversationParticipant[]
-  public messages?: Message[]
+  public messages: Message[]
 
   constructor(data: ConversationDTO) {
     this.conversationId = data.conversation_id
@@ -40,5 +40,5 @@ export interface ConversationDTO {
   is_group: boolean
   created_at: string
   conversation_participants: ConversationParticipant[]
-  messages?: MessageDTO[]
+  messages: MessageDTO[]
 }

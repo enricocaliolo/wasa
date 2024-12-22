@@ -61,7 +61,9 @@ func (rt *APIRouter) findUser(w http.ResponseWriter, r *http.Request, ps httprou
 	w.Header().Set("content-type", "application/json")
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(id)
+	json.NewEncoder(w).Encode(struct {
+		ID int `json:"user_id"`
+	 }{ID: id})
 
 }
 

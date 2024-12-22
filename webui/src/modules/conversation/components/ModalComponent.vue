@@ -2,19 +2,26 @@
 import { userAPI } from '@/modules/auth/api/user-api'
 import type { User } from '@/modules/auth/models/user'
 import { ref } from 'vue'
+import { conversationAPI } from '../api/conversation-api'
+import { useConversationStore } from '@/shared/stores/conversation_store'
+import { useUserStore } from '@/shared/stores/user'
 
 defineProps({
   show: Boolean,
 })
 
+const conversationStore = useConversationStore()
+const userStore = useUserStore()
+
 const emit = defineEmits(['close', 'submit'])
 
 const searchInput = ref('')
-const currentUsers = ref<User[]>([])
+const currentUsers = ref<User[]>([userStore.user])
 
 async function addUser() {
   const user = await userAPI.findUser(searchInput.value)
   currentUsers.value.push(user)
+  searchInput.value = ''
 }
 
 function closeModal() {
@@ -23,8 +30,12 @@ function closeModal() {
   emit('close')
 }
 
-function createConversation() {
-  console.log('create conversation')
+async function createConversation() {
+  const conversation = await conversationAPI.createConversation(
+    currentUsers.value.map((user) => user.userId),
+  )
+  conversationStore.addConversation(conversation)
+  closeModal()
 }
 </script>
 

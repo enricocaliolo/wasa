@@ -10,7 +10,7 @@ import (
 func GetAllConversations(db *sql.DB, userID int) []models.Conversation {
     query := `SELECT 
         c.conversation_id,
-        c.name,
+        COALESCE(c.name, '') as name,
         c.is_group,
         c.created_at
     FROM Conversation c
@@ -29,7 +29,7 @@ func GetAllConversations(db *sql.DB, userID int) []models.Conversation {
 
     for rows.Next() {
         var conv models.Conversation
-        var name sql.NullString
+        var name string
         
         err := rows.Scan(
             &conv.ID,

@@ -2,38 +2,37 @@ package conversationDB
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
+	"wasa/service/shared/models"
 )
 
-func CreateConversation(db *sql.DB, members []int) (int, error) {
-    if len(members) < 1 {
-        return 0, errors.New("conversation must have at least one other member")
-    }
+func CreateConversation(db *sql.DB, members []int) (models.Conversation, error) {
+    // if len(members) < 1 {
+    //     return 0, errors.New("conversation must have at least one other member")
+    // }
 
     isGroup := len(members) > 1
 
-    result, err := db.Exec(`
-        INSERT INTO Conversation (is_group) VALUES (?)
-    `, isGroup)
-    if err != nil {
-        return 0, err
-    }
+    var conversation models.Conversation
 
-    conversation_id, err := result.LastInsertId()
+    err := db.QueryRow(`
+        INSERT INTO Conversation (is_group) VALUES (?) RETURNING conversation_id, COALESCE(name, ''), is_group, created_at
+    `, isGroup).Scan(&conversation.ID, &conversation.Name, &conversation.Is_group, &conversation.Created_at)
+
     if err != nil {
-        return 0, err
-    }
+        return conversation, fmt.Errorf("creating conversation: %w", err)
+    }   
+
 
     for _, member := range members {
         _, err = db.Exec(`
             INSERT INTO ConversationParticipants (conversation_id, user_id)
             VALUES (?, ?)
-        `, conversation_id, member)
+        `, conversation.ID, member)
         if err != nil {
-            return 0, fmt.Errorf("adding participant %d: %w", member, err)
+            return conversation, fmt.Errorf("adding participant %d: %w", member, err)
         }
     }
 
-    return int(conversation_id), nil
+    return conversation, nil
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Conversation } from '../models/conversation'
-import { useCurrentConversationStore } from '@/shared/stores/current_conversation_store'
+import { useConversationStore } from '@/shared/stores/conversation_store'
 import api from '@/shared/api/api'
 import { conversationAPI } from '../api/conversation-api'
 
@@ -19,7 +19,7 @@ const props = defineProps<{
 //   return lastMessage ? lastMessage.sender.username : ''
 // })
 
-const currentConversationStore = useCurrentConversationStore()
+const currentConversationStore = useConversationStore()
 
 async function getConversation(conversation: Conversation) {
   const messages = await conversationAPI.getConversation(conversation.conversationId)

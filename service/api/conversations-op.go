@@ -413,14 +413,16 @@ func (rt *APIRouter) createConversation(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	conversation_id, err := rt.db.CreateConversation(req.Members)
+	conversation, err := rt.db.CreateConversation(req.Members)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(conversation_id)
+	w.Header().Set("content-type", "application/json")
+	json.NewEncoder(w).Encode(conversation)
 }
 
 func (rt *APIRouter) addGroupMembers(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
