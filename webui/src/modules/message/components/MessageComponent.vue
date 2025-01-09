@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Message } from '@/modules/message/models/message'
-import { useUserStore } from '@/shared/stores/user'
+import { useUserStore } from '@/shared/stores/user_store'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -10,7 +10,7 @@ const props = defineProps<{
 const useStore = useUserStore()
 
 const isFromUser = computed(() => {
-  return props.message.sender.userId === useStore.user?.userId
+  return props.message.sender.userId === useStore.user.userId
 })
 </script>
 

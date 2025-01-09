@@ -30,13 +30,13 @@ func (rt *APIRouter) conversations(w http.ResponseWriter, r *http.Request, ps ht
 
 	if conversations == nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode("Problem getting conversations")
+		_ = json.NewEncoder(w).Encode("Problem getting conversations")
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("content-type", "application/json")
-	json.NewEncoder(w).Encode(conversations)
+	_ = json.NewEncoder(w).Encode(conversations)
 }
 
 func (rt *APIRouter) getConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -46,7 +46,7 @@ func (rt *APIRouter) getConversation(w http.ResponseWriter, r *http.Request, ps 
 	if !exists {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("content-type", "application/json")
-		json.NewEncoder(w).Encode("User is not on the conversation.")
+		_ = json.NewEncoder(w).Encode("User is not on the conversation.")
 		return
 	}
 
@@ -54,7 +54,7 @@ func (rt *APIRouter) getConversation(w http.ResponseWriter, r *http.Request, ps 
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("content-type", "application/json")
-	json.NewEncoder(w).Encode(messages)
+	_ = json.NewEncoder(w).Encode(messages)
 }
 
 func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -67,7 +67,7 @@ func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps http
 	err := json.NewDecoder(r.Body).Decode(&reqBody)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(err)
+		_ = json.NewEncoder(w).Encode(err)
 		return
 	}
 	defer r.Body.Close()
@@ -105,7 +105,7 @@ func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps http
 
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("content-type", "application/json")
-	json.NewEncoder(w).Encode(insertedMessage)
+	_ = json.NewEncoder(w).Encode(insertedMessage)
 }
 
 func (rt *APIRouter) forwardMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -160,7 +160,7 @@ func (rt *APIRouter) forwardMessage(w http.ResponseWriter, r *http.Request, ps h
 
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("content-type", "application/json")
-	json.NewEncoder(w).Encode(id)
+	_ = json.NewEncoder(w).Encode(id)
 
 }
 
@@ -172,7 +172,7 @@ func (rt *APIRouter) deleteConversation(w http.ResponseWriter, r *http.Request, 
 	if !exists {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("content-type", "application/json")
-		json.NewEncoder(w).Encode("User is not on the conversation.")
+		_ = json.NewEncoder(w).Encode("User is not on the conversation.")
 		return
 	}
 
@@ -199,7 +199,7 @@ func (rt *APIRouter) deleteConversation(w http.ResponseWriter, r *http.Request, 
 
 	w.WriteHeader(http.StatusAccepted)
 	w.Header().Set("content-type", "application/json")
-	json.NewEncoder(w).Encode("succesfully left group")
+	_ = json.NewEncoder(w).Encode("succesfully left group")
 
 }
 
@@ -212,7 +212,7 @@ func (rt *APIRouter) deleteMessage(w http.ResponseWriter, r *http.Request, ps ht
 	if !exists {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("content-type", "application/json")
-		json.NewEncoder(w).Encode("User is not on the conversation.")
+		_ = json.NewEncoder(w).Encode("User is not on the conversation.")
 		return
 	}
 
@@ -224,7 +224,7 @@ func (rt *APIRouter) deleteMessage(w http.ResponseWriter, r *http.Request, ps ht
 	if !exists {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("content-type", "application/json")
-		json.NewEncoder(w).Encode("Message not from this user.")
+		_ = json.NewEncoder(w).Encode("Message not from this user.")
 		return
 	}
 
@@ -232,13 +232,13 @@ func (rt *APIRouter) deleteMessage(w http.ResponseWriter, r *http.Request, ps ht
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Header().Set("content-type", "application/json")
-		json.NewEncoder(w).Encode("Couldn't delete message.")
+		_ = json.NewEncoder(w).Encode("Couldn't delete message.")
 		return
 	}
 
 	w.WriteHeader(http.StatusAccepted)
 	w.Header().Set("content-type", "application/json")
-	json.NewEncoder(w).Encode("succesfully deleted message")
+	_ = json.NewEncoder(w).Encode("succesfully deleted message")
 
 }
 
@@ -251,7 +251,7 @@ func (rt *APIRouter) commentMessage(w http.ResponseWriter, r *http.Request, ps h
 	if !exists {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("content-type", "application/json")
-		json.NewEncoder(w).Encode("User is not on the conversation.")
+		_ = json.NewEncoder(w).Encode("User is not on the conversation.")
 		return
 	}
 
@@ -270,13 +270,13 @@ func (rt *APIRouter) commentMessage(w http.ResponseWriter, r *http.Request, ps h
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("content-type", "application/json")
-		json.NewEncoder(w).Encode(err)
+		_ = json.NewEncoder(w).Encode(err)
 		return
 	}
 
 	w.WriteHeader(http.StatusAccepted)
 	w.Header().Set("content-type", "application/json")
-	json.NewEncoder(w).Encode("succesfully commented message")
+	_ = json.NewEncoder(w).Encode("succesfully commented message")
 
 }
 
@@ -289,7 +289,7 @@ func (rt *APIRouter) uncommentMessage(w http.ResponseWriter, r *http.Request, ps
 	if !exists {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("content-type", "application/json")
-		json.NewEncoder(w).Encode("User is not on the conversation.")
+		_ = json.NewEncoder(w).Encode("User is not on the conversation.")
 		return
 	}
 
@@ -297,7 +297,7 @@ func (rt *APIRouter) uncommentMessage(w http.ResponseWriter, r *http.Request, ps
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("content-type", "application/json")
-		json.NewEncoder(w).Encode("Reaction is not from the user.")
+		_ = json.NewEncoder(w).Encode("Reaction is not from the user.")
 		return
 	}
 
@@ -305,13 +305,13 @@ func (rt *APIRouter) uncommentMessage(w http.ResponseWriter, r *http.Request, ps
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("content-type", "application/json")
-		json.NewEncoder(w).Encode(err)
+		_ = json.NewEncoder(w).Encode(err)
 		return
 	}
 
 	w.WriteHeader(http.StatusAccepted)
 	w.Header().Set("content-type", "application/json")
-	json.NewEncoder(w).Encode("succesfully uncommented message")
+	_ = json.NewEncoder(w).Encode("succesfully uncommented message")
 
 }
 
@@ -329,7 +329,7 @@ func (rt *APIRouter) updateGroupName(w http.ResponseWriter, r *http.Request, ps 
 	if !exists {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Header().Set("content-type", "application/json")
-		json.NewEncoder(w).Encode(err)
+		_ = json.NewEncoder(w).Encode(err)
 		return
 	}
 
@@ -340,7 +340,7 @@ func (rt *APIRouter) updateGroupName(w http.ResponseWriter, r *http.Request, ps 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Header().Set("content-type", "application/json")
-		json.NewEncoder(w).Encode(err)
+		_ = json.NewEncoder(w).Encode(err)
 		return
 	}
 
@@ -348,12 +348,12 @@ func (rt *APIRouter) updateGroupName(w http.ResponseWriter, r *http.Request, ps 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Header().Set("content-type", "application/json")
-		json.NewEncoder(w).Encode(err)
+		_ = json.NewEncoder(w).Encode(err)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode("Group name updated successfully")
+	_ = json.NewEncoder(w).Encode("Group name updated successfully")
 }
 
 func (rt *APIRouter) UpdateGroupPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -370,7 +370,7 @@ func (rt *APIRouter) UpdateGroupPhoto(w http.ResponseWriter, r *http.Request, ps
 	if !exists {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Header().Set("content-type", "application/json")
-		json.NewEncoder(w).Encode(err)
+		_ = json.NewEncoder(w).Encode(err)
 		return
 	}
 
@@ -381,7 +381,7 @@ func (rt *APIRouter) UpdateGroupPhoto(w http.ResponseWriter, r *http.Request, ps
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Header().Set("content-type", "application/json")
-		json.NewEncoder(w).Encode(err)
+		_ = json.NewEncoder(w).Encode(err)
 		return
 	}
 
@@ -389,12 +389,12 @@ func (rt *APIRouter) UpdateGroupPhoto(w http.ResponseWriter, r *http.Request, ps
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Header().Set("content-type", "application/json")
-		json.NewEncoder(w).Encode(err)
+		_ = json.NewEncoder(w).Encode(err)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode("Group photo updated successfully")
+	_ = json.NewEncoder(w).Encode("Group photo updated successfully")
 }
 
 func (rt *APIRouter) createConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -422,7 +422,7 @@ func (rt *APIRouter) createConversation(w http.ResponseWriter, r *http.Request, 
 
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("content-type", "application/json")
-	json.NewEncoder(w).Encode(conversation)
+	_ = json.NewEncoder(w).Encode(conversation)
 }
 
 func (rt *APIRouter) addGroupMembers(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -456,5 +456,5 @@ func (rt *APIRouter) addGroupMembers(w http.ResponseWriter, r *http.Request, ps 
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode("Members added successfully")
+	_ = json.NewEncoder(w).Encode("Members added successfully")
 }

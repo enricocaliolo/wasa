@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup>
 import { userAPI } from '@/modules/auth/api/user-api'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'

@@ -1,11 +1,11 @@
-<script setup lang="ts">
-import type { Conversation } from '../models/conversation'
-import { InputComponent } from '../components/index'
-import MessageComponent from '@/modules/message/components/MessageComponent.vue'
+<script setup>
+import InputComponent from '@/modules/conversation/components/InputComponent.vue'
+import MessageComponent from '../../message/components/MessageComponent.vue';
 
-const props = defineProps<{
-  conversation: Conversation
-}>()
+defineProps({
+  conversation: Object
+})
+
 </script>
 
 <template>

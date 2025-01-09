@@ -1,9 +1,8 @@
-<script setup lang="ts">
+<script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import type { Conversation } from '../models/conversation'
 import { conversationAPI } from '../api/conversation-api'
 import { useConversationStore } from '@/shared/stores/conversation_store'
-import { ConversationListItem } from './index'
+import  ConversationListItem  from './ConversationListItem.vue'
 import ModalComponent from './ModalComponent.vue'
 
 const conversationStore = useConversationStore()

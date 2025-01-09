@@ -32,7 +32,7 @@ func (rt *APIRouter) login(w http.ResponseWriter, r *http.Request, ps httprouter
 	}
 
     w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(struct {
+    _ = json.NewEncoder(w).Encode(struct {
 		ID int `json:"id"`
 	 }{ID: id})
 
@@ -42,7 +42,7 @@ func (rt *APIRouter) TestUsers(w http.ResponseWriter, r *http.Request, ps httpro
 	users := rt.db.GetAllUsers()
 
 	w.Header().Set("content-type", "application/json")
-	json.NewEncoder(w).Encode(users)
+	_ = json.NewEncoder(w).Encode(users)
 
 }
 
@@ -54,14 +54,14 @@ func (rt *APIRouter) findUser(w http.ResponseWriter, r *http.Request, ps httprou
 	id, err := rt.db.GetUser(username)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode("User not found")
+		_ = json.NewEncoder(w).Encode("User not found")
 		return
 	}
 
 	w.Header().Set("content-type", "application/json")
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(struct {
+	_ = json.NewEncoder(w).Encode(struct {
 		ID int `json:"user_id"`
 	 }{ID: id})
 
@@ -83,13 +83,13 @@ func (rt *APIRouter) changeUsername(w http.ResponseWriter, r *http.Request, ps h
 	if !isUserUpdated {
 		w.WriteHeader(http.StatusConflict)
 		w.Header().Set("content-type", "application/json")
-		json.NewEncoder(w).Encode("Username already taken!")
+		_ = json.NewEncoder(w).Encode("Username already taken!")
 		return
 	}
 
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(user)
+	_ = json.NewEncoder(w).Encode(user)
 }
 
 func (rt *APIRouter) changePhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -108,11 +108,11 @@ func (rt *APIRouter) changePhoto(w http.ResponseWriter, r *http.Request, ps http
 	if !isUserUpdated {
 		w.WriteHeader(http.StatusConflict)
 		w.Header().Set("content-type", "application/json")
-		json.NewEncoder(w).Encode("Username already taken!")
+		_ = json.NewEncoder(w).Encode("Username already taken!")
 		return
 	}
 
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(user)
+	_ = json.NewEncoder(w).Encode(user)
 }

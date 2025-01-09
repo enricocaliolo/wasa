@@ -1,13 +1,11 @@
-<script setup lang="ts">
-import { computed } from 'vue'
-import type { Conversation } from '../models/conversation'
+<script setup>
 import { useConversationStore } from '@/shared/stores/conversation_store'
 import api from '@/shared/api/api'
 import { conversationAPI } from '../api/conversation-api'
 
-const props = defineProps<{
-  conversation: Conversation
-}>()
+const props = defineProps({
+  conversation: Object,
+})
 
 // const getLastMessage = computed(() => {
 //   const lastMessage = props.conversation.messages[props.conversation.messages.length - 1]
@@ -21,9 +19,8 @@ const props = defineProps<{
 
 const currentConversationStore = useConversationStore()
 
-async function getConversation(conversation: Conversation) {
+async function getConversation(conversation) {
   const messages = await conversationAPI.getConversation(conversation.conversationId)
-  console.log(messages)
   conversation.messages = messages
 
   currentConversationStore.setCurrentConversation(conversation)

@@ -1,10 +1,9 @@
-<script setup lang="ts">
+<script setup>
 import { userAPI } from '@/modules/auth/api/user-api'
-import type { User } from '@/modules/auth/models/user'
 import { ref } from 'vue'
 import { conversationAPI } from '../api/conversation-api'
 import { useConversationStore } from '@/shared/stores/conversation_store'
-import { useUserStore } from '@/shared/stores/user'
+import { useUserStore } from '@/shared/stores/user_store'
 
 defineProps({
   show: Boolean,
@@ -16,7 +15,7 @@ const userStore = useUserStore()
 const emit = defineEmits(['close', 'submit'])
 
 const searchInput = ref('')
-const currentUsers = ref<User[]>([userStore.user])
+const currentUsers = ref([userStore.user])
 
 async function addUser() {
   const user = await userAPI.findUser(searchInput.value)
@@ -41,7 +40,7 @@ async function createConversation() {
 
 <template>
   <div v-if="show" class="modal-overlay">
-    <div class="modal">
+    <div class="my-modal">
       <header>
         <input type="text" placeholder="Type a message..." v-model="searchInput" />
         <button @click="addUser">ADD</button>
@@ -53,7 +52,7 @@ async function createConversation() {
         </div>
         <button @click="createConversation">CREATE</button>
       </div>
-      <div class="test-nothing" v-else>teste</div>
+      <div class="test-nothing" v-else></div>
     </div>
   </div>
 </template>
@@ -74,18 +73,21 @@ header {
   background: rgba(0, 0, 0, 0.5);
   display: grid;
   place-items: center;
+  z-index: 1000;
 }
 
-.modal {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
+.my-modal {
+  background-color: white;
 }
 
 .current-users {
   display: flex;
   flex-direction: column;
   gap: 5px;
+}
+
+.teste {
+  background-color: white;
 }
 
 .test-nothing {
