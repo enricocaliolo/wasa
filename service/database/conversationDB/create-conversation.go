@@ -2,27 +2,29 @@ package conversationDB
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"wasa/service/shared/models"
 )
 
-func CreateConversation(db *sql.DB, members []int) (models.Conversation, error) {
-    // if len(members) < 1 {
-    //     return 0, errors.New("conversation must have at least one other member")
-    // }
+func CreateConversation(db *sql.DB, members []int, name string) (models.Conversation, error) {
+    if len(members) < 1 {
+        return models.Conversation{}, errors.New("conversation must have at least one other member")
+    }
 
     isGroup := len(members) > 1
 
     var conversation models.Conversation
 
     err := db.QueryRow(`
-        INSERT INTO Conversation (is_group) VALUES (?) RETURNING conversation_id, COALESCE(name, ''), is_group, created_at
-    `, isGroup).Scan(&conversation.ID, &conversation.Name, &conversation.Is_group, &conversation.Created_at)
+        INSERT INTO Conversation (name, is_group) 
+        VALUES (?, ?) 
+        RETURNING conversation_id, name, is_group, created_at
+    `, name, isGroup).Scan(&conversation.ID, &conversation.Name, &conversation.Is_group, &conversation.Created_at)
 
     if err != nil {
         return conversation, fmt.Errorf("creating conversation: %w", err)
     }   
-
 
     for _, member := range members {
         _, err = db.Exec(`

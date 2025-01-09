@@ -68,10 +68,15 @@ func (rt *APIRouter) findUser(w http.ResponseWriter, r *http.Request, ps httprou
 }
 
 func (rt *APIRouter) changeUsername(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	userId, err := getToken(r)
+	if err != nil {	
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	var user models.User
-	user.ID = getToken(r)
+	user.ID = userId
 
-	err := json.NewDecoder(r.Body).Decode(&user)
+	err = json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -93,10 +98,15 @@ func (rt *APIRouter) changeUsername(w http.ResponseWriter, r *http.Request, ps h
 }
 
 func (rt *APIRouter) changePhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	userId, err := getToken(r)
+	if err != nil {	
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	var user models.User
-	user.ID = getToken(r)
+	user.ID = userId
 
-	err := json.NewDecoder(r.Body).Decode(&user)
+	err = json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return

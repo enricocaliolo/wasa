@@ -21,7 +21,7 @@ const currentConversationStore = useConversationStore()
 
 async function getConversation(conversation) {
   const messages = await conversationAPI.getConversation(conversation.conversationId)
-  conversation.messages = messages
+  conversation.messages = messages || []
 
   currentConversationStore.setCurrentConversation(conversation)
 }

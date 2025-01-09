@@ -1,21 +1,20 @@
 package api
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
-func getToken(r *http.Request) int {
+func getToken(r *http.Request) (int, error) {
 	authHeader := r.Header.Get("Authorization")
 	parts := strings.Split(authHeader, " ")
 
 	token := parts[1]
 	num, err := strconv.Atoi(token)
 	if err != nil {
-		log.Fatal(err)
+		return -1, nil
 	}
 
-	return num
+	return num, nil
 }

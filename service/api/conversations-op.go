@@ -25,8 +25,14 @@ type reqMessageBody struct {
 
 func (rt *APIRouter) conversations(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
-	id := getToken(r)
-	conversations := rt.db.GetAllConversations(id)
+	user_id, err := getToken(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("content-type", "application/json")
+		_ = json.NewEncoder(w).Encode(err)
+		return
+	}
+	conversations := rt.db.GetAllConversations(user_id)
 
 	if conversations == nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -41,8 +47,15 @@ func (rt *APIRouter) conversations(w http.ResponseWriter, r *http.Request, ps ht
 
 func (rt *APIRouter) getConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	conversationID, _ := strconv.Atoi(ps.ByName("conversation_id"))
+	user_id, err := getToken(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("content-type", "application/json")
+		_ = json.NewEncoder(w).Encode(err)
+		return
+	}
 
-	exists, _ := rt.db.IsUserInConversation(getToken(r), conversationID)
+	exists, _ := rt.db.IsUserInConversation(user_id, conversationID)
 	if !exists {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("content-type", "application/json")
@@ -58,13 +71,22 @@ func (rt *APIRouter) getConversation(w http.ResponseWriter, r *http.Request, ps 
 }
 
 func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+
+	user_id, err := getToken(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("content-type", "application/json")
+		_ = json.NewEncoder(w).Encode(err)
+		return
+	}
+
 	var message models.Message
-	message.Sender.ID = getToken(r)
+	message.Sender.ID = user_id
 	message.ConversationID, _ = strconv.Atoi(ps.ByName("conversation_id"))
 
 	var reqBody reqMessageBody
 
-	err := json.NewDecoder(r.Body).Decode(&reqBody)
+	err = json.NewDecoder(r.Body).Decode(&reqBody)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(w).Encode(err)
@@ -115,7 +137,13 @@ func (rt *APIRouter) forwardMessage(w http.ResponseWriter, r *http.Request, ps h
 		http.Error(w, "Invalid conversation ID", http.StatusBadRequest)
 		return
 	}
-	userID := getToken(r)
+	user_id, err := getToken(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("content-type", "application/json")
+		_ = json.NewEncoder(w).Encode(err)
+		return
+	}
 
 	var reqBody struct { // ID of message to forward
 		Destination_conversation_id int    `json:"destination_conversation_id"` // Where to forward to
@@ -129,13 +157,13 @@ func (rt *APIRouter) forwardMessage(w http.ResponseWriter, r *http.Request, ps h
 	}
 	defer r.Body.Close()
 
-	isInSource, err := rt.db.IsUserInConversation(source_conversation_id, userID)
+	isInSource, err := rt.db.IsUserInConversation(source_conversation_id, user_id)
 	if err != nil || !isInSource {
 		http.Error(w, "Not authorized to access source conversation", http.StatusForbidden)
 		return
 	}
 
-	isInDest, err := rt.db.IsUserInConversation(reqBody.Destination_conversation_id, userID)
+	isInDest, err := rt.db.IsUserInConversation(reqBody.Destination_conversation_id, user_id)
 	if err != nil || !isInDest {
 		http.Error(w, "Not authorized to forward to destination conversation", http.StatusForbidden)
 		return
@@ -145,7 +173,7 @@ func (rt *APIRouter) forwardMessage(w http.ResponseWriter, r *http.Request, ps h
 	message.ConversationID = reqBody.Destination_conversation_id
 	message.Content = []byte(reqBody.Content)
 	message.ContentType = reqBody.Content_type
-	message.Sender.ID = userID
+	message.Sender.ID = user_id
 	message.ForwardedFrom = sql.NullInt64{
 		Int64: int64(reqBody.Original_message_id),
 		Valid: true,
@@ -165,7 +193,13 @@ func (rt *APIRouter) forwardMessage(w http.ResponseWriter, r *http.Request, ps h
 }
 
 func (rt *APIRouter) deleteConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	user_id := getToken(r)
+	user_id, err := getToken(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("content-type", "application/json")
+		_ = json.NewEncoder(w).Encode(err)
+		return
+	}
 	conversationID, _ := strconv.Atoi(ps.ByName("conversation_id"))
 
 	exists, _ := rt.db.IsUserInConversation(user_id, conversationID)
@@ -204,7 +238,13 @@ func (rt *APIRouter) deleteConversation(w http.ResponseWriter, r *http.Request, 
 }
 
 func (rt *APIRouter) deleteMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	user_id := getToken(r)
+	user_id, err := getToken(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("content-type", "application/json")
+		_ = json.NewEncoder(w).Encode(err)
+		return
+	}
 	conversationID, _ := strconv.Atoi(ps.ByName("conversation_id"))
 	message_id, _ := strconv.Atoi(ps.ByName("message_id"))
 
@@ -228,7 +268,7 @@ func (rt *APIRouter) deleteMessage(w http.ResponseWriter, r *http.Request, ps ht
 		return
 	}
 
-	_, err := rt.db.DeleteMessage(message_id)
+	_, err = rt.db.DeleteMessage(message_id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Header().Set("content-type", "application/json")
@@ -243,7 +283,13 @@ func (rt *APIRouter) deleteMessage(w http.ResponseWriter, r *http.Request, ps ht
 }
 
 func (rt *APIRouter) commentMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	user_id := getToken(r)
+	user_id, err := getToken(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("content-type", "application/json")
+		_ = json.NewEncoder(w).Encode(err)
+		return
+	}
 	conversationID, _ := strconv.Atoi(ps.ByName("conversation_id"))
 	message_id, _ := strconv.Atoi(ps.ByName("message_id"))
 
@@ -266,7 +312,7 @@ func (rt *APIRouter) commentMessage(w http.ResponseWriter, r *http.Request, ps h
 
 	reactionBytes := []byte(req.Reaction)
 
-	_, err := rt.db.CommentMessage(user_id, message_id, reactionBytes)
+	_, err = rt.db.CommentMessage(user_id, message_id, reactionBytes)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("content-type", "application/json")
@@ -281,7 +327,13 @@ func (rt *APIRouter) commentMessage(w http.ResponseWriter, r *http.Request, ps h
 }
 
 func (rt *APIRouter) uncommentMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	user_id := getToken(r)
+	user_id, err := getToken(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("content-type", "application/json")
+		_ = json.NewEncoder(w).Encode(err)
+		return
+	}
 	conversationID, _ := strconv.Atoi(ps.ByName("conversation_id"))
 	reaction_id, _ := strconv.Atoi(ps.ByName("reaction_id"))
 
@@ -293,7 +345,7 @@ func (rt *APIRouter) uncommentMessage(w http.ResponseWriter, r *http.Request, ps
 		return
 	}
 
-	_, err := rt.db.IsReactionFromUser(user_id, reaction_id)
+	_, err = rt.db.IsReactionFromUser(user_id, reaction_id)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("content-type", "application/json")
@@ -316,7 +368,14 @@ func (rt *APIRouter) uncommentMessage(w http.ResponseWriter, r *http.Request, ps
 }
 
 func (rt *APIRouter) updateGroupName(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	user_id := getToken(r)
+	user_id, err := getToken(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("content-type", "application/json")
+		_ = json.NewEncoder(w).Encode(err)
+		return
+	}
+
 	conversation_id, _ := strconv.Atoi(ps.ByName("conversation_id"))
 
 	isGroup, err := rt.db.IsGroup(conversation_id)
@@ -357,7 +416,13 @@ func (rt *APIRouter) updateGroupName(w http.ResponseWriter, r *http.Request, ps 
 }
 
 func (rt *APIRouter) UpdateGroupPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	user_id := getToken(r)
+	user_id, err := getToken(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("content-type", "application/json")
+		_ = json.NewEncoder(w).Encode(err)
+		return
+	}
 	conversation_id, _ := strconv.Atoi(ps.ByName("conversation_id"))
 
 	isGroup, err := rt.db.IsGroup(conversation_id)
@@ -401,6 +466,7 @@ func (rt *APIRouter) createConversation(w http.ResponseWriter, r *http.Request, 
 
 	var req struct {
 		Members []int `json:"members"`
+		Name string `json:"name"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -413,7 +479,7 @@ func (rt *APIRouter) createConversation(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	conversation, err := rt.db.CreateConversation(req.Members)
+	conversation, err := rt.db.CreateConversation(req.Members, req.Name)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -426,7 +492,13 @@ func (rt *APIRouter) createConversation(w http.ResponseWriter, r *http.Request, 
 }
 
 func (rt *APIRouter) addGroupMembers(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	user_id := getToken(r)
+	user_id, err := getToken(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("content-type", "application/json")
+		_ = json.NewEncoder(w).Encode(err)
+		return
+	}
 	conversation_id, _ := strconv.Atoi(ps.ByName("conversation_id"))
 
 	isGroup, err := rt.db.IsGroup(conversation_id)

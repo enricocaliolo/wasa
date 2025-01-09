@@ -15,6 +15,7 @@ const userStore = useUserStore()
 const emit = defineEmits(['close', 'submit'])
 
 const searchInput = ref('')
+const groupName = ref('')
 const currentUsers = ref([userStore.user])
 
 async function addUser() {
@@ -30,12 +31,19 @@ function closeModal() {
 }
 
 async function createConversation() {
+  if(currentUsers.value.length > 2 && groupName.value == '') {
+    alert('Please, insert a group name')
+    return
+  }
+
+
   const conversation = await conversationAPI.createConversation(
-    currentUsers.value.map((user) => user.userId),
+    currentUsers.value.map((user) => user.userId), groupName.value
   )
   conversationStore.addConversation(conversation)
   closeModal()
 }
+
 </script>
 
 <template>
@@ -46,6 +54,10 @@ async function createConversation() {
         <button @click="addUser">ADD</button>
         <button @click="closeModal">X</button>
       </header>
+      <div v-if="currentUsers.length > 2" class="group-name">
+        <b>Group name:</b>
+        <input type="text" placeholder="Group name" v-model="groupName">
+      </div>
       <div class="current-users" v-if="currentUsers.length != 0">
         <div v-for="user in currentUsers" :key="user.userId">
           {{ user.username }}
