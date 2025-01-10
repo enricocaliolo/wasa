@@ -1,7 +1,6 @@
 package api
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -17,7 +16,7 @@ type reqMessageBody struct {
 	Content     string `json:"content"`
 	ContentType string `json:"content_type"`
 	RepliedTo   *int   `json:"replied_to,omitempty"`
-	ForwardedFrom *int `json:"forwarded_from,omitempty"`
+	IsForwarded *int `json:"isForwarded,omitempty"`
 }
 
 // func (rt *APIRouter) a(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -176,11 +175,10 @@ func (rt *APIRouter) forwardMessage(w http.ResponseWriter, r *http.Request, ps h
 		return
 	}
 
-	var reqBody struct { // ID of message to forward
+	var reqBody struct {
 		Destination_conversation_id int    `json:"destination_conversation_id"` // Where to forward to
 		Content                     string `json:"content"`
 		Content_type                string `json:"content_type"`
-		Original_message_id         int    `json:"original_message_id"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
@@ -188,13 +186,14 @@ func (rt *APIRouter) forwardMessage(w http.ResponseWriter, r *http.Request, ps h
 	}
 	defer r.Body.Close()
 
-	isInSource, err := rt.db.IsUserInConversation(source_conversation_id, user_id)
+	isInSource, err := rt.db.IsUserInConversation(user_id, source_conversation_id)
 	if err != nil || !isInSource {
 		http.Error(w, "Not authorized to access source conversation", http.StatusForbidden)
 		return
 	}
 
-	isInDest, err := rt.db.IsUserInConversation(reqBody.Destination_conversation_id, user_id)
+	// destination_conversation_id := reqBody.Destination_conversation_id
+	isInDest, err := rt.db.IsUserInConversation(user_id, reqBody.Destination_conversation_id)
 	if err != nil || !isInDest {
 		http.Error(w, "Not authorized to forward to destination conversation", http.StatusForbidden)
 		return
@@ -205,12 +204,9 @@ func (rt *APIRouter) forwardMessage(w http.ResponseWriter, r *http.Request, ps h
 	message.Content = []byte(reqBody.Content)
 	message.ContentType = reqBody.Content_type
 	message.Sender.ID = user_id
-	message.ForwardedFrom = sql.NullInt64{
-		Int64: int64(reqBody.Original_message_id),
-		Valid: true,
-	}
+	message.IsForwarded = true
 
-	id, err := rt.db.SendMessage(message)
+	id, err := rt.db.ForwardMessage(message)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

@@ -6,7 +6,6 @@ const currentConversationStore = useConversationStore()
 const messageInput = ref('')
 
 const sendMessage = async () => {
-
   if(currentConversationStore.replyMessage) {
     await currentConversationStore.sendRepliedMessage(messageInput.value).then(() => {
       messageInput.value = ''

@@ -59,6 +59,7 @@ type AppDatabase interface {
 	IsUserInConversation(conversation_id int, user_id int) (bool, error)
 	SendMessage(models.Message) (*models.Message, error)
 	ReplyToMessage(models.Message) (*models.Message, error)
+	ForwardMessage(models.Message) (*models.Message, error)
 	RemoveUserFromConversation(conversation_id int, user_id int) (bool, error)
 	DeleteConversation(conversation_id int) (bool, error)
 	CountParticipants(conversation_id int) (int, error)
@@ -135,8 +136,8 @@ func (db *appdbimpl) GetMessagesFromConversation(id int) []models.Message {
 	return conversationDB.GetMessagesFromConversation(db.c, id)
 }
 
-func (db *appdbimpl) IsUserInConversation(conversation_id int, user_id int) (bool, error) {
-	return conversationDB.IsUserInConversation(db.c, conversation_id, user_id)
+func (db *appdbimpl) IsUserInConversation(user_id int, conversation_id int) (bool, error) {
+	return conversationDB.IsUserInConversation(db.c, user_id, conversation_id)
 }
 
 func (db *appdbimpl) IsMessageFromUser(message_id int, user_id int) (bool, error) {
@@ -149,6 +150,10 @@ func (db *appdbimpl) SendMessage(message models.Message) (*models.Message, error
 
 func (db *appdbimpl) ReplyToMessage(message models.Message) (*models.Message, error) {
 	return conversationDB.ReplyToMessage(db.c, message)
+}
+
+func (db *appdbimpl) ForwardMessage(message models.Message) (*models.Message, error) {
+	return conversationDB.ForwardMessage(db.c, message)
 }
 
 func (db *appdbimpl) GetMessage(message_id int, conversation_id int) (models.Message, error) {

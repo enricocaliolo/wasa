@@ -45,11 +45,10 @@ func CreateTables(db *sql.DB) {
 			sender_id INTEGER,
 			conversation_id INTEGER,
 			replied_to INTEGER,
-			forwarded_from INTEGER,
+			is_forwarded BOOLEAN DEFAULT FALSE,
 			FOREIGN KEY (sender_id) REFERENCES "User"(user_id),
 			FOREIGN KEY (conversation_id) REFERENCES "Conversation"(conversation_id),
-			FOREIGN KEY (replied_to) REFERENCES "Message"(message_id),
-			FOREIGN KEY (forwarded_from) REFERENCES "Message"(message_id)
+			FOREIGN KEY (replied_to) REFERENCES "Message"(message_id)
 		);`,
 
 		`DROP TABLE IF EXISTS "Reactions";

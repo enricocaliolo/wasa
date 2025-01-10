@@ -44,7 +44,7 @@ func SendMessage(db *sql.DB, message models.Message) (*models.Message, error) {
     )
     
     if err != nil {
-        return nil, fmt.Errorf("inserting message: %w", err)
+        return nil, err
     }
 
     err = db.QueryRow(`

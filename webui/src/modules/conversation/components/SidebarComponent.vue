@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { conversationAPI } from '../api/conversation-api'
 import { useConversationStore } from '@/shared/stores/conversation_store'
 import  ConversationListItem  from './ConversationListItem.vue'
-import ModalComponent from './ModalComponent.vue'
+import ConversationModal from './ConversationModal.vue'
 
 const conversationStore = useConversationStore()
 const searchInput = ref('')
@@ -23,10 +23,6 @@ const filteredConversations = computed(() => {
   )
 })
 
-watch(showModal, async (isOpen) => {
-  if (isOpen) {
-  }
-})
 </script>
 
 <template>
@@ -34,7 +30,7 @@ watch(showModal, async (isOpen) => {
     <header>
       <input type="text" placeholder="Type a message..." v-model="searchInput" />
       <button @click="showModal = true">+</button>
-      <ModalComponent :show="showModal" @close="showModal = false" />
+      <ConversationModal :show="showModal" @close="showModal = false" />
     </header>
     <ConversationListItem
       v-for="conversation in filteredConversations"

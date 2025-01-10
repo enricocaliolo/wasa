@@ -41,6 +41,18 @@ export const useConversationStore = defineStore('conversationStore', () => {
     return message
   }
 
+  async function sendForwardedMessage(source_conversation_id, destination_conversation_id, new_message) { 
+    const data = await messagesAPI.sendForwardedMessage(
+      source_conversation_id,
+      destination_conversation_id,
+      new_message
+    )     
+    const message = Message.fromJSON(data)
+    message.sender = userStore.getUser()
+    
+    return message
+  }
+
   async function addConversation(conv) {
     conversations.value.push(conv)
   }
@@ -56,6 +68,7 @@ export const useConversationStore = defineStore('conversationStore', () => {
     setCurrentConversation,
     sendMessage,
     sendRepliedMessage,
+    sendForwardedMessage,
     addConversation,
     setReplyMessage
   }

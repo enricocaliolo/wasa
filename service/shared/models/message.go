@@ -17,7 +17,7 @@ type Message struct {
 	senderID       int           `json:"-"`
 	ConversationID int           `json:"conversation_id"`
 	RepliedTo      sql.NullInt64 `json:"-"`
-	ForwardedFrom  sql.NullInt64 `json:"-"`
+	IsForwarded  bool `json:"-"`
 	Sender 	   User          `json:"user"`
 	RepliedToMessage *Message    `json:"-"`
 }
@@ -33,7 +33,7 @@ func (m Message) MarshalJSON() ([]byte, error) {
         SenderID        int        `json:"-"`
         ConversationID  int        `json:"conversation_id"`
         RepliedTo       *int64     `json:"-"`
-        ForwardedFrom   *int64     `json:"forwarded_from,omitempty"`
+        IsForwarded   bool     `json:"is_forwarded,omitempty"`
         Sender          User       `json:"sender"`
         RepliedToMessage *struct {  
             ID          int    `json:"message_id"`
@@ -48,7 +48,7 @@ func (m Message) MarshalJSON() ([]byte, error) {
         EditedTime:     helper.NullTimeToPtr(m.EditedTime),
         DeletedTime:    helper.NullTimeToPtr(m.DeletedTime),
         RepliedTo:      helper.NullInt64ToPtr(m.RepliedTo),
-        ForwardedFrom:  helper.NullInt64ToPtr(m.ForwardedFrom),
+        IsForwarded:  m.IsForwarded,
         SenderID:       m.senderID,
         ConversationID: m.ConversationID,
         Sender:         m.Sender,

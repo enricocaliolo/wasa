@@ -16,7 +16,7 @@ func GetMessagesFromConversation(db *sql.DB, conversation_id int) []models.Messa
             m.edited_time,
             m.deleted_time,
             m.replied_to,
-            m.forwarded_from,
+            m.is_forwarded,
             u.user_id,
             u.username,
             u.icon,
@@ -42,7 +42,8 @@ func GetMessagesFromConversation(db *sql.DB, conversation_id int) []models.Messa
         var sender models.User
         var content []byte
         var editedTime, deletedTime sql.NullTime
-        var repliedTo, forwardedFrom sql.NullInt64
+        var repliedTo sql.NullInt64
+        var isForwarded bool
         var repliedToMsg struct {
             ID          sql.NullInt64
             Content     []byte
@@ -57,7 +58,7 @@ func GetMessagesFromConversation(db *sql.DB, conversation_id int) []models.Messa
             &editedTime,
             &deletedTime,
             &repliedTo,
-            &forwardedFrom,
+            &isForwarded,
             &sender.ID,
             &sender.Username,
             &sender.Icon,
@@ -74,7 +75,7 @@ func GetMessagesFromConversation(db *sql.DB, conversation_id int) []models.Messa
         msg.EditedTime = editedTime
         msg.DeletedTime = deletedTime
         msg.RepliedTo = repliedTo
-        msg.ForwardedFrom = forwardedFrom
+        msg.IsForwarded = isForwarded
         msg.ConversationID = conversation_id
         msg.Sender = sender
 

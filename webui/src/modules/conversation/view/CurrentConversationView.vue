@@ -1,6 +1,7 @@
 <script setup>
 import InputComponent from '@/modules/conversation/components/InputComponent.vue'
 import MessageComponent from '../../message/components/MessageComponent.vue';
+import ForwardMessageModal from '../../message/components/ForwardMessageModal.vue';
 
 defineProps({
   conversation: Object

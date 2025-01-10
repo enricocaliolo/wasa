@@ -3,7 +3,6 @@ import { RepliedToMessage } from './repliedToMessage'
 
 export class Message {
   constructor(data) {
-    console.log('Message constructor received:', data)
     this.messageId = data.message_id
     this.content = data.content
     this.contentType = data.content_type
@@ -15,6 +14,7 @@ export class Message {
     this.reactions = data.reactions
     this.sender = new User(data.sender)
     this.repliedToMessage = Object.prototype.hasOwnProperty.call(data, 'replied_to_message') ? new RepliedToMessage(data.replied_to_message) : null
+    this.isForwarded = data.is_forwarded
   }
 
   static fromJSON(json) {
@@ -34,6 +34,7 @@ export class Message {
       created_at: this.sentTime.toISOString(),
       sender: this.sender.toJSON(),
       replied_to_message: this.repliedToMessage?.toJSON(),
+      is_forwarded: this.isForwarded
     }
   }
 
