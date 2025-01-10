@@ -58,6 +58,7 @@ type AppDatabase interface {
 	GetMessagesFromConversation(id int) []models.Message
 	IsUserInConversation(conversation_id int, user_id int) (bool, error)
 	SendMessage(models.Message) (*models.Message, error)
+	ReplyToMessage(models.Message) (*models.Message, error)
 	RemoveUserFromConversation(conversation_id int, user_id int) (bool, error)
 	DeleteConversation(conversation_id int) (bool, error)
 	CountParticipants(conversation_id int) (int, error)
@@ -75,6 +76,8 @@ type AppDatabase interface {
 	IsGroup(conversation_id int) (bool, error)
 	CreateConversation(members []int, name string) (models.Conversation, error)
 	AddGroupMembers(conversation_id int, members []int) error
+
+	ConversationExists(conversation_id int) (bool, error)
 }
 
 type appdbimpl struct {
@@ -144,6 +147,10 @@ func (db *appdbimpl) SendMessage(message models.Message) (*models.Message, error
 	return conversationDB.SendMessage(db.c, message)
 }
 
+func (db *appdbimpl) ReplyToMessage(message models.Message) (*models.Message, error) {
+	return conversationDB.ReplyToMessage(db.c, message)
+}
+
 func (db *appdbimpl) GetMessage(message_id int, conversation_id int) (models.Message, error) {
 	return messagesdb.GetMessage(db.c, message_id, conversation_id)
 }
@@ -191,4 +198,7 @@ func (db *appdbimpl) CreateConversation(members []int, name string) (models.Conv
 }
 func (db *appdbimpl) AddGroupMembers(conversation_id int, members []int) error {
 	return conversationDB.AddGroupMembers(db.c, conversation_id, members)
+}
+func (db *appdbimpl) ConversationExists(conversation_id int) (bool, error) {
+	return conversationDB.ConversationExists(db.c, conversation_id)
 }

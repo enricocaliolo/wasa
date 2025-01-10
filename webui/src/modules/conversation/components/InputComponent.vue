@@ -6,6 +6,15 @@ const currentConversationStore = useConversationStore()
 const messageInput = ref('')
 
 const sendMessage = async () => {
+
+  if(currentConversationStore.replyMessage) {
+    await currentConversationStore.sendRepliedMessage(messageInput.value).then(() => {
+      messageInput.value = ''
+      currentConversationStore.setReplyMessage(null)
+    })
+    return
+  }
+
   await currentConversationStore.sendMessage(messageInput.value).then(() => {
     messageInput.value = ''
   })
@@ -14,8 +23,14 @@ const sendMessage = async () => {
 
 <template>
   <footer class="input-wrapper">
-    <input type="text" placeholder="Type a message..." v-model="messageInput" />
-    <button @click="sendMessage">Send</button>
+    <div v-if="currentConversationStore.replyMessage">
+    {{ currentConversationStore.replyMessage.content}}
+     <button @click="currentConversationStore.setReplyMessage(null)">RESET</button>
+    </div>
+    <div>
+      <input type="text" placeholder="Type a message..." v-model="messageInput" />
+      <button @click="sendMessage">Send</button>
+    </div>
   </footer>
 </template>
 

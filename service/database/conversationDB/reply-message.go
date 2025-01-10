@@ -6,14 +6,15 @@ import (
 	"wasa/service/shared/models"
 )
 
-func SendMessage(db *sql.DB, message models.Message) (*models.Message, error) {
+func ReplyToMessage(db *sql.DB, message models.Message) (*models.Message, error) {
     query := `
     INSERT INTO Message (
         content,
         content_type,
         sender_id,
-        conversation_id
-    ) VALUES (?, ?, ?, ?)
+        conversation_id,
+        replied_to
+    ) VALUES (?, ?, ?, ?, ?)
     RETURNING 
         message_id,
         content,
@@ -22,7 +23,8 @@ func SendMessage(db *sql.DB, message models.Message) (*models.Message, error) {
         edited_time,
         deleted_time,
         sender_id,
-        conversation_id`
+        conversation_id,
+        replied_to`
     
     var insertedMessage models.Message
     var senderID int
@@ -32,6 +34,7 @@ func SendMessage(db *sql.DB, message models.Message) (*models.Message, error) {
         message.ContentType,
         message.Sender.ID,
         message.ConversationID,
+        message.RepliedTo.Int64,
     ).Scan(
         &insertedMessage.ID,
         &insertedMessage.Content,
@@ -41,6 +44,7 @@ func SendMessage(db *sql.DB, message models.Message) (*models.Message, error) {
         &insertedMessage.DeletedTime,
         &senderID,
         &insertedMessage.ConversationID,
+        &insertedMessage.RepliedTo,
     )
     
     if err != nil {
@@ -59,6 +63,22 @@ func SendMessage(db *sql.DB, message models.Message) (*models.Message, error) {
 
     if err != nil {
         return nil, fmt.Errorf("fetching sender info: %w", err)
+    }
+
+    if insertedMessage.RepliedTo.Valid {
+        insertedMessage.RepliedToMessage = &models.Message{}
+        err = db.QueryRow(`
+            SELECT message_id, content, content_type
+            FROM Message
+            WHERE message_id = ?
+        `, insertedMessage.RepliedTo.Int64).Scan(
+            &insertedMessage.RepliedToMessage.ID,
+            &insertedMessage.RepliedToMessage.Content,
+            &insertedMessage.RepliedToMessage.ContentType,
+        )
+        if err != nil {
+            return nil, fmt.Errorf("fetching replied-to message: %w", err)
+        }
     }
     
     return &insertedMessage, nil

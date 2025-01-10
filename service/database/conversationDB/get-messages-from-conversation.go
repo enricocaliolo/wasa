@@ -19,9 +19,13 @@ func GetMessagesFromConversation(db *sql.DB, conversation_id int) []models.Messa
             m.forwarded_from,
             u.user_id,
             u.username,
-            u.icon
+            u.icon,
+            rm.message_id,
+            rm.content,
+            rm.content_type
         FROM Message m
         JOIN User u ON m.sender_id = u.user_id
+        LEFT JOIN Message rm ON m.replied_to = rm.message_id
         WHERE m.conversation_id = ?
         ORDER BY m.sent_time ASC`
 
@@ -36,9 +40,14 @@ func GetMessagesFromConversation(db *sql.DB, conversation_id int) []models.Messa
     for rows.Next() {
         var msg models.Message
         var sender models.User
-        var content []byte // since content is BLOB in the schema
+        var content []byte
         var editedTime, deletedTime sql.NullTime
         var repliedTo, forwardedFrom sql.NullInt64
+        var repliedToMsg struct {
+            ID          sql.NullInt64
+            Content     []byte
+            ContentType sql.NullString
+        }
 
         err := rows.Scan(
             &msg.ID,
@@ -52,6 +61,9 @@ func GetMessagesFromConversation(db *sql.DB, conversation_id int) []models.Messa
             &sender.ID,
             &sender.Username,
             &sender.Icon,
+            &repliedToMsg.ID,
+            &repliedToMsg.Content,
+            &repliedToMsg.ContentType,
         )
         if err != nil {
             log.Printf("Error scanning message: %v", err)
@@ -65,6 +77,15 @@ func GetMessagesFromConversation(db *sql.DB, conversation_id int) []models.Messa
         msg.ForwardedFrom = forwardedFrom
         msg.ConversationID = conversation_id
         msg.Sender = sender
+
+        // If there's a replied-to message, include its details
+        if repliedToMsg.ID.Valid {
+            msg.RepliedToMessage = &models.Message{
+                ID:          int(repliedToMsg.ID.Int64),
+                Content:     repliedToMsg.Content,
+                ContentType: repliedToMsg.ContentType.String,
+            }
+        }
 
         messages = append(messages, msg)
     }

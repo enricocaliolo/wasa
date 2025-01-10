@@ -5,9 +5,11 @@ import { useUserStore } from './user_store'
 import { Message } from '../../modules/message/models/Message'
 
 export const useConversationStore = defineStore('conversationStore', () => {
+  const userStore = useUserStore()
+
   const conversations = ref([])
   const currentConversation = ref()
-  const userStore = useUserStore()
+  const replyMessage= ref()
 
   function setCurrentConversation(conversation) {
     currentConversation.value = conversation
@@ -26,15 +28,35 @@ export const useConversationStore = defineStore('conversationStore', () => {
     return message
   }
 
+  async function sendRepliedMessage(new_message) {
+    const data = await messagesAPI.sendRepliedMessage(
+      currentConversation.value.conversationId,
+      new_message,
+      replyMessage.value
+    )
+    const message = Message.fromJSON(data)
+    message.sender = userStore.getUser()
+
+    currentConversation.value.messages.push(message)
+    return message
+  }
+
   async function addConversation(conv) {
     conversations.value.push(conv)
+  }
+
+  function setReplyMessage(message) {
+    replyMessage.value = message
   }
 
   return {
     conversations,
     currentConversation,
+    replyMessage,
     setCurrentConversation,
     sendMessage,
+    sendRepliedMessage,
     addConversation,
+    setReplyMessage
   }
 })

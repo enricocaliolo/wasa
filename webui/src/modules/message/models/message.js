@@ -1,7 +1,9 @@
 import { User } from '@/modules/auth/models/user'
+import { RepliedToMessage } from './repliedToMessage'
 
 export class Message {
   constructor(data) {
+    console.log('Message constructor received:', data)
     this.messageId = data.message_id
     this.content = data.content
     this.contentType = data.content_type
@@ -9,10 +11,10 @@ export class Message {
     this.editedTime = data.edited_time ? new Date(data.edited_time) : undefined
     this.deletedTime = data.deleted_time ? new Date(data.deleted_time) : undefined
     this.conversationId = data.conversation_id
-    this.repliedTo = data.replied_to
     this.forwardedFrom = data.forwarded_from
     this.reactions = data.reactions
     this.sender = new User(data.sender)
+    this.repliedToMessage = Object.prototype.hasOwnProperty.call(data, 'replied_to_message') ? new RepliedToMessage(data.replied_to_message) : null
   }
 
   static fromJSON(json) {
@@ -28,10 +30,10 @@ export class Message {
       edited_time: this.editedTime?.toISOString(),
       deleted_time: this.deletedTime?.toISOString(),
       conversation_id: this.conversationId,
-      replied_to: this.repliedTo,
       forwarded_from: this.forwardedFrom,
       created_at: this.sentTime.toISOString(),
       sender: this.sender.toJSON(),
+      replied_to_message: this.repliedToMessage?.toJSON(),
     }
   }
 
@@ -43,3 +45,4 @@ export class Message {
     return !!this.deletedTime
   }
 }
+

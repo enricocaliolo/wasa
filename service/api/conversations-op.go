@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"wasa/service/api/responses"
+	"wasa/service/shared/helper"
 	"wasa/service/shared/models"
 
 	"github.com/julienschmidt/httprouter"
@@ -15,8 +16,8 @@ import (
 type reqMessageBody struct {
 	Content     string `json:"content"`
 	ContentType string `json:"content_type"`
-	RepliedTo   *int   `json:"replied_to"`
-	ForwardedFrom *int `json:"forwarded_from"`
+	RepliedTo   *int   `json:"replied_to,omitempty"`
+	ForwardedFrom *int `json:"forwarded_from,omitempty"`
 }
 
 // func (rt *APIRouter) a(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -83,6 +84,12 @@ func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps http
 	var message models.Message
 	message.Sender.ID = user_id
 	message.ConversationID, _ = strconv.Atoi(ps.ByName("conversation_id"))
+	exists, _ := rt.db.ConversationExists(message.ConversationID)
+	if !exists {
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode("Conversation do not exist.")
+		return
+	}
 
 	var reqBody reqMessageBody
 
@@ -101,25 +108,49 @@ func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps http
 	message.Content = []byte(reqBody.Content)
 	message.ContentType = reqBody.ContentType
 
-	if reqBody.RepliedTo != nil {
-		message.RepliedTo = sql.NullInt64{
-			Int64: int64(*reqBody.RepliedTo),
-			Valid: true,
-		}
-	} else {
-		message.RepliedTo.Int64 = -1
-	}
-
-	if reqBody.ForwardedFrom != nil {
-		message.ForwardedFrom = sql.NullInt64{
-			Int64: int64(*reqBody.ForwardedFrom),
-			Valid: true,
-		}
-	} else {
-		message.ForwardedFrom.Int64 = -1
-	}
-
 	insertedMessage, err := rt.db.SendMessage(message)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("content-type", "application/json")
+	_ = json.NewEncoder(w).Encode(insertedMessage)
+}
+
+func (rt *APIRouter) replyToMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	user_id, err := getToken(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("content-type", "application/json")
+		_ = json.NewEncoder(w).Encode(err)
+		return
+	}
+
+	var message models.Message
+	message.Sender.ID = user_id
+	message.ConversationID, _ = strconv.Atoi(ps.ByName("conversation_id"))
+
+	var reqBody reqMessageBody
+
+	err = json.NewDecoder(r.Body).Decode(&reqBody)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(err)
+		return
+	}
+	defer r.Body.Close()
+
+	if reqBody.ContentType == "" {
+		reqBody.ContentType = "text"
+	}
+
+	message.Content = []byte(reqBody.Content)
+	message.ContentType = reqBody.ContentType
+	message.RepliedTo = helper.PtrToNullInt64(reqBody.RepliedTo)
+
+	insertedMessage, err := rt.db.ReplyToMessage(message)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
