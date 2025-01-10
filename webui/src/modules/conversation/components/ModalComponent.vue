@@ -35,6 +35,9 @@ async function createConversation() {
     alert('Please, insert a group name')
     return
   }
+  else if(currentUsers.value.length === 2) {
+    groupName.value = currentUsers.value[1].username
+  }
 
 
   const conversation = await conversationAPI.createConversation(

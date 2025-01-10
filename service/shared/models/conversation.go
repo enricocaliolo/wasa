@@ -35,7 +35,7 @@ func (c *Conversation) MarshalJSON() ([]byte, error) {
 
 type ConversationParticipant struct {
 	User_id int `json:"user_id"`
-	Joined_at string `json:"joined_at"`
+	// Joined_at string `json:"joined_at"`
     Name string `json:"name"`
 }
 

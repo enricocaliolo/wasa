@@ -9,16 +9,25 @@ import (
 
 func GetAllConversations(db *sql.DB, userID int) []models.Conversation {
     query := `SELECT 
-        c.conversation_id,
-        COALESCE(c.name, '') as name,
-        c.is_group,
-        c.created_at
-    FROM Conversation c
-    JOIN ConversationParticipants cp ON c.conversation_id = cp.conversation_id
-    WHERE cp.user_id = ?
-    ORDER BY c.created_at DESC`
+    c.conversation_id,
+    CASE 
+        WHEN c.is_group THEN COALESCE(c.name, '')
+        ELSE (
+            SELECT u.username 
+            FROM User u 
+            JOIN ConversationParticipants cp2 ON u.user_id = cp2.user_id 
+            WHERE cp2.conversation_id = c.conversation_id 
+            AND cp2.user_id != ?
+        )
+    END as name,
+    c.is_group,
+    c.created_at
+FROM Conversation c
+JOIN ConversationParticipants cp ON c.conversation_id = cp.conversation_id
+WHERE cp.user_id = ?
+ORDER BY c.created_at DESC;`
 
-    rows, err := db.Query(query, userID)
+    rows, err := db.Query(query, userID, userID)
     if err != nil {
         log.Printf("Error querying conversations: %v", err)
         return nil
