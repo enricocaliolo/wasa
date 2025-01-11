@@ -25,4 +25,14 @@ export const conversationAPI = {
     })
     return new Conversation(response.data)
   },
+  updateGroupName: async(conversation_id, name) => {
+    const response = await api.put(`/conversations/${conversation_id}/name`, {
+      name: name
+    })
+    if (response.status === 200) {
+      return true
+    } else {
+      return false
+    }
+  }
 }

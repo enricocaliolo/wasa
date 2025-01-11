@@ -4,6 +4,7 @@ import { messagesAPI } from '@/modules/message/api/message_api'
 import { useUserStore } from './user_store'
 import { Message } from '../../modules/message/models/message'
 import { Reaction } from '../../modules/message/models/reaction'
+import { conversationAPI } from '../../modules/conversation/api/conversation-api'
 
 export const useConversationStore = defineStore('conversationStore', () => {
   const userStore = useUserStore()
@@ -102,6 +103,12 @@ export const useConversationStore = defineStore('conversationStore', () => {
     return
   }
 
+  async function updateGroupName(name) {
+    await conversationAPI.updateGroupName(currentConversation.value.conversationId, name)
+    currentConversation.value.name = name
+    return
+  }
+
   return {
     conversations,
     currentConversation,
@@ -114,5 +121,6 @@ export const useConversationStore = defineStore('conversationStore', () => {
     setReplyMessage,
     addReaction,
     deleteReaction,
+    updateGroupName,
   }
 })

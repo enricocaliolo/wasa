@@ -12,7 +12,7 @@ type Conversation struct {
     Is_group                  bool             `json:"is_group"`
     Created_at               time.Time           `json:"created_at"`
     Messages                 []Message                `json:"messages"`
-    ConversationParticipant []ConversationParticipant `json:"conversation_participants"`
+    ConversationParticipant []User `json:"participants"`
 }
 
 func (c *Conversation) MarshalJSON() ([]byte, error) {
@@ -21,8 +21,8 @@ func (c *Conversation) MarshalJSON() ([]byte, error) {
         Name                      string                    `json:"name"`
         IsGroup                   bool                      `json:"is_group"`
         CreatedAt                 time.Time                 `json:"created_at"`
-        Messages                  []Message                 `json:"messages"`
-        ConversationParticipant   []ConversationParticipant `json:"conversation_participants"`
+        Messages                  []Message                 `json:"messages,omitempty"`
+        ConversationParticipant   []User    `json:"participants,omitempty"`
     }{
         ID:                      c.ID,
         Name:                    c.Name,
@@ -31,12 +31,6 @@ func (c *Conversation) MarshalJSON() ([]byte, error) {
         Messages:                c.Messages,
         ConversationParticipant: c.ConversationParticipant,
     })
-}
-
-type ConversationParticipant struct {
-	User_id int `json:"user_id"`
-	// Joined_at string `json:"joined_at"`
-    Name string `json:"name"`
 }
 
 func NullStringToPtr(s sql.NullString) *string {

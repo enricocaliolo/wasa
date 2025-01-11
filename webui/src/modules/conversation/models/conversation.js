@@ -6,7 +6,7 @@ export class Conversation {
     this.name = data.name
     this.isGroup = data.is_group
     this.createdAt = new Date(data.created_at)
-    this.participants = data.conversation_participants
+    this.participants = data.participants.map(participant => participant.user_id)
     this.messages = data.messages ? data.messages.map(messageDto => new Message(messageDto)) : []
     this.messages = data.messages
   }

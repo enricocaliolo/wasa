@@ -1,17 +1,25 @@
 <script setup>
 import InputComponent from '@/modules/conversation/components/InputComponent.vue'
 import MessageComponent from '../../message/components/MessageComponent.vue';
-import ForwardMessageModal from '../../message/components/ForwardMessageModal.vue';
+import { useConversationStore } from '../../../shared/stores/conversation_store';
 
-defineProps({
+const props = defineProps({
   conversation: Object
 })
+
+async function changeGroupName() {
+  if (props.conversation.isGroup) {
+    const newName = prompt('Enter new group name');
+    await useConversationStore().updateGroupName(newName)
+  }
+  
+}
 
 </script>
 
 <template>
   <div class="conversation-wrapper">
-    <header>
+    <header @click="changeGroupName">
       <h1>{{ conversation.name }}</h1>
     </header>
     <div class="messages-box">
