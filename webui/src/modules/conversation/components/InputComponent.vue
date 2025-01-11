@@ -9,32 +9,30 @@ const file = ref(null)
 const fileInput = ref(null)
 
 const sendMessage = async () => {
-  try{
     if(conversationStore.replyMessage) {
-      // await conversationStore.sendRepliedMessage(messageInput.value)
-      // await conversationStore.sendRepliedMessage(
-      //   messageInput.value,
-      //   content_type = file
-      // )
+      await conversationStore.sendMessage({
+        content: messageInput.value,
+        replied_to_message: -1
+      })
       messageInput.value = ''
       conversationStore.setReplyMessage(null)
     return
     }
 
-  if(selectedImage) {
-    // await conversationStore.sendImage(file.value)
-    selectedImage.value = null
-    file.value = null
+    if(file.value) {
+      await conversationStore.sendMessage({
+        content: file.value,
+        content_type: 'image',
+      })
+      selectedImage.value = null
+      file.value = null
+      messageInput.value = ''
+      fileInput.value.value = ''
+      return
+    } 
+    await conversationStore.sendMessage({content: messageInput.value})
     messageInput.value = ''
-    fileInput.value.value = ''
-    return
-  } 
-
-  await conversationStore.sendMessage(messageInput.value)
-  messageInput.value = ''
-  } catch (e) {
-    console.log(e)
-  }
+  
 }
 
 const onFileSelected = (event) => {

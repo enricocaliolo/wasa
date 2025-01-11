@@ -93,7 +93,7 @@ const userHasReaction = computed(() => {
         <div v-if="message.repliedToMessage" class="replied-message">
           <div v-if="message.repliedToMessage.contentType === 'image'" class="replied-image-container">
             <img 
-              :src="message.repliedToMessage.displayContent" 
+              :src="`data:image/jpeg;base64,${message.repliedToMessage.content}`" 
               alt="Replied image" 
               class="replied-image"
             />
@@ -137,7 +137,7 @@ const userHasReaction = computed(() => {
       
     </div>
     <ForwardMessageModal 
-      :message="message.content" 
+      :message="message" 
       :show="showModal" 
       @close="showModal = false"
     />

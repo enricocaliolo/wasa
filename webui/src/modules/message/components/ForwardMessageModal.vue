@@ -4,7 +4,7 @@ import { useConversationStore } from '../../../shared/stores/conversation_store'
 
 const props = defineProps({
   show: Boolean,
-  message: String
+  message: Object
 })
 
 const emit = defineEmits(['close'])
@@ -31,9 +31,14 @@ async function forwardMessage() {
 
   const source_conversation_id = conversationStore.currentConversation.conversationId
   const destination_conversation_id = selectedConversation.value.conversationId
-  const message = props.message
 
-  // await conversationStore.sendForwardedMessage(source_conversation_id, destination_conversation_id, message)
+  await conversationStore.sendMessage({
+    content: props.message.content,
+    content_type: props.message.contentType,
+    source_conversation_id,
+    destination_conversation_id
+  }
+  )
 
   closeModal()
 }

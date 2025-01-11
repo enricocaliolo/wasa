@@ -11,70 +11,69 @@ export const useConversationStore = defineStore('conversationStore', () => {
 
   const conversations = ref([])
   const currentConversation = ref()
-  const replyMessage= ref()
+  const replyMessage= ref(null)
 
   function setCurrentConversation(conversation) {
     currentConversation.value = conversation
   }
 
-  async function sendMessage(new_message) {
-    const data = await messagesAPI.sendMessage(
-      currentConversation.value.conversationId,
-      new_message,
-    )
-    const message = Message.fromJSON(data)
-    message.sender = userStore.getUser()
+  // async function sendMessage(new_message) {
+  //   const data = await messagesAPI.sendMessage(
+  //     currentConversation.value.conversationId,
+  //     new_message,
+  //   )
+  //   const message = Message.fromJSON(data)
+  //   message.sender = userStore.getUser()
 
-    currentConversation.value.messages.push(message)
+  //   currentConversation.value.messages.push(message)
 
-    return message
-  }
+  //   return message
+  // }
 
-  async function sendImage(image) {
-    const data = await messagesAPI.sendMessage(
-      currentConversation.value.conversationId,
-      image,
-      content_type = 'image'
-    )
-    const message = Message.fromJSON(data)
-    message.sender = userStore.getUser()
+  // async function sendImage(image) {
+  //   const data = await messagesAPI.sendMessage(
+  //     currentConversation.value.conversationId,
+  //     image,
+  //     content_type = 'image'
+  //   )
+  //   const message = Message.fromJSON(data)
+  //   message.sender = userStore.getUser()
 
-    currentConversation.value.messages.push(message)
+  //   currentConversation.value.messages.push(message)
 
-    return message
-  }
+  //   return message
+  // }
 
-  async function sendRepliedMessage(new_message) {
-    const data = await messagesAPI.sendRepliedMessage(
-      currentConversation.value.conversationId,
-      new_message,
-      replyMessage.value
-    )
-    const message = Message.fromJSON(data)
-    message.sender = userStore.getUser()
+  // async function sendRepliedMessage(new_message) {
+  //   const data = await messagesAPI.sendRepliedMessage(
+  //     currentConversation.value.conversationId,
+  //     new_message,
+  //     replyMessage.value
+  //   )
+  //   const message = Message.fromJSON(data)
+  //   message.sender = userStore.getUser()
 
-    currentConversation.value.messages.push(message)
-    return message
-  }
+  //   currentConversation.value.messages.push(message)
+  //   return message
+  // }
 
-  async function sendForwardedMessage(source_conversation_id, destination_conversation_id, new_message) { 
-    const data = await messagesAPI.sendForwardedMessage(
-      source_conversation_id,
-      destination_conversation_id,
-      new_message
-    )     
-    const message = Message.fromJSON(data)
-    message.sender = userStore.getUser()
+  // async function sendForwardedMessage(source_conversation_id, destination_conversation_id, new_message) { 
+  //   const data = await messagesAPI.sendForwardedMessage(
+  //     source_conversation_id,
+  //     destination_conversation_id,
+  //     new_message
+  //   )     
+  //   const message = Message.fromJSON(data)
+  //   message.sender = userStore.getUser()
     
-    return message
-  }
+  //   return message
+  // }
 
   async function addConversation(conv) {
     conversations.value.push(conv)
   }
 
   function setReplyMessage(message) {
-    console.log(message)
     replyMessage.value = message
   }
 
@@ -124,19 +123,47 @@ export const useConversationStore = defineStore('conversationStore', () => {
     return
   }
 
+  async function sendMessage({
+    content,
+    content_type = 'text',
+    replied_to_message = null,
+    source_conversation_id = null,
+    destination_conversation_id = null
+  }) {
+    const conversationId = source_conversation_id || currentConversation.value.conversationId
+    replied_to_message = replied_to_message !== null ? replyMessage.value.messageId : null
+    
+    const data = await messagesAPI.sendMessage({
+      conversation_id: conversationId,
+      content,
+      content_type,
+      replied_to_message,
+      destination_conversation_id
+    })
+    
+    const message = Message.fromJSON(data)
+    message.sender = userStore.getUser()
+
+    if (!destination_conversation_id) {
+      currentConversation.value.messages.push(message)
+    }
+    
+    return message
+  }
+
   return {
     conversations,
     currentConversation,
     replyMessage,
     setCurrentConversation,
     sendMessage,
-    sendRepliedMessage,
-    sendForwardedMessage,
+    // sendRepliedMessage,
+    // sendForwardedMessage,
     addConversation,
     setReplyMessage,
     addReaction,
     deleteReaction,
     updateGroupName,
-    sendImage
+    // sendImage
   }
 })

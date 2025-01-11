@@ -176,62 +176,79 @@ func (rt *APIRouter) replyToMessage(w http.ResponseWriter, r *http.Request, ps h
 }
 
 func (rt *APIRouter) forwardMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+    source_conversation_id, err := strconv.Atoi(ps.ByName("conversation_id"))
+    if err != nil {
+        http.Error(w, "Invalid conversation ID", http.StatusBadRequest)
+        return
+    }
+    user_id, err := getToken(r)
+    if err != nil {
+        w.WriteHeader(http.StatusBadRequest)
+        w.Header().Set("content-type", "application/json")
+        _ = json.NewEncoder(w).Encode(err)
+        return
+    }
 
-	source_conversation_id, err := strconv.Atoi(ps.ByName("conversation_id"))
-	if err != nil {
-		http.Error(w, "Invalid conversation ID", http.StatusBadRequest)
-		return
-	}
-	user_id, err := getToken(r)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Set("content-type", "application/json")
-		_ = json.NewEncoder(w).Encode(err)
-		return
-	}
+    // Get destination_conversation_id from query params for image forwarding
+    destination_conversation_id := 0
+    if destID := r.URL.Query().Get("destination_conversation_id"); destID != "" {
+        destination_conversation_id, err = strconv.Atoi(destID)
+        if err != nil {
+            http.Error(w, "Invalid destination conversation ID", http.StatusBadRequest)
+            return
+        }
+    }
 
-	var reqBody struct {
-		Destination_conversation_id int    `json:"destination_conversation_id"` // Where to forward to
-		Content                     string `json:"content"`
-		Content_type                string `json:"content_type"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
-	defer r.Body.Close()
+    var message models.Message
+    message.Sender.ID = user_id
 
-	isInSource, err := rt.db.IsUserInConversation(user_id, source_conversation_id)
-	if err != nil || !isInSource {
-		http.Error(w, "Not authorized to access source conversation", http.StatusForbidden)
-		return
-	}
+    contentType := r.Header.Get("Content-Type")
+    if strings.HasPrefix(contentType, "image/") {
+        imageData, err := io.ReadAll(r.Body)
+        if err != nil {
+            w.WriteHeader(http.StatusInternalServerError)
+            return
+        }
+        message.ConversationID = destination_conversation_id
+        message.Content = imageData
+        message.ContentType = "image"
+    } else {
+        var reqBody struct {
+            Destination_conversation_id int    `json:"destination_conversation_id"`
+            Content                    string `json:"content"`
+            Content_type              string `json:"content_type"`
+        }
+        if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+            http.Error(w, "Invalid request body", http.StatusBadRequest)
+            return
+        }
+        message.ConversationID = reqBody.Destination_conversation_id
+        message.Content = []byte(reqBody.Content)
+        message.ContentType = reqBody.Content_type
+    }
 
-	// destination_conversation_id := reqBody.Destination_conversation_id
-	isInDest, err := rt.db.IsUserInConversation(user_id, reqBody.Destination_conversation_id)
-	if err != nil || !isInDest {
-		http.Error(w, "Not authorized to forward to destination conversation", http.StatusForbidden)
-		return
-	}
+    isInSource, err := rt.db.IsUserInConversation(user_id, source_conversation_id)
+    if err != nil || !isInSource {
+        http.Error(w, "Not authorized to access source conversation", http.StatusForbidden)
+        return
+    }
 
-	var message models.Message
-	message.ConversationID = reqBody.Destination_conversation_id
-	message.Content = []byte(reqBody.Content)
-	message.ContentType = reqBody.Content_type
-	message.Sender.ID = user_id
-	message.IsForwarded = true
+    isInDest, err := rt.db.IsUserInConversation(user_id, message.ConversationID)
+    if err != nil || !isInDest {
+        http.Error(w, "Not authorized to forward to destination conversation", http.StatusForbidden)
+        return
+    }
 
-	id, err := rt.db.ForwardMessage(message)
+    message.IsForwarded = true
+    id, err := rt.db.ForwardMessage(message)
+    if err != nil {
+        w.WriteHeader(http.StatusInternalServerError)
+        return
+    }
 
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("content-type", "application/json")
-	_ = json.NewEncoder(w).Encode(id)
-
+    w.WriteHeader(http.StatusCreated)
+    w.Header().Set("content-type", "application/json")
+    _ = json.NewEncoder(w).Encode(id)
 }
 
 func (rt *APIRouter) deleteConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
