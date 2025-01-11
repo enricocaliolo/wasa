@@ -20,10 +20,12 @@ const props = defineProps({
 const currentConversationStore = useConversationStore()
 
 async function getConversation(conversation) {
-  const messages = await conversationAPI.getConversation(conversation.conversationId)
+  try{const messages = await conversationAPI.getConversation(conversation.conversationId)
   conversation.messages = messages || []
-  console.log(conversation.messages)
-  currentConversationStore.setCurrentConversation(conversation)
+
+  currentConversationStore.setCurrentConversation(conversation)} catch(e) {
+    console.log(e)
+  }
 }
 </script>
 

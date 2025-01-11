@@ -337,9 +337,7 @@ func (rt *APIRouter) commentMessage(w http.ResponseWriter, r *http.Request, ps h
 		return
 	}
 
-	reactionBytes := []byte(req.Reaction)
-
-	_, err = rt.db.CommentMessage(user_id, message_id, reactionBytes)
+	new_reaction, err := rt.db.CommentMessage(user_id, message_id, req.Reaction)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("content-type", "application/json")
@@ -349,7 +347,7 @@ func (rt *APIRouter) commentMessage(w http.ResponseWriter, r *http.Request, ps h
 
 	w.WriteHeader(http.StatusAccepted)
 	w.Header().Set("content-type", "application/json")
-	_ = json.NewEncoder(w).Encode("succesfully commented message")
+	_ = json.NewEncoder(w).Encode(new_reaction)
 
 }
 

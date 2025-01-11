@@ -2,7 +2,8 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { messagesAPI } from '@/modules/message/api/message_api'
 import { useUserStore } from './user_store'
-import { Message } from '../../modules/message/models/Message'
+import { Message } from '../../modules/message/models/message'
+import { Reaction } from '../../modules/message/models/reaction'
 
 export const useConversationStore = defineStore('conversationStore', () => {
   const userStore = useUserStore()
@@ -61,6 +62,46 @@ export const useConversationStore = defineStore('conversationStore', () => {
     replyMessage.value = message
   }
 
+  async function addReaction(message_id, _reaction) {
+    const data = await messagesAPI.commentMessage(
+      currentConversation.value.conversationId,
+      message_id,
+      _reaction
+    )
+    const reaction = Reaction.fromJSON(data)
+    
+    const messageToUpdate = currentConversation.value.messages.find(
+      message => message.messageId === message_id
+    )
+    
+    if (messageToUpdate) {
+      if (!messageToUpdate.reactions) {
+        messageToUpdate.reactions = []
+      }
+      messageToUpdate.reactions.push(reaction)
+    }
+
+    return reaction
+  }
+
+  async function deleteReaction(message_id, reaction_id) {
+    await messagesAPI.uncommentMessage(
+      currentConversation.value.conversationId,
+      message_id,
+      reaction_id
+    )
+
+    for (const message of currentConversation.value.messages) {
+      if (message.messageId === message_id) {
+        message.reactions = message.reactions.filter(
+          reaction => reaction.reactionId !== reaction_id
+        )
+      }
+    }
+
+    return
+  }
+
   return {
     conversations,
     currentConversation,
@@ -70,6 +111,8 @@ export const useConversationStore = defineStore('conversationStore', () => {
     sendRepliedMessage,
     sendForwardedMessage,
     addConversation,
-    setReplyMessage
+    setReplyMessage,
+    addReaction,
+    deleteReaction,
   }
 })

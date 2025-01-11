@@ -1,5 +1,6 @@
 import { User } from '@/modules/auth/models/user'
 import { RepliedToMessage } from './repliedToMessage'
+import { Reaction } from './reaction'
 
 export class Message {
   constructor(data) {
@@ -11,7 +12,7 @@ export class Message {
     this.deletedTime = data.deleted_time ? new Date(data.deleted_time) : undefined
     this.conversationId = data.conversation_id
     this.forwardedFrom = data.forwarded_from
-    this.reactions = data.reactions
+    this.reactions = data.reactions ? data.reactions.map(r => new Reaction(r)) : []
     this.sender = new User(data.sender)
     this.repliedToMessage = Object.prototype.hasOwnProperty.call(data, 'replied_to_message') ? new RepliedToMessage(data.replied_to_message) : null
     this.isForwarded = data.is_forwarded

@@ -53,7 +53,7 @@ func CreateTables(db *sql.DB) {
 
 		`DROP TABLE IF EXISTS "Reactions";
 		CREATE TABLE IF NOT EXISTS "Reactions" (
-			reaction_id INTEGER AUTO_INCREMENT PRIMARY KEY,
+			reaction_id INTEGER PRIMARY KEY,
 			message_id INTEGER NOT NULL,
 			user_id INTEGER NOT NULL,
 			reaction BLOB NOT NULL,

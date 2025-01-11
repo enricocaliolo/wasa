@@ -33,5 +33,19 @@ export const messagesAPI = {
     if(response.status === 201) {
       return response.data
     }
-  }
+  },
+  commentMessage: async (conversation_id, message_id, comment) => {
+    const response = await api.put(`/conversations/${conversation_id}/messages/${message_id}`, {
+      reaction: comment
+    })
+    if(response.status === 202) {
+      return response.data
+    }
+  },
+  uncommentMessage: async (conversation_id, message_id, reaction_id) => {
+    const response = await api.delete(`/conversations/${conversation_id}/messages/${message_id}/reactions/${reaction_id}`)
+    if(response.status === 202) {
+      return true
+    }
+  },
 }

@@ -38,62 +38,107 @@ func GetMessagesFromConversation(db *sql.DB, conversation_id int) []models.Messa
 
     var messages []models.Message
     for rows.Next() {
-        var msg models.Message
-        var sender models.User
-        var content []byte
-        var editedTime, deletedTime sql.NullTime
-        var repliedTo sql.NullInt64
-        var isForwarded bool
-        var repliedToMsg struct {
-            ID          sql.NullInt64
-            Content     []byte
-            ContentType sql.NullString
-        }
+                var msg models.Message
+                var sender models.User
+                var content []byte
+                var editedTime, deletedTime sql.NullTime
+                var repliedTo sql.NullInt64
+                var isForwarded bool
+                var repliedToMsg struct {
+                    ID          sql.NullInt64
+                    Content     []byte
+                    ContentType sql.NullString
+                }
+        
+                err := rows.Scan(
+                    &msg.ID,
+                    &content,
+                    &msg.ContentType,
+                    &msg.SentTime,
+                    &editedTime,
+                    &deletedTime,
+                    &repliedTo,
+                    &isForwarded,
+                    &sender.ID,
+                    &sender.Username,
+                    &sender.Icon,
+                    &repliedToMsg.ID,
+                    &repliedToMsg.Content,
+                    &repliedToMsg.ContentType,
+                )
+                if err != nil {
+                    log.Printf("Error scanning message: %v", err)
+                    continue
+                }
+        
+                msg.Content = content
+                msg.EditedTime = editedTime
+                msg.DeletedTime = deletedTime
+                msg.RepliedTo = repliedTo
+                msg.IsForwarded = isForwarded
+                msg.ConversationID = conversation_id
+                msg.Sender = sender
+        
+                if repliedToMsg.ID.Valid {
+                    msg.RepliedToMessage = &models.Message{
+                        ID:          int(repliedToMsg.ID.Int64),
+                        Content:     repliedToMsg.Content,
+                        ContentType: repliedToMsg.ContentType.String,
+                    }
+                }
+        
+                messages = append(messages, msg)
+            }
 
-        err := rows.Scan(
-            &msg.ID,
-            &content,
-            &msg.ContentType,
-            &msg.SentTime,
-            &editedTime,
-            &deletedTime,
-            &repliedTo,
-            &isForwarded,
-            &sender.ID,
-            &sender.Username,
-            &sender.Icon,
-            &repliedToMsg.ID,
-            &repliedToMsg.Content,
-            &repliedToMsg.ContentType,
+    reactionQuery := `
+        SELECT 
+            r.reaction_id,
+            r.message_id,
+            r.user_id,
+            r.reaction,
+            u.user_id,
+            u.username,
+            u.icon
+        FROM Reactions r
+        JOIN User u ON r.user_id = u.user_id
+        WHERE r.message_id IN (
+            SELECT message_id 
+            FROM Message 
+            WHERE conversation_id = ?
+        )`
+        
+    reactionRows, err := db.Query(reactionQuery, conversation_id)
+    if err != nil {
+        log.Printf("Error querying reactions: %v", err)
+        return messages
+    }
+    defer reactionRows.Close()
+
+    reactionMap := make(map[int][]models.Reaction)
+    for reactionRows.Next() {
+        var r models.Reaction
+        var u models.User
+        err := reactionRows.Scan(
+            &r.ID,
+            &r.MessageID,
+            &r.UserID,
+            &r.Reaction,
+            &u.ID,
+            &u.Username,
+            &u.Icon,
         )
         if err != nil {
-            log.Printf("Error scanning message: %v", err)
+            log.Printf("Error scanning reaction: %v", err)
             continue
         }
-
-        msg.Content = content
-        msg.EditedTime = editedTime
-        msg.DeletedTime = deletedTime
-        msg.RepliedTo = repliedTo
-        msg.IsForwarded = isForwarded
-        msg.ConversationID = conversation_id
-        msg.Sender = sender
-
-        // If there's a replied-to message, include its details
-        if repliedToMsg.ID.Valid {
-            msg.RepliedToMessage = &models.Message{
-                ID:          int(repliedToMsg.ID.Int64),
-                Content:     repliedToMsg.Content,
-                ContentType: repliedToMsg.ContentType.String,
-            }
-        }
-
-        messages = append(messages, msg)
+        r.User = u
+        reactionMap[r.MessageID] = append(reactionMap[r.MessageID], r)
     }
 
-    if err = rows.Err(); err != nil {
-        log.Printf("Error iterating messages: %v", err)
-        return nil
+    for i := range messages {
+        if reactions, ok := reactionMap[messages[i].ID]; ok {
+            messages[i].Reactions = reactions
+        }
     }
 
     return messages

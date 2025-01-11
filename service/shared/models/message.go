@@ -20,6 +20,7 @@ type Message struct {
 	IsForwarded  bool `json:"-"`
 	Sender 	   User          `json:"user"`
 	RepliedToMessage *Message    `json:"-"`
+    Reactions      []Reaction    `json:"-"`
 }
 
 func (m Message) MarshalJSON() ([]byte, error) {
@@ -40,6 +41,7 @@ func (m Message) MarshalJSON() ([]byte, error) {
             Content     string `json:"content"`
             ContentType string `json:"content_type"`
         } `json:"replied_to_message,omitempty"`
+        Reactions       []Reaction `json:"reactions,omitempty"`
     }{
         ID:             m.ID,
         Content:        string(m.Content),
@@ -52,6 +54,7 @@ func (m Message) MarshalJSON() ([]byte, error) {
         SenderID:       m.senderID,
         ConversationID: m.ConversationID,
         Sender:         m.Sender,
+        Reactions:     m.Reactions,
         RepliedToMessage: func() *struct {
             ID          int    `json:"message_id"`
             Content     string `json:"content"`

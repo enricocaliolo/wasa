@@ -1,6 +1,6 @@
 import api from '../../../shared/api/api'
 import { Conversation } from '../models/conversation'
-import { Message } from '../../message/models/Message'
+import { Message } from '../../message/models/message'
 
 export const conversationAPI = {
   getUserConversations: async () => {
@@ -15,7 +15,8 @@ export const conversationAPI = {
     if (response.data == null) {
       return null
     }
-    return response.data.map((json) => new Message(json))
+    var check = response.data.map((json) => new Message(json))
+    return check
   },
   createConversation: async (members, name) => {
     const response = await api.post('/conversations', {

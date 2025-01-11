@@ -66,6 +66,20 @@ func InsertMockValues(db *sql.DB) {
 		('Good morning team!', 'text', 1, 3, NULL, FALSE),
 		('Testando o forwarded', 'text', 1, 1, NULL, TRUE);
 		`,
+		`
+		INSERT INTO "Reactions" (message_id, user_id, reaction) VALUES
+		(1, 2, '👍'),
+		(1, 3, '❤️'),
+		(2, 1, '😊'),
+		(3, 2, '👀'),
+		(3, 4, '✅'),
+		(7, 6, '🎉'),
+		(7, 8, '👍'),
+		(9, 8, '🎮'),
+		(9, 10, '🎮'),
+		(13, 9, '📝'),
+		(16, 10, '🚀');
+		`,
 	}
 
 	for _, sqlStatement := range sqlStatements {
