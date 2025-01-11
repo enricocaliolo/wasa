@@ -30,6 +30,20 @@ export const useConversationStore = defineStore('conversationStore', () => {
     return message
   }
 
+  async function sendImage(image) {
+    const data = await messagesAPI.sendMessage(
+      currentConversation.value.conversationId,
+      image,
+      content_type = 'image'
+    )
+    const message = Message.fromJSON(data)
+    message.sender = userStore.getUser()
+
+    currentConversation.value.messages.push(message)
+
+    return message
+  }
+
   async function sendRepliedMessage(new_message) {
     const data = await messagesAPI.sendRepliedMessage(
       currentConversation.value.conversationId,
@@ -60,6 +74,7 @@ export const useConversationStore = defineStore('conversationStore', () => {
   }
 
   function setReplyMessage(message) {
+    console.log(message)
     replyMessage.value = message
   }
 
@@ -122,5 +137,6 @@ export const useConversationStore = defineStore('conversationStore', () => {
     addReaction,
     deleteReaction,
     updateGroupName,
+    sendImage
   }
 })

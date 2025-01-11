@@ -1,33 +1,70 @@
 <script setup>
 import { useConversationStore } from '@/shared/stores/conversation_store'
-import { ref } from 'vue'
+import { ref, onBeforeUnmount } from 'vue'
 
-const currentConversationStore = useConversationStore()
+const conversationStore = useConversationStore()
 const messageInput = ref('')
+const selectedImage = ref(null)
+const file = ref(null)
+const fileInput = ref(null)
 
 const sendMessage = async () => {
-  if(currentConversationStore.replyMessage) {
-    await currentConversationStore.sendRepliedMessage(messageInput.value).then(() => {
+  try{
+    if(conversationStore.replyMessage) {
+      // await conversationStore.sendRepliedMessage(messageInput.value)
+      // await conversationStore.sendRepliedMessage(
+      //   messageInput.value,
+      //   content_type = file
+      // )
       messageInput.value = ''
-      currentConversationStore.setReplyMessage(null)
-    })
+      conversationStore.setReplyMessage(null)
     return
-  }
+    }
 
-  await currentConversationStore.sendMessage(messageInput.value).then(() => {
+  if(selectedImage) {
+    // await conversationStore.sendImage(file.value)
+    selectedImage.value = null
+    file.value = null
     messageInput.value = ''
-  })
+    fileInput.value.value = ''
+    return
+  } 
+
+  await conversationStore.sendMessage(messageInput.value)
+  messageInput.value = ''
+  } catch (e) {
+    console.log(e)
+  }
 }
+
+const onFileSelected = (event) => {
+ file.value = event.target.files[0]
+ selectedImage.value = URL.createObjectURL(file.value)
+}
+
+onBeforeUnmount(() => {
+ if (selectedImage.value) {
+   URL.revokeObjectURL(selectedImage.value)
+ }
+})
+
 </script>
 
 <template>
   <footer class="input-wrapper">
-    <div v-if="currentConversationStore.replyMessage">
-    {{ currentConversationStore.replyMessage.content}}
-     <button @click="currentConversationStore.setReplyMessage(null)">RESET</button>
+    <div v-if="conversationStore.replyMessage">
+    {{ conversationStore.replyMessage.contentType === 'image' ? 'Image' : conversationStore.replyMessage.content }}
+     <button @click="conversationStore.setReplyMessage(null)">RESET</button>
     </div>
     <div>
-      <input type="text" placeholder="Type a message..." v-model="messageInput" />
+      <div class="container">
+        <input type="file" ref="fileInput" @change="onFileSelected" accept="image/*">
+        
+        <!-- <div v-if="selectedImage" class="preview">
+          <img :src="selectedImage" alt="Preview" />
+        </div> -->
+      </div>
+      <input v-if="selectedImage === null" type="text" placeholder="Type a message..." v-model="messageInput" />
       <button @click="sendMessage">Send</button>
     </div>
   </footer>
@@ -42,5 +79,18 @@ const sendMessage = async () => {
   display: flex;
   flex-direction: row;
   justify-content: space-around;
+}
+
+.container {
+  margin: 20px;
+}
+
+.preview {
+  margin-top: 20px;
+}
+
+.preview img {
+  max-width: 300px;
+  height: auto;
 }
 </style>

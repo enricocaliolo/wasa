@@ -3,8 +3,10 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"wasa/service/api/responses"
 	"wasa/service/shared/helper"
 	"wasa/service/shared/models"
@@ -90,22 +92,35 @@ func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	var reqBody reqMessageBody
+	contentType := r.Header.Get("Content-Type")
+    if strings.HasPrefix(contentType, "image/") {
+        // Handle image upload
+        imageData, err := io.ReadAll(r.Body)
+        if err != nil {
+            w.WriteHeader(http.StatusInternalServerError)
+            return
+        }
 
-	err = json.NewDecoder(r.Body).Decode(&reqBody)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(err)
-		return
-	}
-	defer r.Body.Close()
+        message.Content = imageData
+        message.ContentType = "image"
+    } else {
+        // Handle text message as before
+        var reqBody reqMessageBody
+        err = json.NewDecoder(r.Body).Decode(&reqBody)
+        if err != nil {
+            w.WriteHeader(http.StatusBadRequest)
+            _ = json.NewEncoder(w).Encode(err)
+            return
+        }
+        defer r.Body.Close()
 
-	if reqBody.ContentType == "" {
-		reqBody.ContentType = "text"
-	}
+        if reqBody.ContentType == "" {
+            reqBody.ContentType = "text"
+        }
 
-	message.Content = []byte(reqBody.Content)
-	message.ContentType = reqBody.ContentType
+        message.Content = []byte(reqBody.Content)
+        message.ContentType = reqBody.ContentType
+    }
 
 	insertedMessage, err := rt.db.SendMessage(message)
 	if err != nil {

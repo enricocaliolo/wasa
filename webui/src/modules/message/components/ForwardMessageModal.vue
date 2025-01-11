@@ -33,8 +33,7 @@ async function forwardMessage() {
   const destination_conversation_id = selectedConversation.value.conversationId
   const message = props.message
 
-  console.log("entra aqui")
-  await conversationStore.sendForwardedMessage(source_conversation_id, destination_conversation_id, message)
+  // await conversationStore.sendForwardedMessage(source_conversation_id, destination_conversation_id, message)
 
   closeModal()
 }

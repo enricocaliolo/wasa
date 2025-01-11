@@ -1,8 +1,9 @@
 import api from '../../../shared/api/api'
 
 export const messagesAPI = {
-  sendMessage: async (conversation_id, message) => {
-    try{const response = await api.post(`/conversations/${conversation_id}`, {
+  sendMessage: async (conversation_id, message,) => {
+    try{
+      const response = await api.post(`/conversations/${conversation_id}`, {
       content: message,
       content_type: 'text',
     })
@@ -14,6 +15,25 @@ export const messagesAPI = {
     }
     
   },
+  sendImage: async (conversation_id, image) => {
+    try{
+      const response = await api.post(
+        `/conversations/${conversation_id}`, 
+        image, // Send the raw file directly
+        {
+          headers: {
+            'Content-Type': 'image/jpeg',
+        }}
+      )
+    if (response.status === 201) {
+      return response.data
+    }}
+    catch(e) {
+      console.log(e)
+    }
+    
+  },
+  
   sendRepliedMessage: async(conversation_id, message, replied_to_message) => {
     const response = await api.post(`/conversations/${conversation_id}/reply`, {
       content: message,
@@ -48,4 +68,59 @@ export const messagesAPI = {
       return true
     }
   },
+
+  // sendMessage:async ({ 
+  //   conversation_id, 
+  //   content, 
+  //   content_type = 'text',
+  //   replied_to_message = null,
+  //   destination_conversation_id = null
+  // }) => {
+  //   try {
+  //     let endpoint = `/conversations/${conversation_id}`
+  //     let payload = {}
+  //     let config = {}
+      
+  //     // Set up config for image content type
+  //     if (content_type === 'image/jpeg') {
+  //       config = {
+  //         headers: {
+  //           'Content-Type': 'image/jpeg'
+  //         }
+  //       }
+  //       payload = content // Raw image file
+  //     } else {
+  //       payload = {
+  //         content,
+  //         content_type
+  //       }
+  //     }
+      
+  //     // Handle different message scenarios
+  //     if (destination_conversation_id) {
+  //       endpoint += '/forward'
+  //       payload = content_type === 'image/jpeg' ? content : {
+  //         content,
+  //         content_type,
+  //         destination_conversation_id
+  //       }
+  //     } else if (replied_to_message) {
+  //       endpoint += '/reply'
+  //       payload = content_type === 'image/jpeg' ? content : {
+  //         content,
+  //         content_type,
+  //         replied_to: replied_to_message.messageId
+  //       }
+  //     }
+  
+  //     const response = await api.post(endpoint, payload, config)
+  
+  //     if (response.status === 201) {
+  //       return response.data
+  //     }
+  //   } catch (error) {
+  //     console.log(error)
+  //   }
+  // }
+
 }

@@ -39,6 +39,17 @@ export class Message {
     }
   }
 
+  get isImage() {
+    return this.contentType === 'image'
+  }
+
+  get displayContent() { 
+    if(this.isImage) {
+      return `data:image/jpeg;base64,${this.content}`
+    }
+    return this.content
+  }
+
   isEdited() {
     return !!this.editedTime
   }

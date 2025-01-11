@@ -91,11 +91,24 @@ const userHasReaction = computed(() => {
         </div>
 
         <div v-if="message.repliedToMessage" class="replied-message">
-          {{ message.repliedToMessage.content }}
+          <div v-if="message.repliedToMessage.contentType === 'image'" class="replied-image-container">
+            <img 
+              :src="message.repliedToMessage.displayContent" 
+              alt="Replied image" 
+              class="replied-image"
+            />
+          </div>
+          <div v-else>
+            {{ message.repliedToMessage.content }}
+          </div>
         </div>
 
-        <div class="message-content">
-          {{ message.content }}
+        <div v-if="message.contentType === 'image'" class="image-message-container">
+          <img :src="message.displayContent" alt="Message image" class="message-image" />
+           <!-- teste -->
+        </div>
+        <div v-else class="message-content">
+          {{ message.displayContent }}
         </div>
 
         <div v-if="message.reactions.length > 0" class="reactions-container">
@@ -187,6 +200,20 @@ const userHasReaction = computed(() => {
   border-radius: 4px;
 }
 
+.replied-image-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
+}
+
+.replied-image {
+  max-width: 50px;
+  max-height: 50px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
 .own-message .replied-message {
   border-left-color: rgba(255, 255, 255, 0.4);
   color: rgba(255, 255, 255, 0.9);
@@ -235,5 +262,26 @@ const userHasReaction = computed(() => {
 
 .action-button:hover {
   transform: scale(1.2);
+}
+
+.image-message-container {
+  max-width: 300px;
+  padding: 4px;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+}
+
+.message-image {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 6px;
+  display: block;
+  object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.2s ease;
 }
 </style>
