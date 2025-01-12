@@ -65,22 +65,16 @@ export const conversationAPI = {
 			console.error("Error changing icon:", error);
 			throw error;
 		}
-
-
-		// const response = await api.put(
-		// 	`/conversations/${conversation_id}/photo`,
-		// 	{
-		// 		photo: photo,
-		// 	},
-		// 	{
-		// 		headers: {
-		// 		"Content-Type": "image/*",
-		// 	},}
-		// );
-		// if (response.status === 200) {
-		// 	return true;
-		// } else {
-		// 	return false;
-		// }
+	},
+	leaveGroup: async (conversation_id ) => {
+		try{
+			const response = await api.delete(`/conversations/${conversation_id}`);
+		if (response.status === 200) {
+			return true;
+		}} catch(e) {
+			if (e.response.status === 403) {
+				throw new Error("Can't delete a direct conversation.")
+			}
+		}
 	}
 };

@@ -33,23 +33,11 @@ function closeModal() {
 }
 
 async function createConversation() {
-	if (currentUsers.value.length > 2 && !groupName.value) {
-		alert("Please, insert a group name");
-		return;
-	} else if (currentUsers.value.length === 2) {
-		groupName.value = currentUsers.value[1].username;
-	}
+	await conversationStore.createConversation({
+		currentUsers: currentUsers.value,
+		groupName: groupName.value,
+	});
 
-	const conversation = await conversationAPI.createConversation(
-		currentUsers.value.map((user) => user.userId),
-		groupName.value,
-	);
-
-	if (currentUsers.value.length === 2) {
-		conversation.name = currentUsers.value[1].username;
-	}
-
-	conversationStore.addConversation(conversation);
 	closeModal();
 }
 </script>

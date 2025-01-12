@@ -8,44 +8,79 @@ import (
 )
 
 func CreateConversation(db *sql.DB, members []int, name string) (models.Conversation, error) {
-    if len(members) < 1 {
-        return models.Conversation{}, errors.New("conversation must have at least one other member")
-    }
+	if len(members) < 1 {
+		return models.Conversation{}, errors.New("conversation must have at least one other member")
+	}
 
-    isGroup := len(members) > 2
-    groupName := name
-    if (len(members) == 2) {
-        groupName = ""
-    }
+	isGroup := len(members) > 2
+	groupName := name
+	if len(members) == 2 {
+		var otherUsername string
+		err := db.QueryRow(`
+            SELECT username 
+            FROM User 
+            WHERE user_id = ?`, members[1]).Scan(&otherUsername)
+		if err != nil {
+			return models.Conversation{}, fmt.Errorf("getting other user's username: %w", err)
+		}
+		groupName = otherUsername
+	}
 
-    var conversation models.Conversation
+	var conversation models.Conversation
 
-    err := db.QueryRow(`
+	err := db.QueryRow(`
         INSERT INTO Conversation (name, is_group) 
         VALUES (?, ?) 
         RETURNING conversation_id, name, is_group, created_at
     `, groupName, isGroup).Scan(&conversation.ID, &conversation.Name, &conversation.Is_group, &conversation.Created_at)
 
-    if err != nil {
-        return conversation, fmt.Errorf("creating conversation: %w", err)
-    }   
+	if err != nil {
+		return conversation, fmt.Errorf("creating conversation: %w", err)
+	}
 
-    for _, member := range members {
-        _, err = db.Exec(`
+	for _, member := range members {
+		_, err = db.Exec(`
             INSERT INTO ConversationParticipants (conversation_id, user_id)
             VALUES (?, ?)
         `, conversation.ID, member)
-        if err != nil {
-            return conversation, fmt.Errorf("adding participant %d: %w", member, err)
-        }
-    }
+		if err != nil {
+			return conversation, fmt.Errorf("adding participant %d: %w", member, err)
+		}
+	}
+	participantsQuery := `
+        SELECT 
+            u.user_id,
+            u.username,
+            u.icon
+        FROM ConversationParticipants cp
+        JOIN User u ON cp.user_id = u.user_id
+        WHERE cp.conversation_id = ?`
 
-    result, err := db.Exec("SELECT * FROM ConversationParticipants WHERE conversation_id = 11;")
-    if err != nil {
-        print(err)
-    }
+	participantRows, err := db.Query(participantsQuery, conversation.ID)
+	if err != nil {
+		return conversation, fmt.Errorf("querying participants: %w", err)
+	}
+	defer participantRows.Close()
 
-    print(result)
+	var participants []models.User
+	for participantRows.Next() {
+		var user models.User
+		err := participantRows.Scan(
+			&user.ID,
+			&user.Username,
+			&user.Icon,
+		)
+		if err != nil {
+			return conversation, fmt.Errorf("scanning participant: %w", err)
+		}
+		participants = append(participants, user)
+	}
 
-    return conversation, nil
+	if err = participantRows.Err(); err != nil {
+		return conversation, fmt.Errorf("iterating participants: %w", err)
+	}
+
+	conversation.Participants = participants
+
+	return conversation, nil
 }

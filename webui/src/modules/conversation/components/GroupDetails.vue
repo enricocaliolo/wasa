@@ -43,6 +43,14 @@ const closeDetails = () => {
 	conversationStore.toggleGroupDetails(false)
 }
 
+const leaveGroup = async() => {
+	try{
+		await conversationStore.leaveGroup()
+	} catch(e) {
+		alert(e.message)
+	}
+}
+
 onBeforeUnmount(() => {
 	if (photoURL.value) {
 		URL.revokeObjectURL(photoURL.value);
@@ -50,8 +58,6 @@ onBeforeUnmount(() => {
 	photo.value = null;
   	photoURL.value = null;
 });
-
-console.log(props.conversation)
 
 </script>
 
@@ -106,11 +112,12 @@ console.log(props.conversation)
 	  </div>
   
 	  <div class="participants-list">
-		<p v-for="participant in props.conversation.participants" 
-		   :key="participant" 
-		   class="participant-item">
-		  {{participant.username}}
-		</p>
+		<div v-for="(participant, index) in props.conversation.participants" 
+			:key="participant" 
+			class="participant-item">
+			<p>{{participant.username}}</p>
+			<button v-if="index === 0" @click="leaveGroup">Leave</button>
+		</div>
 	  </div>
 
 	  <div>
@@ -234,6 +241,8 @@ console.log(props.conversation)
 	font-size: 14px;
 	color: #444444;
 	margin: 0;
+	display: flex;
+	justify-content: space-between;
   }
   
   .participant-item:hover {

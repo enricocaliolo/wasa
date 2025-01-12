@@ -213,7 +213,7 @@ paths:
                     type: string
                     description: Success confirmation message
 
-  # reply to message
+  # reply to message``
   /conversations/{conversation_id}/reply:
     parameters:
       - $ref: "#/components/parameters/conversation_id"

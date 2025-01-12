@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"strconv"
@@ -261,18 +260,18 @@ func (rt *APIRouter) deleteConversation(w http.ResponseWriter, r *http.Request, 
 	}
 	conversationID, _ := strconv.Atoi(ps.ByName("conversation_id"))
 
-	exists, _ := rt.db.IsUserInConversation(user_id, conversationID)
-	if !exists {
-		w.WriteHeader(http.StatusUnauthorized)
+	count, _ := rt.db.CountParticipants(conversationID)
+	if count <= 2 {
 		w.Header().Set("content-type", "application/json")
-		_ = json.NewEncoder(w).Encode("User is not on the conversation.")
+		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
-	count, err := rt.db.CountParticipants(conversationID)
-
-	if count <= 2 {
-		responses.SendError(w, errors.New("can't delete a direct conversation"), http.StatusBadRequest)
+	exists, _ := rt.db.IsUserInConversation(user_id, conversationID)
+	if !exists {
+		w.Header().Set("content-type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode("User is not on the conversation.")
 		return
 	}
 

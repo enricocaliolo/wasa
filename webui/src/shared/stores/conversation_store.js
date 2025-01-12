@@ -18,6 +18,26 @@ export const useConversationStore = defineStore("conversationStore", () => {
 	function setCurrentConversation(conversation) {
 		currentConversation.value = conversation;
 	}
+	
+	async function createConversation({currentUsers, groupName}) {
+		if (currentUsers.length > 2 && !groupName) {
+			alert("Please, insert a group name");
+			return;
+		} else if (currentUsers.length === 2) {
+			groupName = currentUsers[1].username;
+		}
+	
+		const conversation = await conversationAPI.createConversation(
+			currentUsers.map((user) => user.userId),
+			groupName,
+		);
+	
+		if (currentUsers.length === 2) {
+			conversation.name = currentUsers[1].username;
+		}
+	
+		addConversation(conversation);
+	}
 
 	async function addConversation(conv) {
 		conversations.value.push(conv);
@@ -89,6 +109,18 @@ export const useConversationStore = defineStore("conversationStore", () => {
 		return
 	}
 
+	async function leaveGroup() {
+		try{
+			await conversationAPI.leaveGroup(currentConversation.value.conversationId)
+			conversations.value = conversations.value.filter(
+				(conv) => conv.conversationId !== currentConversation.value.conversationId
+			)
+			currentConversation.value = null
+		} catch(e) {
+			throw e
+		}
+	}
+
 
 	async function sendMessage({
 		content,
@@ -134,5 +166,7 @@ export const useConversationStore = defineStore("conversationStore", () => {
 		updateGroupPhoto,
 		toggleGroupDetails,
 		showGroupDetails,
+		leaveGroup,
+		createConversation,
 	};
 });
