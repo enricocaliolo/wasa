@@ -107,7 +107,7 @@ const userHasReaction = computed(() => {
 				</div>
 			</div>
 
-			<div>
+			<div v-if="message.sender.icon">
 				<img class="sender-icon" :src="`${message.sender.displayIcon}`" alt="User icon">
 			</div>
 

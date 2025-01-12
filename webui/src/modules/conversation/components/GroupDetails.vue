@@ -2,6 +2,7 @@
 
 import { ref, onBeforeUnmount, computed } from 'vue'
 import { useConversationStore } from '../../../shared/stores/conversation_store';
+import IconConversation from '../../../shared/components/IconConversation.vue';
 
 const props = defineProps({
     conversation: Object,
@@ -60,16 +61,7 @@ console.log(props.conversation)
 	  
 	  <div class="group-header">
 		<div class="avatar-container">
-		  <div class="group-avatar">
-			<img 
-			  v-if="props.conversation.photo" 
-			  :src="`${conversationStore.currentConversation.displayPhoto}`" 
-			  class="avatar-image"
-			/>
-			<span v-else class="avatar-placeholder">
-			  {{ props.conversation.name.charAt(0).toUpperCase() }}
-			</span>
-		  </div>
+		  <IconConversation :conversation="conversationStore.currentConversation" />
 		  <label class="avatar-upload-label">
 			<input 
 			  type="file" 

@@ -2,6 +2,7 @@
 import { useConversationStore } from "@/shared/stores/conversation_store";
 import api from "@/shared/api/api";
 import { conversationAPI } from "../api/conversation-api";
+import IconConversation from "../../../shared/components/IconConversation.vue";
 
 const props = defineProps({
 	conversation: Object,
@@ -37,6 +38,7 @@ async function getConversation(conversation) {
 
 <template>
 	<div class="conversation-preview" @click="getConversation(conversation)">
+		<IconConversation :conversation="props.conversation"/>
 		<span class="name">
 			{{ conversation.name }}
 		</span>
@@ -54,6 +56,7 @@ async function getConversation(conversation) {
 	padding: 1rem;
 	margin-top: 1rem;
 	border: 1px solid gold;
+	display: flex;
 }
 
 .name {
