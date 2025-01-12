@@ -14,10 +14,11 @@ import (
 )
 
 type reqMessageBody struct {
-	Content     string `json:"content"`
-	ContentType string `json:"content_type"`
-	RepliedTo   *int   `json:"replied_to,omitempty"`
-	IsForwarded *int   `json:"isForwarded,omitempty"`
+	Content                   string `json:"content"`
+	ContentType               string `json:"content_type"`
+	RepliedTo                 *int   `json:"replied_to,omitempty"`
+	IsForwarded               bool   `json:"is_forwarded,omitempty"`
+	DestinationConversationID *int   `json:"destination_conversation_id,omitempty"`
 }
 
 // func (rt *APIRouter) a(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -69,185 +70,6 @@ func (rt *APIRouter) getConversation(w http.ResponseWriter, r *http.Request, ps 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("content-type", "application/json")
 	_ = json.NewEncoder(w).Encode(messages)
-}
-
-func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-
-	user_id, err := getToken(r)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Set("content-type", "application/json")
-		_ = json.NewEncoder(w).Encode(err)
-		return
-	}
-
-	var message models.Message
-	message.Sender.ID = user_id
-	message.ConversationID, _ = strconv.Atoi(ps.ByName("conversation_id"))
-	exists, _ := rt.db.ConversationExists(message.ConversationID)
-	if !exists {
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode("Conversation do not exist.")
-		return
-	}
-
-	contentType := r.Header.Get("Content-Type")
-	if strings.HasPrefix(contentType, "image/") {
-		// Handle image upload
-		imageData, err := io.ReadAll(r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		message.Content = imageData
-		message.ContentType = "image"
-	} else {
-		// Handle text message as before
-		var reqBody reqMessageBody
-		err = json.NewDecoder(r.Body).Decode(&reqBody)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			_ = json.NewEncoder(w).Encode(err)
-			return
-		}
-		defer r.Body.Close()
-
-		if reqBody.ContentType == "" {
-			reqBody.ContentType = "text"
-		}
-
-		message.Content = []byte(reqBody.Content)
-		message.ContentType = reqBody.ContentType
-	}
-
-	insertedMessage, err := rt.db.SendMessage(message)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("content-type", "application/json")
-	_ = json.NewEncoder(w).Encode(insertedMessage)
-}
-
-func (rt *APIRouter) replyToMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	user_id, err := getToken(r)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Set("content-type", "application/json")
-		_ = json.NewEncoder(w).Encode(err)
-		return
-	}
-
-	var message models.Message
-	message.Sender.ID = user_id
-	message.ConversationID, _ = strconv.Atoi(ps.ByName("conversation_id"))
-
-	var reqBody reqMessageBody
-
-	err = json.NewDecoder(r.Body).Decode(&reqBody)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(err)
-		return
-	}
-	defer r.Body.Close()
-
-	if reqBody.ContentType == "" {
-		reqBody.ContentType = "text"
-	}
-
-	message.Content = []byte(reqBody.Content)
-	message.ContentType = reqBody.ContentType
-	message.RepliedTo = helper.PtrToNullInt64(reqBody.RepliedTo)
-
-	insertedMessage, err := rt.db.ReplyToMessage(message)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("content-type", "application/json")
-	_ = json.NewEncoder(w).Encode(insertedMessage)
-}
-
-func (rt *APIRouter) forwardMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	source_conversation_id, err := strconv.Atoi(ps.ByName("conversation_id"))
-	if err != nil {
-		http.Error(w, "Invalid conversation ID", http.StatusBadRequest)
-		return
-	}
-	user_id, err := getToken(r)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Set("content-type", "application/json")
-		_ = json.NewEncoder(w).Encode(err)
-		return
-	}
-
-	// Get destination_conversation_id from query params for image forwarding
-	destination_conversation_id := 0
-	if destID := r.URL.Query().Get("destination_conversation_id"); destID != "" {
-		destination_conversation_id, err = strconv.Atoi(destID)
-		if err != nil {
-			http.Error(w, "Invalid destination conversation ID", http.StatusBadRequest)
-			return
-		}
-	}
-
-	var message models.Message
-	message.Sender.ID = user_id
-
-	contentType := r.Header.Get("Content-Type")
-	if strings.HasPrefix(contentType, "image/") {
-		imageData, err := io.ReadAll(r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		message.ConversationID = destination_conversation_id
-		message.Content = imageData
-		message.ContentType = "image"
-	} else {
-		var reqBody struct {
-			Destination_conversation_id int    `json:"destination_conversation_id"`
-			Content                     string `json:"content"`
-			Content_type                string `json:"content_type"`
-		}
-		if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
-			http.Error(w, "Invalid request body", http.StatusBadRequest)
-			return
-		}
-		message.ConversationID = reqBody.Destination_conversation_id
-		message.Content = []byte(reqBody.Content)
-		message.ContentType = reqBody.Content_type
-	}
-
-	isInSource, err := rt.db.IsUserInConversation(user_id, source_conversation_id)
-	if err != nil || !isInSource {
-		http.Error(w, "Not authorized to access source conversation", http.StatusForbidden)
-		return
-	}
-
-	isInDest, err := rt.db.IsUserInConversation(user_id, message.ConversationID)
-	if err != nil || !isInDest {
-		http.Error(w, "Not authorized to forward to destination conversation", http.StatusForbidden)
-		return
-	}
-
-	message.IsForwarded = true
-	id, err := rt.db.ForwardMessage(message)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("content-type", "application/json")
-	_ = json.NewEncoder(w).Encode(id)
 }
 
 func (rt *APIRouter) deleteConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -567,4 +389,122 @@ func (rt *APIRouter) addGroupMembers(w http.ResponseWriter, r *http.Request, ps 
 
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode("Members added successfully")
+}
+
+func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	userID, err := getToken(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("content-type", "application/json")
+		_ = json.NewEncoder(w).Encode(err)
+		return
+	}
+
+	sourceConversationID, _ := strconv.Atoi(ps.ByName("conversation_id"))
+
+	var message models.Message
+	message.Sender.ID = userID
+
+	contentType := r.Header.Get("Content-Type")
+	if strings.HasPrefix(contentType, "image/") {
+		imageData, err := io.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		if destID := r.URL.Query().Get("destination_conversation_id"); destID != "" {
+			destConvID, err := strconv.Atoi(destID)
+			if err != nil {
+				http.Error(w, "Invalid destination conversation ID", http.StatusBadRequest)
+				return
+			}
+			message.ConversationID = destConvID
+			message.IsForwarded = true
+		} else {
+			message.ConversationID = sourceConversationID
+		}
+
+		message.Content = imageData
+		message.ContentType = "image"
+	} else {
+		var reqBody reqMessageBody
+		err = json.NewDecoder(r.Body).Decode(&reqBody)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(err)
+			return
+		}
+		defer r.Body.Close()
+
+		if reqBody.ContentType == "" {
+			reqBody.ContentType = "text"
+		}
+
+		if reqBody.DestinationConversationID != nil {
+			message.ConversationID = *reqBody.DestinationConversationID
+			message.IsForwarded = true
+			isInSource, err := rt.db.IsUserInConversation(userID, sourceConversationID)
+			if err != nil || !isInSource {
+				http.Error(w, "Not authorized to access source conversation", http.StatusForbidden)
+				return
+			}
+		} else {
+			message.ConversationID = sourceConversationID
+		}
+
+		message.Content = []byte(reqBody.Content)
+		message.ContentType = reqBody.ContentType
+		message.IsForwarded = reqBody.IsForwarded
+
+		if reqBody.RepliedTo != nil {
+			message.RepliedTo = helper.PtrToNullInt64(reqBody.RepliedTo)
+		}
+	}
+
+	exists, _ := rt.db.ConversationExists(message.ConversationID)
+	if !exists {
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode("Conversation does not exist.")
+		return
+	}
+
+	isInDest, err := rt.db.IsUserInConversation(userID, message.ConversationID)
+	if err != nil || !isInDest {
+		http.Error(w, "Not authorized to send to this conversation", http.StatusForbidden)
+		return
+	}
+
+	var insertedMessage interface{}
+	if message.RepliedTo.Valid {
+		insertedMessage, err = rt.db.ReplyToMessage(message)
+	} else if message.IsForwarded {
+		insertedMessage, err = rt.db.ForwardMessage(message)
+	} else {
+		insertedMessage, err = rt.db.SendMessage(message)
+	}
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Broadcast the message via WebSocket
+	// wsMessage := WebSocketMessage{
+	// 	Type:           "new_message",
+	// 	ConversationID: message.ConversationID,
+	// 	Payload: map[string]interface{}{
+	// 		"message": insertedMessage,
+	// 	},
+	// 	Timestamp: time.Now(),
+	// }
+
+	// messageJSON, err := json.Marshal(wsMessage)
+	// if err == nil {
+	// 	rt.wsHub.SendToConversation(message.ConversationID, messageJSON)
+	// }
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("content-type", "application/json")
+	_ = json.NewEncoder(w).Encode(insertedMessage)
 }

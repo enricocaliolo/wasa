@@ -18,8 +18,8 @@ func (rt *APIRouter) Handler() http.Handler {
 	rt.router.GET("/conversations/:conversation_id", rt.authMiddleware(rt.getConversation))
 	rt.router.POST("/conversations/:conversation_id", rt.authMiddleware(rt.sendMessage))
 	rt.router.DELETE("/conversations/:conversation_id", rt.authMiddleware(rt.deleteConversation))
-	rt.router.POST("/conversations/:conversation_id/reply", rt.authMiddleware(rt.replyToMessage))
-	rt.router.POST("/conversations/:conversation_id/forward", rt.authMiddleware(rt.forwardMessage))
+	rt.router.POST("/conversations/:conversation_id/reply", rt.authMiddleware(rt.sendMessage))
+	rt.router.POST("/conversations/:conversation_id/forward", rt.authMiddleware(rt.sendMessage))
 	rt.router.DELETE("/conversations/:conversation_id/messages/:message_id", rt.authMiddleware(rt.deleteMessage))
 
 	rt.router.PUT("/conversations/:conversation_id/messages/:message_id", rt.authMiddleware(rt.commentMessage))
@@ -31,6 +31,7 @@ func (rt *APIRouter) Handler() http.Handler {
 	rt.router.PUT("/conversations/:conversation_id/users", rt.authMiddleware(rt.addGroupMembers))
 
 	rt.router.ServeFiles("/files/*filepath", http.Dir("files"))
+	rt.router.GET("/ws", rt.authMiddleware(rt.HandleWebSocket))
 
 	return rt.router
 }
