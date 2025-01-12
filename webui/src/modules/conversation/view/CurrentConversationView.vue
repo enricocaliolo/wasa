@@ -2,16 +2,17 @@
 import InputComponent from "@/modules/conversation/components/InputComponent.vue";
 import MessageComponent from "../../message/components/MessageComponent.vue";
 import { useConversationStore } from "../../../shared/stores/conversation_store";
+import {ref} from 'vue'
+import GroupDetails from "../components/GroupDetails.vue";
 
 const props = defineProps({
 	conversation: Object,
 });
 
-async function changeGroupName() {
-	if (props.conversation.isGroup) {
-		const newName = prompt("Enter new group name");
-		await useConversationStore().updateGroupName(newName);
-	}
+const conversationStore = useConversationStore();
+
+function changeGroupName() {
+	conversationStore.toggleGroupDetails(!conversationStore.showGroupDetails);
 }
 </script>
 
@@ -20,14 +21,15 @@ async function changeGroupName() {
 		<header @click="changeGroupName">
 			<h1>{{ conversation.name }}</h1>
 		</header>
-		<div class="messages-box">
+		<GroupDetails v-if="conversationStore.showGroupDetails" :conversation="conversation" />
+		<div v-else class="messages-box">	
 			<MessageComponent
 				v-for="message in conversation.messages"
 				:key="message.messageId"
 				:message="message"
 			/>
 		</div>
-		<InputComponent />
+		<InputComponent v-if="!conversationStore.showGroupDetails" />
 	</div>
 </template>
 

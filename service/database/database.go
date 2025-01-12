@@ -54,7 +54,7 @@ type AppDatabase interface {
 	UpdatePhoto(userId int, imageData []byte) bool
 
 	// conversation operations
-	GetAllConversations(id int) []models.Conversation
+	GetAllConversations(id int) ([]models.Conversation, error)
 	GetMessagesFromConversation(id int) []models.Message
 	IsUserInConversation(conversation_id int, user_id int) (bool, error)
 	SendMessage(models.Message) (*models.Message, error)
@@ -73,7 +73,7 @@ type AppDatabase interface {
 	IsReactionFromUser(user_id int, reaction_id int) (bool, error)
 
 	UpdateGroupName(conversation_id int, name string) (bool, error)
-	UpdateGroupPhoto(conversation_id int, photo string) (bool, error)
+	UpdateGroupPhoto(conversation_id int, photo []byte) (bool, error)
 	IsGroup(conversation_id int) (bool, error)
 	CreateConversation(members []int, name string) (models.Conversation, error)
 	AddGroupMembers(conversation_id int, members []int) error
@@ -128,7 +128,7 @@ func (db *appdbimpl) ValidateUser(id int) bool {
 	return userDB.ValidateUser(db.c, id)
 }
 
-func (db *appdbimpl) GetAllConversations(id int) []models.Conversation {
+func (db *appdbimpl) GetAllConversations(id int) ([]models.Conversation, error) {
 	return conversationDB.GetAllConversations(db.c, id)
 }
 
@@ -192,7 +192,7 @@ func (db *appdbimpl) UpdateGroupName(conversation_id int, name string) (bool, er
 	return conversationDB.UpdateGroupName(db.c, conversation_id, name)
 }
 
-func (db *appdbimpl) UpdateGroupPhoto(conversation_id int, photo string) (bool, error) {
+func (db *appdbimpl) UpdateGroupPhoto(conversation_id int, photo []byte) (bool, error) {
 	return conversationDB.UpdateGroupPhoto(db.c, conversation_id, photo)
 }
 func (db *appdbimpl) IsGroup(conversation_id int) (bool, error) {

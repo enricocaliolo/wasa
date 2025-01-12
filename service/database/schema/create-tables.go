@@ -12,7 +12,7 @@ func CreateTables(db *sql.DB) {
 		CREATE TABLE "User" (
 		user_id INTEGER PRIMARY KEY,
 		username VARCHAR(64) NOT NULL,
-		icon VARCHAR(64),
+		icon BLOB,
 		created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 		);`,
 
@@ -20,6 +20,7 @@ func CreateTables(db *sql.DB) {
 		CREATE TABLE IF NOT EXISTS "Conversation" (
 			conversation_id INTEGER PRIMARY KEY,
 			"name" VARCHAR(64) DEFAULT '',
+			photo BLOB default NULL,
 			is_group BOOLEAN,
 			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 		);`,

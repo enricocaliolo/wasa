@@ -1,41 +1,33 @@
 package models
 
 import (
-	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"time"
 )
 
 type Conversation struct {
-    ID                        int                       `json:"conversation_id"`
-    Name                      string           `json:"name"`
-    Is_group                  bool             `json:"is_group"`
-    Created_at               time.Time           `json:"created_at"`
-    Messages                 []Message                `json:"messages"`
-    ConversationParticipant []User `json:"participants"`
+	ID           int       `json:"conversation_id"`
+	Name         string    `json:"name"`
+	Photo        []byte    `json:"-"`
+	Is_group     bool      `json:"is_group"`
+	Created_at   time.Time `json:"created_at"`
+	Messages     []Message `json:"messages"`
+	Participants []User    `json:"participants"`
 }
 
 func (c *Conversation) MarshalJSON() ([]byte, error) {
-    return json.Marshal(&struct {
-        ID                        int                       `json:"conversation_id"`
-        Name                      string                    `json:"name"`
-        IsGroup                   bool                      `json:"is_group"`
-        CreatedAt                 time.Time                 `json:"created_at"`
-        Messages                  []Message                 `json:"messages,omitempty"`
-        ConversationParticipant   []User    `json:"participants,omitempty"`
-    }{
-        ID:                      c.ID,
-        Name:                    c.Name,
-        IsGroup:                 c.Is_group,          
-        CreatedAt:               c.Created_at, 
-        Messages:                c.Messages,
-        ConversationParticipant: c.ConversationParticipant,
-    })
-}
-
-func NullStringToPtr(s sql.NullString) *string {
-	if !s.Valid {
-		return nil
+	type Alias Conversation
+	var photoStr string
+	if len(c.Photo) > 0 {
+		photoStr = base64.StdEncoding.EncodeToString(c.Photo)
 	}
-	return &s.String
+
+	return json.Marshal(&struct {
+		*Alias
+		Photo string `json:"photo,omitempty"`
+	}{
+		Alias: (*Alias)(c),
+		Photo: photoStr,
+	})
 }

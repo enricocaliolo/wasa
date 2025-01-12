@@ -5,6 +5,7 @@ import { useUserStore } from "./user_store";
 import { Message } from "../../modules/message/models/message";
 import { Reaction } from "../../modules/message/models/reaction";
 import { conversationAPI } from "../../modules/conversation/api/conversation-api";
+import { imageConverter } from "../../modules/message/helper/image_converter";
 
 export const useConversationStore = defineStore("conversationStore", () => {
 	const userStore = useUserStore();
@@ -12,6 +13,7 @@ export const useConversationStore = defineStore("conversationStore", () => {
 	const conversations = ref([]);
 	const currentConversation = ref();
 	const replyMessage = ref(null);
+	const showGroupDetails = ref(false)
 
 	function setCurrentConversation(conversation) {
 		currentConversation.value = conversation;
@@ -23,6 +25,10 @@ export const useConversationStore = defineStore("conversationStore", () => {
 
 	function setReplyMessage(message) {
 		replyMessage.value = message;
+	}
+
+	async function toggleGroupDetails(value) {
+		showGroupDetails.value = value
 	}
 
 	async function addReaction(message_id, _reaction) {
@@ -70,9 +76,19 @@ export const useConversationStore = defineStore("conversationStore", () => {
 			currentConversation.value.conversationId,
 			name,
 		);
-		currentConversation.value.name = name;
-		return;
+		currentConversation.value.name = name
+		return
 	}
+
+	async function updateGroupPhoto(photo) {
+		await conversationAPI.updateGroupPhoto(
+			currentConversation.value.conversationId,
+			photo,
+		)
+		currentConversation.value.photo = await imageConverter.fileToBase64(photo)
+		return
+	}
+
 
 	async function sendMessage({
 		content,
@@ -110,13 +126,13 @@ export const useConversationStore = defineStore("conversationStore", () => {
 		replyMessage,
 		setCurrentConversation,
 		sendMessage,
-		// sendRepliedMessage,
-		// sendForwardedMessage,
 		addConversation,
 		setReplyMessage,
 		addReaction,
 		deleteReaction,
 		updateGroupName,
-		// sendImage
+		updateGroupPhoto,
+		toggleGroupDetails,
+		showGroupDetails,
 	};
 });

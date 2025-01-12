@@ -21,4 +21,25 @@ export const imageConverter = {
 			return null;
 		}
 	},
+	fileToBase64: (file) => {
+		return new Promise((resolve, reject) => {
+		  const reader = new FileReader();
+		  
+		  reader.onload = () => {
+			try {
+			  // Remove the "data:image/jpeg;base64," part from the string
+			  const base64String = reader.result.split(',')[1];
+			  resolve(base64String);
+			} catch (error) {
+			  reject(error);
+			}
+		  };
+	
+		  reader.onerror = (error) => {
+			reject(error);
+		  };
+	
+		  reader.readAsDataURL(file);
+		});
+	  }
 };

@@ -38,4 +38,49 @@ export const conversationAPI = {
 			return false;
 		}
 	},
+	updateGroupPhoto: async (conversation_id, photo) => {
+
+		try {
+			let payload = photo;
+			let config = {
+				headers: {
+					"Content-Type": "image/*",
+				},
+			};
+	
+			// If the icon is a base64 string, convert it to a File object
+			if (typeof photo === "string") {
+				payload = imageConverter.base64ToFile(photo);
+				if (!payload) {
+					throw new Error("Failed to convert image");
+				}
+			}
+	
+			const response = await api.put(`/conversations/${conversation_id}/photo`, payload, config);
+			if (response.status === 200) {
+				return true
+			}
+			return false;
+		} catch (error) {
+			console.error("Error changing icon:", error);
+			throw error;
+		}
+
+
+		// const response = await api.put(
+		// 	`/conversations/${conversation_id}/photo`,
+		// 	{
+		// 		photo: photo,
+		// 	},
+		// 	{
+		// 		headers: {
+		// 		"Content-Type": "image/*",
+		// 	},}
+		// );
+		// if (response.status === 200) {
+		// 	return true;
+		// } else {
+		// 	return false;
+		// }
+	}
 };

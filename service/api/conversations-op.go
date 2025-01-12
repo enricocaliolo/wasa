@@ -18,7 +18,7 @@ type reqMessageBody struct {
 	Content     string `json:"content"`
 	ContentType string `json:"content_type"`
 	RepliedTo   *int   `json:"replied_to,omitempty"`
-	IsForwarded *int `json:"isForwarded,omitempty"`
+	IsForwarded *int   `json:"isForwarded,omitempty"`
 }
 
 // func (rt *APIRouter) a(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -34,11 +34,11 @@ func (rt *APIRouter) conversations(w http.ResponseWriter, r *http.Request, ps ht
 		_ = json.NewEncoder(w).Encode(err)
 		return
 	}
-	conversations := rt.db.GetAllConversations(user_id)
+	conversations, err := rt.db.GetAllConversations(user_id)
 
-	if conversations == nil {
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		_ = json.NewEncoder(w).Encode("Problem getting conversations")
+		_ = json.NewEncoder(w).Encode(err)
 		return
 	}
 
@@ -93,34 +93,34 @@ func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	contentType := r.Header.Get("Content-Type")
-    if strings.HasPrefix(contentType, "image/") {
-        // Handle image upload
-        imageData, err := io.ReadAll(r.Body)
-        if err != nil {
-            w.WriteHeader(http.StatusInternalServerError)
-            return
-        }
+	if strings.HasPrefix(contentType, "image/") {
+		// Handle image upload
+		imageData, err := io.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-        message.Content = imageData
-        message.ContentType = "image"
-    } else {
-        // Handle text message as before
-        var reqBody reqMessageBody
-        err = json.NewDecoder(r.Body).Decode(&reqBody)
-        if err != nil {
-            w.WriteHeader(http.StatusBadRequest)
-            _ = json.NewEncoder(w).Encode(err)
-            return
-        }
-        defer r.Body.Close()
+		message.Content = imageData
+		message.ContentType = "image"
+	} else {
+		// Handle text message as before
+		var reqBody reqMessageBody
+		err = json.NewDecoder(r.Body).Decode(&reqBody)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(err)
+			return
+		}
+		defer r.Body.Close()
 
-        if reqBody.ContentType == "" {
-            reqBody.ContentType = "text"
-        }
+		if reqBody.ContentType == "" {
+			reqBody.ContentType = "text"
+		}
 
-        message.Content = []byte(reqBody.Content)
-        message.ContentType = reqBody.ContentType
-    }
+		message.Content = []byte(reqBody.Content)
+		message.ContentType = reqBody.ContentType
+	}
 
 	insertedMessage, err := rt.db.SendMessage(message)
 	if err != nil {
@@ -176,79 +176,79 @@ func (rt *APIRouter) replyToMessage(w http.ResponseWriter, r *http.Request, ps h
 }
 
 func (rt *APIRouter) forwardMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-    source_conversation_id, err := strconv.Atoi(ps.ByName("conversation_id"))
-    if err != nil {
-        http.Error(w, "Invalid conversation ID", http.StatusBadRequest)
-        return
-    }
-    user_id, err := getToken(r)
-    if err != nil {
-        w.WriteHeader(http.StatusBadRequest)
-        w.Header().Set("content-type", "application/json")
-        _ = json.NewEncoder(w).Encode(err)
-        return
-    }
+	source_conversation_id, err := strconv.Atoi(ps.ByName("conversation_id"))
+	if err != nil {
+		http.Error(w, "Invalid conversation ID", http.StatusBadRequest)
+		return
+	}
+	user_id, err := getToken(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("content-type", "application/json")
+		_ = json.NewEncoder(w).Encode(err)
+		return
+	}
 
-    // Get destination_conversation_id from query params for image forwarding
-    destination_conversation_id := 0
-    if destID := r.URL.Query().Get("destination_conversation_id"); destID != "" {
-        destination_conversation_id, err = strconv.Atoi(destID)
-        if err != nil {
-            http.Error(w, "Invalid destination conversation ID", http.StatusBadRequest)
-            return
-        }
-    }
+	// Get destination_conversation_id from query params for image forwarding
+	destination_conversation_id := 0
+	if destID := r.URL.Query().Get("destination_conversation_id"); destID != "" {
+		destination_conversation_id, err = strconv.Atoi(destID)
+		if err != nil {
+			http.Error(w, "Invalid destination conversation ID", http.StatusBadRequest)
+			return
+		}
+	}
 
-    var message models.Message
-    message.Sender.ID = user_id
+	var message models.Message
+	message.Sender.ID = user_id
 
-    contentType := r.Header.Get("Content-Type")
-    if strings.HasPrefix(contentType, "image/") {
-        imageData, err := io.ReadAll(r.Body)
-        if err != nil {
-            w.WriteHeader(http.StatusInternalServerError)
-            return
-        }
-        message.ConversationID = destination_conversation_id
-        message.Content = imageData
-        message.ContentType = "image"
-    } else {
-        var reqBody struct {
-            Destination_conversation_id int    `json:"destination_conversation_id"`
-            Content                    string `json:"content"`
-            Content_type              string `json:"content_type"`
-        }
-        if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
-            http.Error(w, "Invalid request body", http.StatusBadRequest)
-            return
-        }
-        message.ConversationID = reqBody.Destination_conversation_id
-        message.Content = []byte(reqBody.Content)
-        message.ContentType = reqBody.Content_type
-    }
+	contentType := r.Header.Get("Content-Type")
+	if strings.HasPrefix(contentType, "image/") {
+		imageData, err := io.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		message.ConversationID = destination_conversation_id
+		message.Content = imageData
+		message.ContentType = "image"
+	} else {
+		var reqBody struct {
+			Destination_conversation_id int    `json:"destination_conversation_id"`
+			Content                     string `json:"content"`
+			Content_type                string `json:"content_type"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
+		}
+		message.ConversationID = reqBody.Destination_conversation_id
+		message.Content = []byte(reqBody.Content)
+		message.ContentType = reqBody.Content_type
+	}
 
-    isInSource, err := rt.db.IsUserInConversation(user_id, source_conversation_id)
-    if err != nil || !isInSource {
-        http.Error(w, "Not authorized to access source conversation", http.StatusForbidden)
-        return
-    }
+	isInSource, err := rt.db.IsUserInConversation(user_id, source_conversation_id)
+	if err != nil || !isInSource {
+		http.Error(w, "Not authorized to access source conversation", http.StatusForbidden)
+		return
+	}
 
-    isInDest, err := rt.db.IsUserInConversation(user_id, message.ConversationID)
-    if err != nil || !isInDest {
-        http.Error(w, "Not authorized to forward to destination conversation", http.StatusForbidden)
-        return
-    }
+	isInDest, err := rt.db.IsUserInConversation(user_id, message.ConversationID)
+	if err != nil || !isInDest {
+		http.Error(w, "Not authorized to forward to destination conversation", http.StatusForbidden)
+		return
+	}
 
-    message.IsForwarded = true
-    id, err := rt.db.ForwardMessage(message)
-    if err != nil {
-        w.WriteHeader(http.StatusInternalServerError)
-        return
-    }
+	message.IsForwarded = true
+	id, err := rt.db.ForwardMessage(message)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-    w.WriteHeader(http.StatusCreated)
-    w.Header().Set("content-type", "application/json")
-    _ = json.NewEncoder(w).Encode(id)
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("content-type", "application/json")
+	_ = json.NewEncoder(w).Encode(id)
 }
 
 func (rt *APIRouter) deleteConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -473,57 +473,40 @@ func (rt *APIRouter) updateGroupName(w http.ResponseWriter, r *http.Request, ps 
 }
 
 func (rt *APIRouter) UpdateGroupPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	user_id, err := getToken(r)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Set("content-type", "application/json")
-		_ = json.NewEncoder(w).Encode(err)
-		return
-	}
+
 	conversation_id, _ := strconv.Atoi(ps.ByName("conversation_id"))
 
-	isGroup, err := rt.db.IsGroup(conversation_id)
-	if err != nil || !isGroup {
-		http.Error(w, "Not a group conversation", http.StatusBadRequest)
-		return
-	}
-
-	exists, _ := rt.db.IsUserInConversation(user_id, conversation_id)
-	if !exists {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Header().Set("content-type", "application/json")
-		_ = json.NewEncoder(w).Encode(err)
-		return
-	}
-
-	var req struct {
-		Photo string `json:"photo"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Set("content-type", "application/json")
-		_ = json.NewEncoder(w).Encode(err)
-		return
-	}
-
-	_, err = rt.db.UpdateGroupPhoto(conversation_id, req.Photo)
+	imageData, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Header().Set("content-type", "application/json")
-		_ = json.NewEncoder(w).Encode(err)
 		return
 	}
 
+	result, err := rt.db.UpdateGroupPhoto(conversation_id, imageData)
+	if !result {
+		w.WriteHeader(http.StatusConflict)
+		w.Header().Set("content-type", "application/json")
+		_ = json.NewEncoder(w).Encode("Icon not accepted.")
+		return
+	}
+
+	if err != nil {
+		w.WriteHeader(http.StatusConflict)
+		w.Header().Set("content-type", "application/json")
+		_ = json.NewEncoder(w).Encode("Error")
+		return
+	}
+
+	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode("Group photo updated successfully")
+	_ = json.NewEncoder(w).Encode("Icon updated succesfully")
 }
 
 func (rt *APIRouter) createConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	var req struct {
-		Members []int `json:"members"`
-		Name string `json:"name"`
+		Members []int  `json:"members"`
+		Name    string `json:"name"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -541,7 +524,6 @@ func (rt *APIRouter) createConversation(w http.ResponseWriter, r *http.Request, 
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
 
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("content-type", "application/json")

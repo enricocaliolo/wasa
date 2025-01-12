@@ -17,16 +17,18 @@ const props = defineProps({
 //   return lastMessage ? lastMessage.sender.username : ''
 // })
 
-const currentConversationStore = useConversationStore();
+const conversationStore = useConversationStore();
 
 async function getConversation(conversation) {
 	try {
+		conversationStore.toggleGroupDetails(false);
+
 		const messages = await conversationAPI.getConversation(
 			conversation.conversationId,
 		);
 		conversation.messages = messages || [];
 
-		currentConversationStore.setCurrentConversation(conversation);
+		conversationStore.setCurrentConversation(conversation);
 	} catch (e) {
 		console.log(e);
 	}
