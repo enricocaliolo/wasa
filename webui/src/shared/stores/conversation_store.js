@@ -1,169 +1,122 @@
-import { ref } from 'vue'
-import { defineStore } from 'pinia'
-import { messagesAPI } from '@/modules/message/api/message_api'
-import { useUserStore } from './user_store'
-import { Message } from '../../modules/message/models/message'
-import { Reaction } from '../../modules/message/models/reaction'
-import { conversationAPI } from '../../modules/conversation/api/conversation-api'
+import { ref } from "vue";
+import { defineStore } from "pinia";
+import { messagesAPI } from "@/modules/message/api/message_api";
+import { useUserStore } from "./user_store";
+import { Message } from "../../modules/message/models/message";
+import { Reaction } from "../../modules/message/models/reaction";
+import { conversationAPI } from "../../modules/conversation/api/conversation-api";
 
-export const useConversationStore = defineStore('conversationStore', () => {
-  const userStore = useUserStore()
+export const useConversationStore = defineStore("conversationStore", () => {
+	const userStore = useUserStore();
 
-  const conversations = ref([])
-  const currentConversation = ref()
-  const replyMessage= ref(null)
+	const conversations = ref([]);
+	const currentConversation = ref();
+	const replyMessage = ref(null);
 
-  function setCurrentConversation(conversation) {
-    currentConversation.value = conversation
-  }
+	function setCurrentConversation(conversation) {
+		currentConversation.value = conversation;
+	}
 
-  // async function sendMessage(new_message) {
-  //   const data = await messagesAPI.sendMessage(
-  //     currentConversation.value.conversationId,
-  //     new_message,
-  //   )
-  //   const message = Message.fromJSON(data)
-  //   message.sender = userStore.getUser()
+	async function addConversation(conv) {
+		conversations.value.push(conv);
+	}
 
-  //   currentConversation.value.messages.push(message)
+	function setReplyMessage(message) {
+		replyMessage.value = message;
+	}
 
-  //   return message
-  // }
+	async function addReaction(message_id, _reaction) {
+		const data = await messagesAPI.commentMessage(
+			currentConversation.value.conversationId,
+			message_id,
+			_reaction,
+		);
+		const reaction = Reaction.fromJSON(data);
 
-  // async function sendImage(image) {
-  //   const data = await messagesAPI.sendMessage(
-  //     currentConversation.value.conversationId,
-  //     image,
-  //     content_type = 'image'
-  //   )
-  //   const message = Message.fromJSON(data)
-  //   message.sender = userStore.getUser()
+		const messageToUpdate = currentConversation.value.messages.find(
+			(message) => message.messageId === message_id,
+		);
 
-  //   currentConversation.value.messages.push(message)
+		if (messageToUpdate) {
+			if (!messageToUpdate.reactions) {
+				messageToUpdate.reactions = [];
+			}
+			messageToUpdate.reactions.push(reaction);
+		}
 
-  //   return message
-  // }
+		return reaction;
+	}
 
-  // async function sendRepliedMessage(new_message) {
-  //   const data = await messagesAPI.sendRepliedMessage(
-  //     currentConversation.value.conversationId,
-  //     new_message,
-  //     replyMessage.value
-  //   )
-  //   const message = Message.fromJSON(data)
-  //   message.sender = userStore.getUser()
+	async function deleteReaction(message_id, reaction_id) {
+		await messagesAPI.uncommentMessage(
+			currentConversation.value.conversationId,
+			message_id,
+			reaction_id,
+		);
 
-  //   currentConversation.value.messages.push(message)
-  //   return message
-  // }
+		for (const message of currentConversation.value.messages) {
+			if (message.messageId === message_id) {
+				message.reactions = message.reactions.filter(
+					(reaction) => reaction.reactionId !== reaction_id,
+				);
+			}
+		}
 
-  // async function sendForwardedMessage(source_conversation_id, destination_conversation_id, new_message) { 
-  //   const data = await messagesAPI.sendForwardedMessage(
-  //     source_conversation_id,
-  //     destination_conversation_id,
-  //     new_message
-  //   )     
-  //   const message = Message.fromJSON(data)
-  //   message.sender = userStore.getUser()
-    
-  //   return message
-  // }
+		return;
+	}
 
-  async function addConversation(conv) {
-    conversations.value.push(conv)
-  }
+	async function updateGroupName(name) {
+		await conversationAPI.updateGroupName(
+			currentConversation.value.conversationId,
+			name,
+		);
+		currentConversation.value.name = name;
+		return;
+	}
 
-  function setReplyMessage(message) {
-    replyMessage.value = message
-  }
+	async function sendMessage({
+		content,
+		content_type = "text",
+		replied_to_message = null,
+		source_conversation_id = null,
+		destination_conversation_id = null,
+	}) {
+		const conversationId =
+			source_conversation_id || currentConversation.value.conversationId;
+		replied_to_message =
+			replied_to_message !== null ? replyMessage.value.messageId : null;
 
-  async function addReaction(message_id, _reaction) {
-    const data = await messagesAPI.commentMessage(
-      currentConversation.value.conversationId,
-      message_id,
-      _reaction
-    )
-    const reaction = Reaction.fromJSON(data)
-    
-    const messageToUpdate = currentConversation.value.messages.find(
-      message => message.messageId === message_id
-    )
-    
-    if (messageToUpdate) {
-      if (!messageToUpdate.reactions) {
-        messageToUpdate.reactions = []
-      }
-      messageToUpdate.reactions.push(reaction)
-    }
+		const data = await messagesAPI.sendMessage({
+			conversation_id: conversationId,
+			content,
+			content_type,
+			replied_to_message,
+			destination_conversation_id,
+		});
 
-    return reaction
-  }
+		const message = Message.fromJSON(data);
+		message.sender = userStore.getUser();
 
-  async function deleteReaction(message_id, reaction_id) {
-    await messagesAPI.uncommentMessage(
-      currentConversation.value.conversationId,
-      message_id,
-      reaction_id
-    )
+		if (!destination_conversation_id) {
+			currentConversation.value.messages.push(message);
+		}
 
-    for (const message of currentConversation.value.messages) {
-      if (message.messageId === message_id) {
-        message.reactions = message.reactions.filter(
-          reaction => reaction.reactionId !== reaction_id
-        )
-      }
-    }
+		return message;
+	}
 
-    return
-  }
-
-  async function updateGroupName(name) {
-    await conversationAPI.updateGroupName(currentConversation.value.conversationId, name)
-    currentConversation.value.name = name
-    return
-  }
-
-  async function sendMessage({
-    content,
-    content_type = 'text',
-    replied_to_message = null,
-    source_conversation_id = null,
-    destination_conversation_id = null
-  }) {
-    const conversationId = source_conversation_id || currentConversation.value.conversationId
-    replied_to_message = replied_to_message !== null ? replyMessage.value.messageId : null
-    
-    const data = await messagesAPI.sendMessage({
-      conversation_id: conversationId,
-      content,
-      content_type,
-      replied_to_message,
-      destination_conversation_id
-    })
-    
-    const message = Message.fromJSON(data)
-    message.sender = userStore.getUser()
-
-    if (!destination_conversation_id) {
-      currentConversation.value.messages.push(message)
-    }
-    
-    return message
-  }
-
-  return {
-    conversations,
-    currentConversation,
-    replyMessage,
-    setCurrentConversation,
-    sendMessage,
-    // sendRepliedMessage,
-    // sendForwardedMessage,
-    addConversation,
-    setReplyMessage,
-    addReaction,
-    deleteReaction,
-    updateGroupName,
-    // sendImage
-  }
-})
+	return {
+		conversations,
+		currentConversation,
+		replyMessage,
+		setCurrentConversation,
+		sendMessage,
+		// sendRepliedMessage,
+		// sendForwardedMessage,
+		addConversation,
+		setReplyMessage,
+		addReaction,
+		deleteReaction,
+		updateGroupName,
+		// sendImage
+	};
+});

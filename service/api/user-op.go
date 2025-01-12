@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"encoding/json"
+	"io"
 	"net/http"
 	"wasa/service/shared/models"
 
@@ -16,25 +17,23 @@ func (rt *APIRouter) login(w http.ResponseWriter, r *http.Request, ps httprouter
 
 	var req struct {
 		Username string `json:"username"`
-	 }
-	 if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
-	 }
-	 username := req.Username
+	}
+	username := req.Username
 
-	id, err := rt.db.GetUser(username)
+	user, err := rt.db.GetUser(username)
 	if err == sql.ErrNoRows {
-		id, err = rt.db.CreateUser(username)
+		user, err = rt.db.CreateUser(username)
 		if err != nil {
 			return
 		}
 	}
 
-    w.Header().Set("Content-Type", "application/json")
-    _ = json.NewEncoder(w).Encode(struct {
-		ID int `json:"id"`
-	 }{ID: id})
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(user)
 
 }
 
@@ -51,7 +50,7 @@ func (rt *APIRouter) findUser(w http.ResponseWriter, r *http.Request, ps httprou
 
 	username := query.Get("username")
 
-	id, err := rt.db.GetUser(username)
+	user, err := rt.db.GetUser(username)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		_ = json.NewEncoder(w).Encode("User not found")
@@ -61,15 +60,13 @@ func (rt *APIRouter) findUser(w http.ResponseWriter, r *http.Request, ps httprou
 	w.Header().Set("content-type", "application/json")
 
 	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(struct {
-		ID int `json:"user_id"`
-	 }{ID: id})
+	_ = json.NewEncoder(w).Encode(user)
 
 }
 
 func (rt *APIRouter) changeUsername(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	userId, err := getToken(r)
-	if err != nil {	
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -86,8 +83,8 @@ func (rt *APIRouter) changeUsername(w http.ResponseWriter, r *http.Request, ps h
 	isUserUpdated := rt.db.UpdateUsername(user)
 
 	if !isUserUpdated {
-		w.WriteHeader(http.StatusConflict)
 		w.Header().Set("content-type", "application/json")
+		w.WriteHeader(http.StatusConflict)
 		_ = json.NewEncoder(w).Encode("Username already taken!")
 		return
 	}
@@ -99,21 +96,17 @@ func (rt *APIRouter) changeUsername(w http.ResponseWriter, r *http.Request, ps h
 
 func (rt *APIRouter) changePhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	userId, err := getToken(r)
-	if err != nil {	
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	var user models.User
-	user.ID = userId
-
-	err = json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	defer r.Body.Close()
+	imageData, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	isUserUpdated := rt.db.UpdatePhoto(user)
+	isUserUpdated := rt.db.UpdatePhoto(userId, imageData)
 
 	if !isUserUpdated {
 		w.WriteHeader(http.StatusConflict)
@@ -124,5 +117,5 @@ func (rt *APIRouter) changePhoto(w http.ResponseWriter, r *http.Request, ps http
 
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(user)
+	_ = json.NewEncoder(w).Encode("Icon updated succesfully")
 }

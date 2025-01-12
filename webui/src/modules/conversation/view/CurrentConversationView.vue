@@ -1,58 +1,56 @@
 <script setup>
-import InputComponent from '@/modules/conversation/components/InputComponent.vue'
-import MessageComponent from '../../message/components/MessageComponent.vue';
-import { useConversationStore } from '../../../shared/stores/conversation_store';
+import InputComponent from "@/modules/conversation/components/InputComponent.vue";
+import MessageComponent from "../../message/components/MessageComponent.vue";
+import { useConversationStore } from "../../../shared/stores/conversation_store";
 
 const props = defineProps({
-  conversation: Object
-})
+	conversation: Object,
+});
 
 async function changeGroupName() {
-  if (props.conversation.isGroup) {
-    const newName = prompt('Enter new group name');
-    await useConversationStore().updateGroupName(newName)
-  }
-  
+	if (props.conversation.isGroup) {
+		const newName = prompt("Enter new group name");
+		await useConversationStore().updateGroupName(newName);
+	}
 }
-
 </script>
 
 <template>
-  <div class="conversation-wrapper">
-    <header @click="changeGroupName">
-      <h1>{{ conversation.name }}</h1>
-    </header>
-    <div class="messages-box">
-      <MessageComponent
-        v-for="message in conversation.messages"
-        :key="message.messageId"
-        :message="message"
-      />
-    </div>
-    <InputComponent />
-  </div>
+	<div class="conversation-wrapper">
+		<header @click="changeGroupName">
+			<h1>{{ conversation.name }}</h1>
+		</header>
+		<div class="messages-box">
+			<MessageComponent
+				v-for="message in conversation.messages"
+				:key="message.messageId"
+				:message="message"
+			/>
+		</div>
+		<InputComponent />
+	</div>
 </template>
 
 <style scoped>
 header {
-  padding: 1em;
-  background-color: grey;
+	padding: 1em;
+	background-color: grey;
 }
 
 .conversation-wrapper {
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  min-height: 0;
+	display: grid;
+	grid-template-rows: auto 1fr auto;
+	min-height: 0;
 }
 
 .messages-box {
-  background-color: lightblue;
-  overflow-y: auto;
-  padding: 1em;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  min-height: 0;
-  gap: 10px;
+	background-color: lightblue;
+	overflow-y: auto;
+	padding: 1em;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	min-height: 0;
+	gap: 10px;
 }
 </style>

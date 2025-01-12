@@ -1,11 +1,11 @@
 <script setup>
-import { useConversationStore } from '@/shared/stores/conversation_store'
-import api from '@/shared/api/api'
-import { conversationAPI } from '../api/conversation-api'
+import { useConversationStore } from "@/shared/stores/conversation_store";
+import api from "@/shared/api/api";
+import { conversationAPI } from "../api/conversation-api";
 
 const props = defineProps({
-  conversation: Object,
-})
+	conversation: Object,
+});
 
 // const getLastMessage = computed(() => {
 //   const lastMessage = props.conversation.messages[props.conversation.messages.length - 1]
@@ -17,41 +17,45 @@ const props = defineProps({
 //   return lastMessage ? lastMessage.sender.username : ''
 // })
 
-const currentConversationStore = useConversationStore()
+const currentConversationStore = useConversationStore();
 
 async function getConversation(conversation) {
-  try{const messages = await conversationAPI.getConversation(conversation.conversationId)
-  conversation.messages = messages || []
+	try {
+		const messages = await conversationAPI.getConversation(
+			conversation.conversationId,
+		);
+		conversation.messages = messages || [];
 
-  currentConversationStore.setCurrentConversation(conversation)} catch(e) {
-    console.log(e)
-  }
+		currentConversationStore.setCurrentConversation(conversation);
+	} catch (e) {
+		console.log(e);
+	}
 }
 </script>
 
 <template>
-  <div class="conversation-preview" @click="getConversation(conversation)">
-    <span class="name">
-      {{ conversation.name }}
-    </span>
-    <!-- <p>
+	<div class="conversation-preview" @click="getConversation(conversation)">
+		<span class="name">
+			{{ conversation.name }}
+		</span>
+		<!-- <p>
       <span>{{ getLastMessageSender }}: </span>{{ getLastMessage }}
     </p> -->
-  </div>
+	</div>
 </template>
 
 <style scoped>
 .conversation-preview {
-  height: 72px;
-  width: 100%;
-  background-color: green;
-  padding: 1rem;
-  margin-top: 1rem;
-  border: 1px solid gold;
+	height: 72px;
+	width: 100%;
+	background-color: green;
+	padding: 1rem;
+	margin-top: 1rem;
+	border: 1px solid gold;
 }
 
 .name {
-  font-size: 1.5rem;
-  font-weight: bold;
+	font-size: 1.5rem;
+	font-weight: bold;
 }
 </style>

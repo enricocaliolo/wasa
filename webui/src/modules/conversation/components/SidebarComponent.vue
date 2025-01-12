@@ -1,54 +1,70 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
-import { conversationAPI } from '../api/conversation-api'
-import { useConversationStore } from '@/shared/stores/conversation_store'
-import  ConversationListItem  from './ConversationListItem.vue'
-import ConversationModal from './ConversationModal.vue'
+import { computed, onMounted, ref, watch } from "vue";
+import { conversationAPI } from "../api/conversation-api";
+import { useConversationStore } from "@/shared/stores/conversation_store";
+import ConversationListItem from "./ConversationListItem.vue";
+import ConversationModal from "./ConversationModal.vue";
+import { useUserStore } from "../../../shared/stores/user_store";
+import ChangeUserSetting from "../../auth/components/ChangeUserSetting.vue";
 
-const conversationStore = useConversationStore()
-const searchInput = ref('')
-const showModal = ref(false)
+const conversationStore = useConversationStore();
+const userStore = useUserStore();
+const user = userStore.getUser();
+
+const searchInput = ref("");
+const showModal = ref(false);
+const showUserConfig = ref(false);
 
 onMounted(async () => {
-  try {
-    conversationStore.conversations = await conversationAPI.getUserConversations()
-  } catch (error) {
-    console.error('Failed to fetch conversations:', error)
-  }
-})
+	try {
+		conversationStore.conversations =
+			await conversationAPI.getUserConversations();
+	} catch (error) {
+		console.error("Failed to fetch conversations:", error);
+	}
+});
 
 const filteredConversations = computed(() => {
-  return conversationStore.conversations.filter((conv) =>
-    conv.name.toLowerCase().includes(searchInput.value.toLowerCase()),
-  )
-})
-
+	return conversationStore.conversations.filter((conv) =>
+		conv.name.toLowerCase().includes(searchInput.value.toLowerCase()),
+	);
+});
 </script>
 
 <template>
-  <div class="conversations-box">
-    <header>
-      <input type="text" placeholder="Type a message..." v-model="searchInput" />
-      <button @click="showModal = true">+</button>
-      <ConversationModal :show="showModal" @close="showModal = false" />
-    </header>
-    <ConversationListItem
-      v-for="conversation in filteredConversations"
-      :key="conversation.conversationId"
-      :conversation="conversation"
-    >
-    </ConversationListItem>
-  </div>
+	<ChangeUserSetting
+		v-if="showUserConfig"
+		:user="user"
+		@close="showUserConfig = false"
+	/>
+	<div v-else class="conversations-box">
+		<header>
+			<input
+				type="text"
+				placeholder="Type a message..."
+				v-model="searchInput"
+			/>
+			<button @click="showModal = true">+</button>
+			<button @click="showUserConfig = true">USER</button>
+			<ConversationModal :show="showModal" @close="showModal = false" />
+		</header>
+		<ConversationListItem
+			v-for="conversation in filteredConversations"
+			:key="conversation.conversationId"
+			:conversation="conversation"
+		>
+		</ConversationListItem>
+	</div>
 </template>
 
 <style scoped>
 header {
-  display: flex;
-  padding: 0.5em;
-  gap: 5px;
+	display: flex;
+	padding: 0.5em;
+	gap: 5px;
 }
 
 .conversations-box {
-  background-color: blue;
+	background-color: blue;
 }
 </style>

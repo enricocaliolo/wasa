@@ -11,7 +11,7 @@ func (rt *APIRouter) Handler() http.Handler {
 	rt.router.PUT("/session", rt.login)
 	rt.router.GET("/users/search", rt.authMiddleware(rt.findUser))
 	rt.router.PUT("/settings/profile/username", rt.authMiddleware(rt.changeUsername))
-	rt.router.PUT("/settings/profile/photo", rt.authMiddleware(rt.changePhoto))
+	rt.router.PUT("/settings/profile/icon", rt.authMiddleware(rt.changePhoto))
 
 	// conversation operations
 	rt.router.GET("/conversations", rt.authMiddleware(rt.conversations))
@@ -29,6 +29,8 @@ func (rt *APIRouter) Handler() http.Handler {
 	rt.router.PUT("/conversations/:conversation_id/name", rt.authMiddleware(rt.updateGroupName))
 	rt.router.PUT("/conversations/:conversation_id/photo", rt.authMiddleware(rt.UpdateGroupPhoto))
 	rt.router.PUT("/conversations/:conversation_id/users", rt.authMiddleware(rt.addGroupMembers))
+
+	rt.router.ServeFiles("/files/*filepath", http.Dir("files"))
 
 	return rt.router
 }

@@ -1,94 +1,108 @@
 <script setup>
-import { useConversationStore } from '@/shared/stores/conversation_store'
-import { ref, onBeforeUnmount } from 'vue'
+import { useConversationStore } from "@/shared/stores/conversation_store";
+import { ref, onBeforeUnmount } from "vue";
 
-const conversationStore = useConversationStore()
-const messageInput = ref('')
-const selectedImage = ref(null)
-const file = ref(null)
-const fileInput = ref(null)
+const conversationStore = useConversationStore();
+const messageInput = ref("");
+const selectedImage = ref(null);
+const file = ref(null);
+const fileInput = ref(null);
 
 const sendMessage = async () => {
-    if(conversationStore.replyMessage) {
-      await conversationStore.sendMessage({
-        content: messageInput.value,
-        replied_to_message: -1
-      })
-      messageInput.value = ''
-      conversationStore.setReplyMessage(null)
-    return
-    }
+	if (conversationStore.replyMessage) {
+		await conversationStore.sendMessage({
+			content: messageInput.value,
+			replied_to_message: -1,
+		});
+		messageInput.value = "";
+		conversationStore.setReplyMessage(null);
+		return;
+	}
 
-    if(file.value) {
-      await conversationStore.sendMessage({
-        content: file.value,
-        content_type: 'image',
-      })
-      selectedImage.value = null
-      file.value = null
-      messageInput.value = ''
-      fileInput.value.value = ''
-      return
-    } 
-    await conversationStore.sendMessage({content: messageInput.value})
-    messageInput.value = ''
-  
-}
+	if (file.value) {
+		await conversationStore.sendMessage({
+			content: file.value,
+			content_type: "image",
+		});
+		selectedImage.value = null;
+		file.value = null;
+		messageInput.value = "";
+		fileInput.value.value = "";
+		return;
+	}
+	await conversationStore.sendMessage({ content: messageInput.value });
+	messageInput.value = "";
+};
 
 const onFileSelected = (event) => {
- file.value = event.target.files[0]
- selectedImage.value = URL.createObjectURL(file.value)
-}
+	file.value = event.target.files[0];
+	selectedImage.value = URL.createObjectURL(file.value);
+};
 
 onBeforeUnmount(() => {
- if (selectedImage.value) {
-   URL.revokeObjectURL(selectedImage.value)
- }
-})
-
+	if (selectedImage.value) {
+		URL.revokeObjectURL(selectedImage.value);
+	}
+});
 </script>
 
 <template>
-  <footer class="input-wrapper">
-    <div v-if="conversationStore.replyMessage">
-    {{ conversationStore.replyMessage.contentType === 'image' ? 'Image' : conversationStore.replyMessage.content }}
-     <button @click="conversationStore.setReplyMessage(null)">RESET</button>
-    </div>
-    <div>
-      <div class="container">
-        <input type="file" ref="fileInput" @change="onFileSelected" accept="image/*">
-        
-        <!-- <div v-if="selectedImage" class="preview">
+	<footer class="input-wrapper">
+		<div v-if="conversationStore.replyMessage">
+			{{
+				conversationStore.replyMessage.contentType === "image"
+					? "Image"
+					: conversationStore.replyMessage.content
+			}}
+			<button @click="conversationStore.setReplyMessage(null)">
+				RESET
+			</button>
+		</div>
+		<div>
+			<div class="container">
+				<input
+					type="file"
+					ref="fileInput"
+					@change="onFileSelected"
+					accept="image/*"
+				/>
+
+				<!-- <div v-if="selectedImage" class="preview">
           <img :src="selectedImage" alt="Preview" />
         </div> -->
-      </div>
-      <input v-if="selectedImage === null" type="text" placeholder="Type a message..." v-model="messageInput" />
-      <button @click="sendMessage">Send</button>
-    </div>
-  </footer>
+			</div>
+			<input
+				v-if="selectedImage === null"
+				type="text"
+				placeholder="Type a message..."
+				v-model="messageInput"
+			/>
+			<button @click="sendMessage">Send</button>
+		</div>
+	</footer>
 </template>
 
 <style scoped>
 .input-wrapper {
-  border: 1px solid;
-  display: 100%;
-  padding: 1.5em;
-  background-color: sandybrown;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
+	border: 1px solid;
+	display: 100%;
+	padding: 1.5em;
+	background-color: sandybrown;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-around;
 }
 
 .container {
-  margin: 20px;
+	margin: 20px;
 }
 
 .preview {
-  margin-top: 20px;
+	margin-top: 20px;
 }
 
 .preview img {
-  max-width: 300px;
-  height: auto;
+	max-width: 300px;
+	height: auto;
 }
 </style>

@@ -47,11 +47,11 @@ type AppDatabase interface {
 	// user operations
 	ValidateUser(id int) bool
 	GetAllUsers() []models.User
-	GetUser(username string) (int, error)
-	CreateUser(username string) (int, error)
+	GetUser(username string) (models.User, error)
+	CreateUser(username string) (models.User, error)
 	// UpdateProfile(user models.User) bool
 	UpdateUsername(user models.User) bool
-	UpdatePhoto(user models.User) bool
+	UpdatePhoto(userId int, imageData []byte) bool
 
 	// conversation operations
 	GetAllConversations(id int) []models.Conversation
@@ -108,11 +108,11 @@ func (db *appdbimpl) GetAllUsers() []models.User {
 	return userDB.GetAllUsers(db.c)
 }
 
-func (db *appdbimpl) GetUser(username string) (int, error) {
+func (db *appdbimpl) GetUser(username string) (models.User, error) {
 	return userDB.GetUser(db.c, username)
 }
 
-func (db *appdbimpl) CreateUser(username string) (int, error) {
+func (db *appdbimpl) CreateUser(username string) (models.User, error) {
 	return userDB.CreateUser(db.c, username)
 }
 
@@ -120,8 +120,8 @@ func (db *appdbimpl) UpdateUsername(user models.User) bool {
 	return userDB.UpdateUsername(db.c, user)
 }
 
-func (db *appdbimpl) UpdatePhoto(user models.User) bool {
-	return userDB.UpdatePhoto(db.c, user)
+func (db *appdbimpl) UpdatePhoto(userId int, imageData []byte) bool {
+	return userDB.UpdatePhoto(db.c, userId, imageData)
 }
 
 func (db *appdbimpl) ValidateUser(id int) bool {

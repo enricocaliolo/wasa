@@ -1,38 +1,41 @@
-import api from '../../../shared/api/api'
-import { Conversation } from '../models/conversation'
-import { Message } from '../../message/models/message'
+import api from "../../../shared/api/api";
+import { Conversation } from "../models/conversation";
+import { Message } from "../../message/models/message";
 
 export const conversationAPI = {
-  getUserConversations: async () => {
-    const response = await api.get('/conversations')
+	getUserConversations: async () => {
+		const response = await api.get("/conversations");
 
-    if (response.status === 200) { 
-      return response.data.map((json) => Conversation.fromJSON(json))
-    }
-},
-  getConversation: async (conversation_id) => {
-    const response = await api.get(`/conversations/${conversation_id}`)
-    if (response.data == null) {
-      return null
-    }
-    var check = response.data.map((json) => new Message(json))
-    return check
-  },
-  createConversation: async (members, name) => {
-    const response = await api.post('/conversations', {
-      members: members,
-      name: name
-    })
-    return new Conversation(response.data)
-  },
-  updateGroupName: async(conversation_id, name) => {
-    const response = await api.put(`/conversations/${conversation_id}/name`, {
-      name: name
-    })
-    if (response.status === 200) {
-      return true
-    } else {
-      return false
-    }
-  }
-}
+		if (response.status === 200) {
+			return response.data.map((json) => Conversation.fromJSON(json));
+		}
+	},
+	getConversation: async (conversation_id) => {
+		const response = await api.get(`/conversations/${conversation_id}`);
+		if (response.data == null) {
+			return null;
+		}
+		var check = response.data.map((json) => new Message(json));
+		return check;
+	},
+	createConversation: async (members, name) => {
+		const response = await api.post("/conversations", {
+			members: members,
+			name: name,
+		});
+		return new Conversation(response.data);
+	},
+	updateGroupName: async (conversation_id, name) => {
+		const response = await api.put(
+			`/conversations/${conversation_id}/name`,
+			{
+				name: name,
+			},
+		);
+		if (response.status === 200) {
+			return true;
+		} else {
+			return false;
+		}
+	},
+};

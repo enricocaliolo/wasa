@@ -30,6 +30,7 @@ const RAW_RUNTIME_STATE =
           ["@vitejs/plugin-vue", "virtual:1cba25b1f60f949a90be2c2cb29a6b4f9366aa091092950a3b449fa4cd4ec226263ceb0fd872c141b131285e267474987d80305279a07ec18ceb71fbdeb753ac#npm:3.2.0"],\
           ["axios", "npm:0.28.0"],\
           ["pinia", "virtual:1cba25b1f60f949a90be2c2cb29a6b4f9366aa091092950a3b449fa4cd4ec226263ceb0fd872c141b131285e267474987d80305279a07ec18ceb71fbdeb753ac#npm:2.3.0"],\
+          ["prettier", "npm:3.4.2"],\
           ["vite", "virtual:1cba25b1f60f949a90be2c2cb29a6b4f9366aa091092950a3b449fa4cd4ec226263ceb0fd872c141b131285e267474987d80305279a07ec18ceb71fbdeb753ac#npm:3.2.11"],\
           ["vue", "virtual:1cba25b1f60f949a90be2c2cb29a6b4f9366aa091092950a3b449fa4cd4ec226263ceb0fd872c141b131285e267474987d80305279a07ec18ceb71fbdeb753ac#npm:3.5.6"],\
           ["vue-router", "virtual:1cba25b1f60f949a90be2c2cb29a6b4f9366aa091092950a3b449fa4cd4ec226263ceb0fd872c141b131285e267474987d80305279a07ec18ceb71fbdeb753ac#npm:4.4.5"]\
@@ -1401,6 +1402,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["prettier", [\
+      ["npm:3.4.2", {\
+        "packageLocation": "./.yarn/unplugged/prettier-npm-3.4.2-fae349e44a/node_modules/prettier/",\
+        "packageDependencies": [\
+          ["prettier", "npm:3.4.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["proc-log", [\
       ["npm:4.2.0", {\
         "packageLocation": "./.yarn/cache/proc-log-npm-4.2.0-4d65296a9d-4e1394491b.zip/node_modules/proc-log/",\
@@ -1639,6 +1649,7 @@ const RAW_RUNTIME_STATE =
           ["@vitejs/plugin-vue", "virtual:1cba25b1f60f949a90be2c2cb29a6b4f9366aa091092950a3b449fa4cd4ec226263ceb0fd872c141b131285e267474987d80305279a07ec18ceb71fbdeb753ac#npm:3.2.0"],\
           ["axios", "npm:0.28.0"],\
           ["pinia", "virtual:1cba25b1f60f949a90be2c2cb29a6b4f9366aa091092950a3b449fa4cd4ec226263ceb0fd872c141b131285e267474987d80305279a07ec18ceb71fbdeb753ac#npm:2.3.0"],\
+          ["prettier", "npm:3.4.2"],\
           ["vite", "virtual:1cba25b1f60f949a90be2c2cb29a6b4f9366aa091092950a3b449fa4cd4ec226263ceb0fd872c141b131285e267474987d80305279a07ec18ceb71fbdeb753ac#npm:3.2.11"],\
           ["vue", "virtual:1cba25b1f60f949a90be2c2cb29a6b4f9366aa091092950a3b449fa4cd4ec226263ceb0fd872c141b131285e267474987d80305279a07ec18ceb71fbdeb753ac#npm:3.5.6"],\
           ["vue-router", "virtual:1cba25b1f60f949a90be2c2cb29a6b4f9366aa091092950a3b449fa4cd4ec226263ceb0fd872c141b131285e267474987d80305279a07ec18ceb71fbdeb753ac#npm:4.4.5"]\

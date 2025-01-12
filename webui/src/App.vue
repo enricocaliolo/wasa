@@ -1,11 +1,11 @@
 <script></script>
 
 <template>
-  <RouterView />
+	<RouterView />
 </template>
 
 <style>
 body {
-  background-color: rgba(210, 202, 202, 0.692);
+	background-color: rgba(210, 202, 202, 0.692);
 }
 </style>

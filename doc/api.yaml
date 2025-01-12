@@ -91,7 +91,7 @@ paths:
                     description: error message explaining the conflict
 
   # set new photo
-  /settings/profile/photo:
+  /settings/profile/icon:
     put:
       tags: ["users"]
       summary: update user photo

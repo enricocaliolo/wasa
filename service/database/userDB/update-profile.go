@@ -24,22 +24,17 @@ func UpdateUsername(db *sql.DB, user models.User) bool {
 	return err == nil
 }
 
-func UpdatePhoto(db *sql.DB, user models.User) bool {
-	if isUsernameTaken(db, user.Username) {
-		return false
-	}
-
+func UpdatePhoto(db *sql.DB, userId int, imageData []byte) bool {
 	statement, err := db.Prepare(`
     UPDATE User
-    SET username = COALESCE(?, username),
-        icon = COALESCE(?, icon)
+    SET icon = COALESCE(?, icon)
     WHERE user_id = ?
 	`)
 	if err != nil {
 		return false
 	}
 	defer statement.Close()
-	_, err = statement.Exec(user.Username, user.ID)
+	_, err = statement.Exec(imageData, userId)
 	return err == nil
 }
 
