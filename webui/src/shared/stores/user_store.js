@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { User } from "../../modules/auth/models/user";
 import { ref } from "vue";
 import { userAPI } from "../../modules/auth/api/user-api";
+import { imageConverter } from "../../modules/message/helper/image_converter";
 
 export const useUserStore = defineStore("userStore", () => {
 	const user = ref(User.fromJSON({}));
@@ -21,7 +22,9 @@ export const useUserStore = defineStore("userStore", () => {
 	}
 
 	async function updateIcon(_icon) {
-		return await userAPI.changeIcon(_icon);
+		await userAPI.changeIcon(_icon);
+		user.value.icon = await imageConverter.fileToBase64(_icon);
+		return
 	}
 
 	return { user, setUser, getUser, updateUsername, updateIcon };

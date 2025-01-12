@@ -35,6 +35,8 @@ onBeforeUnmount(() => {
 	if (iconURL.value) {
 		URL.revokeObjectURL(iconURL.value);
 	}
+	icon.value = null;
+	iconURL.value = null;
 });
 
 const saveChanges = async () => {
@@ -50,14 +52,19 @@ const saveChanges = async () => {
 				return;
 			}
 		} else if (icon.value) {
-			const user = await userStore.updateIcon(icon.value);
+			await userStore.updateIcon(icon.value);
 		}
 		conversationStore.setCurrentConversation(null)
+		icon.value = null;
+		iconURL.value = null;
 		emit("close");
 	} catch (e) {
 		console.log(e);
 	}
 };
+console.log(userStore.user)
+console.log(icon.value)
+console.log(iconURL.value)
 </script>
 
 <template>
@@ -81,7 +88,7 @@ const saveChanges = async () => {
 				<label class="label"> Profile Icon </label>
 				<div class="icon-container">
 					<img
-						:src="iconURL || `${props.user.displayIcon}`"
+						:src="iconURL || `${userStore.user.displayIcon}`"
 						alt="Current icon"
 						class="icon-preview"
 					/>	
