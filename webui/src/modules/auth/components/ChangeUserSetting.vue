@@ -62,9 +62,6 @@ const saveChanges = async () => {
 		console.log(e);
 	}
 };
-console.log(userStore.user)
-console.log(icon.value)
-console.log(iconURL.value)
 </script>
 
 <template>

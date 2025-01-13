@@ -1,9 +1,4 @@
 <script setup>
-
-import { useConversationStore } from '../stores/conversation_store';
-
-// const conversationStore = useConversationStore()
-
 const props = defineProps({
     conversation: Object,
 })

@@ -39,6 +39,7 @@ package api
 import (
 	"errors"
 	"net/http"
+	"time"
 	"wasa/service/database"
 
 	"github.com/julienschmidt/httprouter"
@@ -79,10 +80,23 @@ func New(cfg Config) (RouterInterface, error) {
 	router.RedirectTrailingSlash = false
 	router.RedirectFixedPath = false
 
+	hub := &Hub{
+		clients:             make(map[*Client]bool),
+		broadcast:           make(chan []byte),
+		register:            make(chan *Client),
+		unregister:          make(chan *Client),
+		userConnections:     make(map[int][]*Client),
+		conversationClients: make(map[int][]*Client),
+		db:                  cfg.Database,
+		reconnectTimeout:    5 * time.Minute, // Pass the database here
+	}
+	go hub.run()
+
 	return &APIRouter{
 		router:     router,
 		baseLogger: cfg.Logger,
 		db:         cfg.Database,
+		wsHub:      hub,
 	}, nil
 }
 
@@ -93,7 +107,8 @@ type APIRouter struct {
 	// Use context logger if available (e.g., in requests) instead of this logger.
 	baseLogger logrus.FieldLogger
 
-	db database.AppDatabase
+	db    database.AppDatabase
+	wsHub *Hub
 }
 
 // Close implements Router.

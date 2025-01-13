@@ -1,6 +1,7 @@
 // import { Message } from '@/modules/message/models/message'
 
 import { User } from "../../auth/models/user";
+import { Message } from "../../message/models/message";
 
 export class Conversation {
 	constructor(data) {
@@ -27,7 +28,7 @@ export class Conversation {
 			is_group: this.isGroup,
 			created_at: this.createdAt.toISOString(),
 			conversation_participants: this.participants.map((participant) => participant.toJSON()),
-			messages: this.messages?.map((message) => message.toJSON()) || [],
+			messages: this.messages.map((message) => message.toJSON()) || [],
 		};
 	}
 

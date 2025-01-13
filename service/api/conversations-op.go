@@ -6,11 +6,13 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 	"wasa/service/api/responses"
 	"wasa/service/shared/helper"
 	"wasa/service/shared/models"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/sirupsen/logrus"
 )
 
 type reqMessageBody struct {
@@ -346,6 +348,23 @@ func (rt *APIRouter) createConversation(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
+	wsMessage := WebSocketMessage{
+		Type:           "new_conversation",
+		ConversationID: conversation.ID,
+		Payload: map[string]interface{}{
+			"conversation": conversation,
+		},
+		Timestamp: time.Now(),
+	}
+
+	messageJSON, err := json.Marshal(wsMessage)
+	if err == nil {
+		// Notify each member of the new conversation
+		for _, memberID := range req.Members {
+			rt.wsHub.SendToUser(memberID, messageJSON)
+		}
+	}
+
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("content-type", "application/json")
 	_ = json.NewEncoder(w).Encode(conversation)
@@ -490,19 +509,29 @@ func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	// Broadcast the message via WebSocket
-	// wsMessage := WebSocketMessage{
-	// 	Type:           "new_message",
-	// 	ConversationID: message.ConversationID,
-	// 	Payload: map[string]interface{}{
-	// 		"message": insertedMessage,
-	// 	},
-	// 	Timestamp: time.Now(),
-	// }
+	wsMessage := WebSocketMessage{
+		Type:           "new_message",
+		ConversationID: message.ConversationID,
+		Payload: map[string]interface{}{
+			"message": insertedMessage,
+		},
+		Timestamp: time.Now(),
+	}
 
-	// messageJSON, err := json.Marshal(wsMessage)
-	// if err == nil {
-	// 	rt.wsHub.SendToConversation(message.ConversationID, messageJSON)
-	// }
+	messageJSON, err := json.Marshal(wsMessage)
+	if err == nil {
+		rt.baseLogger.WithFields(logrus.Fields{
+			"conversation_id": message.ConversationID,
+			"message_type":    "new_message",
+			"recipient_count": len(rt.wsHub.conversationClients[message.ConversationID]),
+		}).Debug("Broadcasting message via WebSocket")
+		rt.wsHub.SendToConversation(message.ConversationID, messageJSON)
+	}
+
+	rt.baseLogger.WithFields(logrus.Fields{
+		"conversation_id": message.ConversationID,
+		"message_type":    "new_message",
+	}).Debug("Broadcasting message via WebSocket")
 
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("content-type", "application/json")

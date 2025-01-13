@@ -15,8 +15,18 @@ export const useConversationStore = defineStore("conversationStore", () => {
 	const replyMessage = ref(null);
 	const showGroupDetails = ref(false)
 
+	function init() {
+        if (!conversations.value) {
+            conversations.value = [];
+        }
+    }
+
 	function setCurrentConversation(conversation) {
 		currentConversation.value = conversation;
+	}
+
+	async function getUserConversations() {
+		conversations.value = await conversationAPI.getUserConversations();
 	}
 	
 	async function createConversation({currentUsers, groupName}) {
@@ -36,10 +46,11 @@ export const useConversationStore = defineStore("conversationStore", () => {
 			conversation.name = currentUsers[1].username;
 		}
 	
-		addConversation(conversation);
+		// addConversation(conversation);
 	}
 
 	async function addConversation(conv) {
+		console.log(conversations.value);
 		conversations.value.push(conv);
 	}
 
@@ -145,9 +156,9 @@ export const useConversationStore = defineStore("conversationStore", () => {
 		const message = Message.fromJSON(data);
 		message.sender = userStore.getUser();
 
-		if (!destination_conversation_id) {
-			currentConversation.value.messages.push(message);
-		}
+		// if (!destination_conversation_id) {
+		// 	currentConversation.value.messages.push(message);
+		// }
 
 		return message;
 	}
@@ -168,5 +179,7 @@ export const useConversationStore = defineStore("conversationStore", () => {
 		showGroupDetails,
 		leaveGroup,
 		createConversation,
+		getUserConversations,
+		init
 	};
 });

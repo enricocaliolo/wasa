@@ -15,7 +15,6 @@ export class Message {
 			? new Date(data.deleted_time)
 			: undefined;
 		this.conversationId = data.conversation_id;
-		this.forwardedFrom = data.forwarded_from;
 		this.reactions = data.reactions
 			? data.reactions.map((r) => new Reaction(r))
 			: [];
@@ -42,7 +41,6 @@ export class Message {
 			edited_time: this.editedTime?.toISOString(),
 			deleted_time: this.deletedTime?.toISOString(),
 			conversation_id: this.conversationId,
-			forwarded_from: this.forwardedFrom,
 			created_at: this.sentTime.toISOString(),
 			sender: this.sender.toJSON(),
 			replied_to_message: this.repliedToMessage?.toJSON(),

@@ -20,20 +20,24 @@ const props = defineProps({
 
 const conversationStore = useConversationStore();
 
-async function getConversation(conversation) {
+async function getConversation(_conversation) {
 	try {
 		conversationStore.toggleGroupDetails(false);
 
-		const messages = await conversationAPI.getConversation(
+		const conversation = conversationStore.conversations.find((c) => c.conversationId === _conversation.conversationId);
+		if(!conversation) {
+			const messages = await conversationAPI.getConversation(
 			conversation.conversationId,
 		);
 		conversation.messages = messages || [];
+		}
 
 		conversationStore.setCurrentConversation(conversation);
 	} catch (e) {
 		console.log(e);
 	}
 }
+
 </script>
 
 <template>

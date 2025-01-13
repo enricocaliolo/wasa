@@ -13,26 +13,13 @@ func CreateConversation(db *sql.DB, members []int, name string) (models.Conversa
 	}
 
 	isGroup := len(members) > 2
-	groupName := name
-	if len(members) == 2 {
-		var otherUsername string
-		err := db.QueryRow(`
-            SELECT username 
-            FROM User 
-            WHERE user_id = ?`, members[1]).Scan(&otherUsername)
-		if err != nil {
-			return models.Conversation{}, fmt.Errorf("getting other user's username: %w", err)
-		}
-		groupName = otherUsername
-	}
-
 	var conversation models.Conversation
 
 	err := db.QueryRow(`
         INSERT INTO Conversation (name, is_group) 
         VALUES (?, ?) 
         RETURNING conversation_id, name, is_group, created_at
-    `, groupName, isGroup).Scan(&conversation.ID, &conversation.Name, &conversation.Is_group, &conversation.Created_at)
+    `, name, isGroup).Scan(&conversation.ID, &conversation.Name, &conversation.Is_group, &conversation.Created_at)
 
 	if err != nil {
 		return conversation, fmt.Errorf("creating conversation: %w", err)

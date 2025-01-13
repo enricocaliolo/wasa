@@ -1,6 +1,8 @@
 import { useUserStore } from "@/shared/stores/user_store";
 import api from "../../../shared/api/api";
 import { User } from "../models/user";
+import { useWebSocket } from "../../../shared/api/websocket";
+
 
 export const userAPI = {
 	login: async (_username) => {
@@ -12,7 +14,18 @@ export const userAPI = {
 
 			if (response.data) {
 				userStore.setUser(User.fromJSON(response.data));
+				localStorage.setItem("username", _username)
 			}
+
+			const {connect, disconnect } = useWebSocket();
+
+			connect();
+
+			const unwatch = import.meta.hot?.on('vite:beforeUpdate', () => {
+				disconnect();
+			});
+
+
 			return true;
 		} catch (error) {
 			throw error;

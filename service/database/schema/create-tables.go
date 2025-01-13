@@ -61,6 +61,15 @@ func CreateTables(db *sql.DB) {
 			FOREIGN KEY (message_id) REFERENCES "Message"(message_id),
 			FOREIGN KEY (user_id) REFERENCES "User"(user_id)
 		)`,
+
+		`DROP TABLE IF EXISTS "MessageStatus";
+		CREATE TABLE IF NOT EXISTS "MessageStatus" (
+		message_id INTEGER REFERENCES "Message"(message_id) ON DELETE CASCADE,
+		user_id INTEGER REFERENCES "User"(user_id) ON DELETE CASCADE,
+		read_at TIMESTAMP DEFAULT NULL,
+		delivered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		PRIMARY KEY (message_id, user_id)
+)		;`,
 	}
 
 	for _, sqlStatement := range sqlStatements {

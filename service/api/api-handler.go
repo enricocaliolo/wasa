@@ -31,7 +31,7 @@ func (rt *APIRouter) Handler() http.Handler {
 	rt.router.PUT("/conversations/:conversation_id/users", rt.authMiddleware(rt.addGroupMembers))
 
 	rt.router.ServeFiles("/files/*filepath", http.Dir("files"))
-	rt.router.GET("/ws", rt.authMiddleware(rt.HandleWebSocket))
+	rt.router.GET("/ws", rt.HandleWebSocket)
 
 	return rt.router
 }

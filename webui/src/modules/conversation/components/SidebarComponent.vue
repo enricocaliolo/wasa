@@ -17,8 +17,7 @@ const showUserConfig = ref(false);
 
 onMounted(async () => {
 	try {
-		conversationStore.conversations =
-			await conversationAPI.getUserConversations();
+		await conversationStore.getUserConversations()
 	} catch (error) {
 		console.error("Failed to fetch conversations:", error);
 	}
@@ -49,11 +48,13 @@ const filteredConversations = computed(() => {
 			<ConversationModal :show="showModal" @close="showModal = false" />
 		</header>
 		<ConversationListItem
+			v-if="conversationStore.conversations && conversationStore.conversations.length > 0"
 			v-for="conversation in filteredConversations"
 			:key="conversation.conversationId"
 			:conversation="conversation"
 		>
 		</ConversationListItem>
+		<div v-else>NO CONVERSATIONS</div>
 	</div>
 </template>
 

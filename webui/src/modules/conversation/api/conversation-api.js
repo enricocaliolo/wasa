@@ -6,9 +6,10 @@ export const conversationAPI = {
 	getUserConversations: async () => {
 		const response = await api.get("/conversations");
 
-		if (response.status === 200) {
+		if (response.status === 200 && response.data != null) {
 			return response.data.map((json) => Conversation.fromJSON(json));
 		}
+		return null
 	},
 	getConversation: async (conversation_id) => {
 		const response = await api.get(`/conversations/${conversation_id}`);
