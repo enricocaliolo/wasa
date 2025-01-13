@@ -45,13 +45,20 @@ export const useConversationStore = defineStore("conversationStore", () => {
 		if (currentUsers.length === 2) {
 			conversation.name = currentUsers[1].username;
 		}
-	
-		// addConversation(conversation);
 	}
 
-	async function addConversation(conv) {
-		console.log(conversations.value);
-		conversations.value.push(conv);
+	function addConversation(conv) {
+		const existingConv = conversations.value.find(
+			c => c.conversationId === conv.conversationId
+		);
+		
+		if (!existingConv) {
+			conversations.value.push(conv);
+			
+			if (conversations.value.length === 1) {
+				setCurrentConversation(conv);
+			}
+		}
 	}
 
 	function setReplyMessage(message) {
@@ -155,10 +162,6 @@ export const useConversationStore = defineStore("conversationStore", () => {
 
 		const message = Message.fromJSON(data);
 		message.sender = userStore.getUser();
-
-		// if (!destination_conversation_id) {
-		// 	currentConversation.value.messages.push(message);
-		// }
 
 		return message;
 	}

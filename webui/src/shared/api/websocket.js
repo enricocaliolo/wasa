@@ -20,30 +20,29 @@ export function useWebSocket() {
             const wsData = JSON.parse(event.data);
             const conversationStore = useConversationStore();
 
+            conversationStore.init();
+    
             switch(wsData.type) {
                 case 'new_message':
                     const newMessage = new Message(wsData.payload.message);
-        
-                    if (conversationStore.currentConversation?.conversationId === newMessage.conversationId) {
-                        conversationStore.currentConversation.messages.push(newMessage);
-                    }
-                    
-                    const affectedConversation = conversationStore.conversations.find(
+
+                    const targetConversation = conversationStore.conversations.find(
                         conv => conv.conversationId === newMessage.conversationId
                     );
                     
-                    if (affectedConversation) {
-                        affectedConversation.lastMessage = newMessage;
-                    }
-
-                    if (!(conversationStore.currentConversation?.conversationId === newMessage.conversationId) && newMessage.isForwarded) {
-                        const conversation = conversationStore.conversations.find((c) => c.conversationId === newMessage.conversationId);
-                        conversation?.messages.push(newMessage);
+                    if (targetConversation) {
+                        targetConversation.lastMessage = newMessage;
+                        
+                        if (conversationStore.currentConversation?.conversationId === newMessage.conversationId 
+                            || newMessage.isForwarded) {
+                            targetConversation.messages.push(newMessage);
+                        }
                     }
                     break;
-
+    
                 case 'new_conversation':
                     const newConversation = new Conversation(wsData.payload.conversation);
+                    
 
                     if (!newConversation.isGroup) {
                         const otherParticipant = newConversation.participants.find(
@@ -53,18 +52,21 @@ export function useWebSocket() {
                             newConversation.name = otherParticipant.username;
                         }
                     }
-                    conversationStore.init();
+                    
+                    if (!newConversation.messages) {
+                        newConversation.messages = [];
+                    }
+                    
                     conversationStore.addConversation(newConversation);
                     break;
             }
         } catch (error) {
-            console.error('Error processing message:', error);
+            console.error('Error processing WebSocket message:', error);
         }
     };
 
     const attemptReconnect = () => {
         if (reconnectAttempts.value >= maxReconnectAttempts) {
-            console.log('Max reconnection attempts reached');
             return;
         }
 
@@ -73,7 +75,6 @@ export function useWebSocket() {
         }
 
         reconnectTimeout.value = setTimeout(() => {
-            console.log(`Attempting to reconnect (${reconnectAttempts.value + 1}/${maxReconnectAttempts})`);
             reconnectAttempts.value++;
             connectWebSocket();
             reconnectInterval.value = Math.min(reconnectInterval.value * 2, maxReconnectInterval);
@@ -82,11 +83,9 @@ export function useWebSocket() {
 
     const connectWebSocket = () => {
         if (!userStore.user?.userId) {
-            console.log('No user logged in, skipping WebSocket connection');
             return;
         }
 
-        console.log('Connecting to WebSocket...');
         const wsUrl = `ws://localhost:3000/ws?token=${userStore.user.userId}`;
 
         if (ws.value && ws.value.readyState === WebSocket.OPEN) {
@@ -99,10 +98,9 @@ export function useWebSocket() {
             if (ws.value && ws.value.readyState === WebSocket.OPEN) {
                 ws.value.send(JSON.stringify({ type: 'ping' }));
             }
-        }, 30000); // Send ping every 30 seconds
+        }, 30000);
 
         ws.value.onopen = () => {
-            console.log('WebSocket connected');
             isConnected.value = true;
             reconnectAttempts.value = 0;
             reconnectInterval.value = 1000;
@@ -111,7 +109,6 @@ export function useWebSocket() {
         ws.value.onmessage = handleWebSocketMessage;
 
         ws.value.onclose = (event) => {
-            console.log('WebSocket disconnected', event.code, event.reason);
             isConnected.value = false;
             clearInterval(pingInterval);
             if (event.code !== 1000) {
@@ -120,7 +117,6 @@ export function useWebSocket() {
         };
 
         ws.value.onerror = (error) => {
-            console.error('WebSocket error:', error);
             isConnected.value = false;
         };
     };

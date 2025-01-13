@@ -348,6 +348,14 @@ func (rt *APIRouter) createConversation(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
+	for _, memberID := range req.Members {
+		if clients, ok := rt.wsHub.userConnections[memberID]; ok {
+			for _, client := range clients {
+				rt.wsHub.AddConversationClient(conversation.ID, client)
+			}
+		}
+	}
+
 	wsMessage := WebSocketMessage{
 		Type:           "new_conversation",
 		ConversationID: conversation.ID,
@@ -359,7 +367,6 @@ func (rt *APIRouter) createConversation(w http.ResponseWriter, r *http.Request, 
 
 	messageJSON, err := json.Marshal(wsMessage)
 	if err == nil {
-		// Notify each member of the new conversation
 		for _, memberID := range req.Members {
 			rt.wsHub.SendToUser(memberID, messageJSON)
 		}

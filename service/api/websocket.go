@@ -183,6 +183,21 @@ func (h *Hub) AddClientToConversations(client *Client) {
 	}
 }
 
+func (h *Hub) AddConversationClient(conversationID int, client *Client) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	for _, existingClient := range h.conversationClients[conversationID] {
+		if existingClient == client {
+			return
+		}
+	}
+
+	h.conversationClients[conversationID] = append(h.conversationClients[conversationID], client)
+	fmt.Printf("Added client to conversation %d, total clients: %d\n",
+		conversationID, len(h.conversationClients[conversationID]))
+}
+
 func (c *Client) readPump() {
 	defer func() {
 		c.hub.unregister <- c
