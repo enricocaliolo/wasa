@@ -79,6 +79,9 @@ type AppDatabase interface {
 	AddGroupMembers(conversation_id int, members []int) error
 
 	ConversationExists(conversation_id int) (bool, error)
+
+	MarkMessagesSeen(userID int, messageIDs []int) error
+	GetMessageSeenStatus(messageIDs []int) (map[int][]int, error)
 }
 
 type appdbimpl struct {
@@ -206,4 +209,10 @@ func (db *appdbimpl) AddGroupMembers(conversation_id int, members []int) error {
 }
 func (db *appdbimpl) ConversationExists(conversation_id int) (bool, error) {
 	return conversationDB.ConversationExists(db.c, conversation_id)
+}
+func (db *appdbimpl) MarkMessagesSeen(userID int, messageIDs []int) error {
+	return messagesdb.MarkMessagesSeen(db.c, userID, messageIDs)
+}
+func (db *appdbimpl) GetMessageSeenStatus(messageIDs []int) (map[int][]int, error) {
+	return messagesdb.GetMessageSeenStatus(db.c, messageIDs)
 }

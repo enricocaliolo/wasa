@@ -6,6 +6,7 @@ import { Message } from "../../modules/message/models/message";
 import { Reaction } from "../../modules/message/models/reaction";
 import { conversationAPI } from "../../modules/conversation/api/conversation-api";
 import { imageConverter } from "../../modules/message/helper/image_converter";
+import { useWebSocket } from "../api/websocket";
 
 export const useConversationStore = defineStore("conversationStore", () => {
 	const userStore = useUserStore();
@@ -139,7 +140,6 @@ export const useConversationStore = defineStore("conversationStore", () => {
 		}
 	}
 
-
 	async function sendMessage({
 		content,
 		content_type = "text",
@@ -166,6 +166,25 @@ export const useConversationStore = defineStore("conversationStore", () => {
 		return message;
 	}
 
+	const { sendMessagesSeen } = useWebSocket();
+
+    async function markMessagesSeen(messageIds) {
+		try {
+			sendMessagesSeen(currentConversation.value.conversationId, messageIds);
+			
+			messageIds.forEach(messageId => {
+				const message = currentConversation.value.messages.find(
+					m => m.messageId === messageId
+				);
+				if (message) {
+					message.addSeenBy(userStore.user.userId);
+				}
+			});
+		} catch (error) {
+			console.error('Error marking messages as seen:', error);
+		}
+	}
+
 	return {
 		conversations,
 		currentConversation,
@@ -183,6 +202,7 @@ export const useConversationStore = defineStore("conversationStore", () => {
 		leaveGroup,
 		createConversation,
 		getUserConversations,
-		init
+		init,
+		markMessagesSeen,
 	};
 });

@@ -140,17 +140,18 @@ func (h *Hub) SendToConversation(conversationID int, message []byte) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
-	fmt.Printf("Attempting to send message to conversation %d, %d clients\n",
-		conversationID, len(h.conversationClients[conversationID]))
+	clients := h.conversationClients[conversationID]
+	fmt.Printf("Sending message to conversation %d (%d clients)\n",
+		conversationID, len(clients))
 
-	if clients, ok := h.conversationClients[conversationID]; ok {
-		for _, client := range clients {
-			select {
-			case client.send <- message:
-			default:
-				close(client.send)
-				delete(h.clients, client)
-			}
+	for _, client := range clients {
+		select {
+		case client.send <- message:
+			fmt.Printf("Sent message to client %d\n", client.userID)
+		default:
+			fmt.Printf("Failed to send message to client %d, closing connection\n", client.userID)
+			close(client.send)
+			delete(h.clients, client)
 		}
 	}
 }
@@ -219,16 +220,68 @@ func (c *Client) readPump() {
 			break
 		}
 
-		fmt.Printf("Message received in readPump: %s\n", string(message))
+		fmt.Printf("Received message: %s\n", string(message))
 
 		var wsMessage WebSocketMessage
 		if err := json.Unmarshal(message, &wsMessage); err != nil {
+			fmt.Printf("Error unmarshaling message: %v\n", err)
 			continue
 		}
 
 		switch wsMessage.Type {
 		case "message":
 			c.hub.broadcast <- message
+
+		// todo: probably will need to update the database, if I am not updating
+		// already, the entry in the messageSeen of the user sending it to waiting.
+		// After each user sees it, they should update the table to seen.
+		// However, I am not sure what entry they should be updating.
+		// Because, initially, the sender should know the other host hasn't
+		// read the message, and after the other host reads it, the sender should
+		// know and update the value.
+		// Will need to ask Claude this.
+		// Basically, the sender should know the other host has read the message.
+		// How we achieve this is the question: I know we need to broadcast the message,
+		// but I am thinking more along the line of persistency in the db.
+
+		case "messages_seen":
+			fmt.Printf("Processing messages_seen: %+v\n", wsMessage)
+
+			messageIDs, ok := wsMessage.Payload["message_ids"].([]interface{})
+			if !ok {
+				fmt.Printf("Invalid message_ids format: %v\n", wsMessage.Payload["message_ids"])
+				continue
+			}
+
+			ids := make([]int, 0, len(messageIDs))
+			for _, v := range messageIDs {
+				if id, ok := v.(float64); ok {
+					ids = append(ids, int(id))
+				}
+			}
+
+			if len(ids) == 0 {
+				fmt.Printf("No valid message IDs found\n")
+				continue
+			}
+
+			fmt.Printf("Marking messages %v as seen by user %d\n", ids, c.userID)
+
+			err := c.hub.db.MarkMessagesSeen(c.userID, ids)
+			if err != nil {
+				fmt.Printf("Error marking messages as seen: %v\n", err)
+				continue
+			}
+
+			wsMessage.Payload["user_id"] = c.userID
+			updatedMessage, err := json.Marshal(wsMessage)
+			if err != nil {
+				fmt.Printf("Error marshaling updated message: %v\n", err)
+				continue
+			}
+
+			fmt.Printf("Broadcasting seen status to conversation %d\n", wsMessage.ConversationID)
+			c.hub.SendToConversation(wsMessage.ConversationID, updatedMessage)
 		}
 	}
 }
@@ -327,5 +380,13 @@ func (c *Client) startHeartbeat() {
 			return
 		}
 		<-ticker.C
+	}
+}
+
+func (c *Client) logState() {
+	fmt.Printf("Client state - UserID: %d, Active: %v\n", c.userID, c.isActive)
+	if c.hub != nil {
+		fmt.Printf("Hub state - Connected clients: %d, Client's conversations: %d\n",
+			len(c.hub.clients), len(c.hub.conversationClients))
 	}
 }

@@ -69,7 +69,17 @@ func CreateTables(db *sql.DB) {
 		read_at TIMESTAMP DEFAULT NULL,
 		delivered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		PRIMARY KEY (message_id, user_id)
-)		;`,
+		);`,
+
+		`DROP TABLE IF EXISTS "MessageSeen";
+		CREATE TABLE "MessageSeen" (
+		message_id INT,
+		user_id INT,
+		seen_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		PRIMARY KEY (message_id, user_id),
+		FOREIGN KEY (message_id) REFERENCES "Message"(message_id),
+		FOREIGN KEY (user_id) REFERENCES "User"(user_id)
+		);`,
 	}
 
 	for _, sqlStatement := range sqlStatements {

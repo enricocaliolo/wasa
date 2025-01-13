@@ -17,6 +17,25 @@ const showEmojiPicker = ref(false);
 const emojis = ["👍", "❤️", "😊", "😂", "😮", "😢"];
 const userReaction = ref(null);
 
+const seenStatus = computed(() => {
+    console.log(props.message)
+    if (props.message.seenCount === 0) {
+        return '';
+    }
+
+    if (props.message.seenCount === 1 && 
+        props.message.isSeenBy(userStore.user.userId) &&
+        isFromUser.value) {
+        return '';
+    }
+
+    if (props.message.seenCount === 1) {
+        return 'Seen';
+    } else {
+        return `Seen by ${props.message.seenCount}`;
+    }
+});
+
 onMounted(() => {
 	if (props.message.reactions) {
 		const reaction = props.message.reactions.find(
@@ -178,6 +197,9 @@ const formattedDate = () => {
 					<div v-else></div>
 					<div class="sent-time">
 						<span>{{ formattedDate() }}</span>
+						<span v-if="seenStatus" class="seen-status">
+                            {{ seenStatus }}
+                        </span>
 					</div>
 				</div>
 
@@ -354,5 +376,23 @@ const formattedDate = () => {
 
 .sent-time {
 	font-size: 14px;
+}
+
+.message-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #666;
+}
+
+.seen-status {
+    color: #666;
+    font-style: italic;
+}
+
+.own-message .seen-status {
+    color: rgba(255, 255, 255, 0.7);
 }
 </style>

@@ -33,10 +33,12 @@ export function useWebSocket() {
                     if (targetConversation) {
                         targetConversation.lastMessage = newMessage;
                         
-                        if (conversationStore.currentConversation?.conversationId === newMessage.conversationId 
-                            || newMessage.isForwarded) {
+                        // if (conversationStore.currentConversation?.conversationId === newMessage.conversationId 
+                        //     || newMessage.isForwarded) {
+                        //     targetConversation.messages.push(newMessage);
+                        // }
                             targetConversation.messages.push(newMessage);
-                        }
+
                     }
                     break;
     
@@ -59,10 +61,72 @@ export function useWebSocket() {
                     
                     conversationStore.addConversation(newConversation);
                     break;
-            }
+
+                case 'messages_seen':
+                        console.log('Processing messages_seen:', wsData); // Debug log
+                        const { user_id, message_ids } = wsData.payload;
+                        
+                        if (!Array.isArray(message_ids)) {
+                            console.error('Invalid message_ids:', message_ids);
+                            return;
+                        }
+    
+                        const targConv = conversationStore.conversations.find(
+                            conv => conv.conversationId === wsData.conversation_id
+                        );
+    
+                        if (targConv) {
+                            message_ids.forEach(messageId => {
+                                const message = targConv.messages.find(
+                                    m => m.messageId === messageId
+                                );
+                                if (message) {
+                                    console.log('Marking message as seen:', {
+                                        messageId,
+                                        userId: user_id,
+                                        beforeSeenBy: [...(message.seenBy || [])],
+                                    });
+                                    message.addSeenBy(user_id);
+                                    console.log('After marking seen:', {
+                                        messageId,
+                                        seenBy: message.seenBy,
+                                    });
+                                }
+                            });
+                        } else {
+                            console.log('Conversation not found:', wsData.conversation_id);
+                        }
+                        break;
+                                }
+
         } catch (error) {
             console.error('Error processing WebSocket message:', error);
         }
+    };
+
+    const sendMessagesSeen = (conversationId, messageIds) => {
+        if (!Array.isArray(messageIds) || messageIds.length === 0) {
+            console.warn('Invalid messageIds:', messageIds);
+            return;
+        }
+
+        if (!ws.value || ws.value.readyState !== WebSocket.OPEN) {
+            console.warn('WebSocket not connected');
+            return;
+        }
+
+        const message = {
+            type: 'messages_seen',
+            conversation_id: conversationId,
+            payload: {
+                message_ids: messageIds,
+                user_id: userStore.user.userId
+            },
+            timestamp: new Date()
+        };
+
+        console.log('Sending messages_seen:', message); // Debug log
+        ws.value.send(JSON.stringify(message));
     };
 
     const attemptReconnect = () => {
@@ -142,6 +206,7 @@ export function useWebSocket() {
     return {
         isConnected,
         connect: connectWebSocket,
-        disconnect
+        disconnect,
+        sendMessagesSeen
     };
 }
