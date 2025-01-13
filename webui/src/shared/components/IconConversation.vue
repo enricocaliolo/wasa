@@ -8,14 +8,35 @@ const props = defineProps({
     conversation: Object,
 })
 
+const checkPhoto = () => {
+    if (props.conversation.isGroup && props.conversation.photo) {
+        return true
+    } else if (!props.conversation.isGroup) {
+        const participant = props.conversation.participants.find(participant => participant.username === props.conversation.name && participant.displayIcon !== undefined);
+        if (participant) {
+            return true
+        }
+        return false
+    }
+}
+
+const getPhoto = () => {
+    if (props.conversation.isGroup && props.conversation.photo) {
+        return props.conversation.displayPhoto
+    } else if (!props.conversation.isGroup) {
+        const participant = props.conversation.participants.find(participant => participant.username === props.conversation.name);
+        return participant ? participant.displayIcon : '';
+    }
+}
+
 </script>
 
 <template>
     <div class="avatar-container">
 		<img
-				  v-if="props.conversation.photo"
-				  :src="`${props.conversation.displayPhoto}`"
-				  class="avatar-image"
+			v-if="checkPhoto()"
+			:src="getPhoto()"
+			class="avatar-image"
 		/>
 		<span v-else class="avatar-placeholder">
 		  {{ props.conversation.name.charAt(0).toUpperCase() }}

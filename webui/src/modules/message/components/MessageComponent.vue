@@ -73,6 +73,14 @@ const userHasReaction = computed(() => {
 	}
 	return false;
 });
+
+const formattedDate = () => {
+	return	new Intl.DateTimeFormat('en-US', {
+  hour: '2-digit',
+  minute: '2-digit'
+}).format(props.message.sentTime)
+}
+
 </script>
 
 <template>
@@ -148,10 +156,9 @@ const userHasReaction = computed(() => {
 				</div>
 
 				<div
-					v-if="message.reactions.length > 0"
 					class="reactions-container"
 				>
-					<div class="reactions-bubble" @click="showEmojis">
+					<div v-if="message.reactions.length > 0" class="reactions-bubble" @click="showEmojis">
 						<div class="reactions-list">
 							<span
 								v-for="reaction in message.reactions.slice(
@@ -167,6 +174,10 @@ const userHasReaction = computed(() => {
 						<span class="reactions-count">{{
 							message.reactions.length
 						}}</span>
+					</div>
+					<div v-else></div>
+					<div class="sent-time">
+						<span>{{ formattedDate() }}</span>
 					</div>
 				</div>
 
@@ -273,6 +284,9 @@ const userHasReaction = computed(() => {
 
 .reactions-container {
 	margin-top: 4px;
+	display: flex;
+	justify-content: space-between;
+	position: relative;
 }
 
 .reactions-bubble {
@@ -336,5 +350,9 @@ const userHasReaction = computed(() => {
 	height: 32px;
 	border-radius: 50%;
 	object-fit: cover;
+}
+
+.sent-time {
+	font-size: 14px;
 }
 </style>
