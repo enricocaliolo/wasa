@@ -1,5 +1,5 @@
 // useWebSocket.js
-import { ref, onUnmounted } from 'vue';
+import { ref, onUnmounted, onMounted } from 'vue';
 import { useConversationStore } from '../stores/conversation_store';
 import { Message } from '../../modules/message/models/message';
 import { useUserStore } from '../stores/user_store';
@@ -25,6 +25,7 @@ export function useWebSocket() {
             switch(wsData.type) {
                 case 'new_message':
                     const newMessage = new Message(wsData.payload.message);
+                    console.log(`newMessage: ${newMessage}`)
 
                     const targetConversation = conversationStore.conversations.find(
                         conv => conv.conversationId === newMessage.conversationId
@@ -60,41 +61,29 @@ export function useWebSocket() {
                     }
                     
                     conversationStore.addConversation(newConversation);
+                    console.log(`conversations: ${conversationStore.conversations.length}`)
                     break;
 
-                case 'messages_seen':
-                        console.log('Processing messages_seen:', wsData); // Debug log
+                    case 'messages_seen':
+                        console.log('Processing messages_seen:', wsData);
                         const { user_id, message_ids } = wsData.payload;
                         
                         if (!Array.isArray(message_ids)) {
                             console.error('Invalid message_ids:', message_ids);
                             return;
                         }
-    
+                    
                         const targConv = conversationStore.conversations.find(
                             conv => conv.conversationId === wsData.conversation_id
                         );
-    
+                    
                         if (targConv) {
                             message_ids.forEach(messageId => {
-                                const message = targConv.messages.find(
-                                    m => m.messageId === messageId
-                                );
-                                if (message) {
-                                    console.log('Marking message as seen:', {
-                                        messageId,
-                                        userId: user_id,
-                                        beforeSeenBy: [...(message.seenBy || [])],
-                                    });
+                                const message = targConv.messages.find(m => m.messageId === messageId);
+                                if (message && !message.isSeenBy(user_id)) {
                                     message.addSeenBy(user_id);
-                                    console.log('After marking seen:', {
-                                        messageId,
-                                        seenBy: message.seenBy,
-                                    });
                                 }
                             });
-                        } else {
-                            console.log('Conversation not found:', wsData.conversation_id);
                         }
                         break;
                                 }
@@ -114,8 +103,9 @@ export function useWebSocket() {
             console.warn('WebSocket not connected');
             return;
         }
-
-        const message = {
+        
+        try{
+            const message = {
             type: 'messages_seen',
             conversation_id: conversationId,
             payload: {
@@ -127,6 +117,9 @@ export function useWebSocket() {
 
         console.log('Sending messages_seen:', message); // Debug log
         ws.value.send(JSON.stringify(message));
+        } catch(e) {
+            console.log(e)
+        }
     };
 
     const attemptReconnect = () => {
@@ -198,6 +191,11 @@ export function useWebSocket() {
         reconnectAttempts.value = 0;
         reconnectInterval.value = 1000;
     };
+
+    onMounted(() => {
+        console.log('Component mounted, initializing WebSocket');
+        connectWebSocket();
+    });
 
     onUnmounted(() => {
         disconnect();

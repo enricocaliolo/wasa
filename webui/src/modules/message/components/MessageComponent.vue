@@ -18,22 +18,28 @@ const emojis = ["👍", "❤️", "😊", "😂", "😮", "😢"];
 const userReaction = ref(null);
 
 const seenStatus = computed(() => {
-    console.log(props.message)
-    if (props.message.seenCount === 0) {
+    if (!props.message || !props.message.sender) return '';
+
+    if (!isFromUser.value) {
         return '';
     }
 
-    if (props.message.seenCount === 1 && 
-        props.message.isSeenBy(userStore.user.userId) &&
-        isFromUser.value) {
-        return '';
+    const conv = conversationStore.currentConversation;
+    const isDirectMessage = !conv.isGroup;
+    
+    if (!props.message.seenBy || props.message.seenBy.length === 0) {
+        return 'Waiting';
     }
 
-    if (props.message.seenCount === 1) {
-        return 'Seen';
-    } else {
-        return `Seen by ${props.message.seenCount}`;
+    if (isDirectMessage) {
+        const otherUser = conv.participants.find(p => p.userId !== userStore.user.userId);
+        if (otherUser && props.message.isSeenBy(otherUser.userId)) {
+            return 'Read';
+        }
+        return 'Waiting';
     }
+
+    return 'Waiting';
 });
 
 onMounted(() => {

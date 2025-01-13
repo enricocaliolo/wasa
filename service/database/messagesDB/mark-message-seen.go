@@ -15,8 +15,8 @@ func MarkMessagesSeen(db *sql.DB, userID int, messageIDs []int) error {
 	defer tx.Rollback()
 
 	stmt, err := tx.Prepare(`
-        INSERT OR REPLACE INTO MessageSeen (message_id, user_id, seen_at)
-        VALUES (?, ?, CURRENT_TIMESTAMP)
+        INSERT OR REPLACE INTO MessageSeen (message_id, user_id)
+        VALUES (?, ?)
     `)
 	if err != nil {
 		return fmt.Errorf("error preparing statement: %v", err)

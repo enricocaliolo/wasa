@@ -17,13 +17,13 @@ export const userAPI = {
 				localStorage.setItem("username", _username)
 			}
 
-			const {connect, disconnect } = useWebSocket();
+			// const {connect, disconnect } = useWebSocket();
 
-			connect();
+			// connect();
 
-			const unwatch = import.meta.hot?.on('vite:beforeUpdate', () => {
-				disconnect();
-			});
+			// const unwatch = import.meta.hot?.on('vite:beforeUpdate', () => {
+			// 	disconnect();
+			// });
 
 
 			return true;

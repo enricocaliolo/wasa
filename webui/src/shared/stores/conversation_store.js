@@ -169,6 +169,8 @@ export const useConversationStore = defineStore("conversationStore", () => {
 	const { sendMessagesSeen } = useWebSocket();
 
     async function markMessagesSeen(messageIds) {
+		if (!currentConversation.value) return;
+	
 		try {
 			sendMessagesSeen(currentConversation.value.conversationId, messageIds);
 			

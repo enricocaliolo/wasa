@@ -232,18 +232,6 @@ func (c *Client) readPump() {
 		case "message":
 			c.hub.broadcast <- message
 
-		// todo: probably will need to update the database, if I am not updating
-		// already, the entry in the messageSeen of the user sending it to waiting.
-		// After each user sees it, they should update the table to seen.
-		// However, I am not sure what entry they should be updating.
-		// Because, initially, the sender should know the other host hasn't
-		// read the message, and after the other host reads it, the sender should
-		// know and update the value.
-		// Will need to ask Claude this.
-		// Basically, the sender should know the other host has read the message.
-		// How we achieve this is the question: I know we need to broadcast the message,
-		// but I am thinking more along the line of persistency in the db.
-
 		case "messages_seen":
 			fmt.Printf("Processing messages_seen: %+v\n", wsMessage)
 

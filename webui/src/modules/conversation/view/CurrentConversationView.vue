@@ -3,7 +3,7 @@ import InputComponent from "@/modules/conversation/components/InputComponent.vue
 import MessageComponent from "../../message/components/MessageComponent.vue";
 import { useConversationStore } from "../../../shared/stores/conversation_store";
 import { useUserStore } from "../../../shared/stores/user_store";
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import GroupDetails from "../components/GroupDetails.vue";
 import IconConversation from "../../../shared/components/IconConversation.vue";
 
@@ -19,11 +19,30 @@ function changeGroupName() {
     conversationStore.toggleGroupDetails(!conversationStore.showGroupDetails);
 }
 
+onMounted(async () => {
+    if (conversationStore.currentConversation?.messages.length > 0) {
+        const unseenMessages = props.conversation.messages
+            .filter(message => 
+                !message.isSeenBy(userStore.user.userId) && 
+                message.sender.userId !== userStore.user.userId
+            )
+            .map(message => message.messageId);
+        
+        if (unseenMessages.length > 0) {
+            console.log('Marking loaded messages as seen:', unseenMessages);
+            conversationStore.markMessagesSeen(unseenMessages);
+        }
+    }
+});
+
 watch(() => conversationStore.currentConversation?.messages, (newMessages, oldMessages) => {
     if (!newMessages || !oldMessages) return;
-
+    
     const unseenMessages = newMessages
-        .filter(message => !message.isSeenBy(userStore.user.userId))
+        .filter(message => 
+            !message.isSeenBy(userStore.user.userId) && 
+            message.sender.userId !== userStore.user.userId
+        )
         .map(message => message.messageId);
     
     if (unseenMessages.length > 0) {
