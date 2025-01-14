@@ -67,7 +67,9 @@ export const useConversationStore = defineStore("conversationStore", () => {
 	}
 
 	async function toggleGroupDetails(value) {
-		showGroupDetails.value = value
+		if(currentConversation.value.isGroup) {
+			showGroupDetails.value = value
+		}
 	}
 
 	async function addReaction(message_id, _reaction) {

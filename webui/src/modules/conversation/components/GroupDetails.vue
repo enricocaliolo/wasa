@@ -33,6 +33,8 @@ const hasNewName = computed(() => {
     return newGroupName.value.trim().length > 0
 })
 
+const isGroup = computed(() => conversationStore.currentConversation?.isGroup);
+
 const changeGroupName = async () => {
 	await conversationStore.updateGroupName(newGroupName.value)
 	newGroupName.value = ''

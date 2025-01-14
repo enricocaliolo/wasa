@@ -13,12 +13,10 @@ const props = defineProps({
 
 const conversationStore = useConversationStore();
 const userStore = useUserStore();
-const observer = ref(null);
 
 function changeGroupName() {
     conversationStore.toggleGroupDetails(!conversationStore.showGroupDetails);
 }
-
 onMounted(async () => {
     if (conversationStore.currentConversation?.messages.length > 0) {
         const unseenMessages = props.conversation.messages
