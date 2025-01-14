@@ -1,0 +1,20 @@
+# Build stage
+FROM golang:1.17-alpine AS builder
+
+RUN apk add --no-cache git build-base
+
+WORKDIR /src/
+
+COPY . .
+
+RUN go build -tags webui -o /app/webapi ./cmd/webapi/
+
+FROM alpine:latest
+
+WORKDIR /app/
+
+COPY --from=builder /app/webapi ./
+
+EXPOSE 3000
+
+CMD ["/app/webapi"]
