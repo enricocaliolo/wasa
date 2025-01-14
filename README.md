@@ -101,6 +101,12 @@ For stopping:
 docker compose down
 ```
 
+For accesing (in dev enviroment):
+
+```shell
+localhost:8080
+```
+
 ## Known issues
 
 ### Apple M1 / ARM: `failed to load config from`...
