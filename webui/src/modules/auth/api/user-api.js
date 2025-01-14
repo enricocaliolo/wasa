@@ -17,16 +17,17 @@ export const userAPI = {
 				localStorage.setItem("username", _username)
 			}
 
-			// const {connect, disconnect } = useWebSocket();
-
-			// connect();
-
-			// const unwatch = import.meta.hot?.on('vite:beforeUpdate', () => {
-			// 	disconnect();
-			// });
-
 
 			return true;
+		} catch (error) {
+			throw error;
+		}
+	},
+	getAllUsers: async () => {
+		try {
+			const response = await api.get("/users");
+			const users = response.data.map((user) => User.fromJSON(user));
+			return users;
 		} catch (error) {
 			throw error;
 		}

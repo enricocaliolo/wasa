@@ -37,7 +37,7 @@ func (rt *APIRouter) login(w http.ResponseWriter, r *http.Request, ps httprouter
 
 }
 
-func (rt *APIRouter) TestUsers(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (rt *APIRouter) GetAllUsers(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	users, err := rt.db.GetAllUsers()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

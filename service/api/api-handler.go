@@ -7,7 +7,7 @@ import (
 // Handler returns an instance of httprouter.Router that handle APIs registered here
 func (rt *APIRouter) Handler() http.Handler {
 	// user operations
-	rt.router.GET("/test-users", rt.authMiddleware(rt.TestUsers))
+	rt.router.GET("/users", rt.authMiddleware(rt.GetAllUsers))
 	rt.router.PUT("/session", rt.login)
 	rt.router.GET("/users/search", rt.authMiddleware(rt.findUser))
 	rt.router.PUT("/settings/profile/username", rt.authMiddleware(rt.changeUsername))
