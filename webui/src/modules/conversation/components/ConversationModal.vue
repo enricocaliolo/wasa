@@ -75,6 +75,29 @@ async function createConversation() {
 <template>
     <BaseModal :show="show" title="Create Conversation" @close="closeModal">
         <div class="modal-content">
+            <div class="selected-users-section">
+                <h3 class="section-title">Selected Users ({{ currentUsersForConversation.length - 1 }})</h3>
+                <div class="selected-users">
+                    <div
+                        v-for="user in currentUsersForConversation.slice(1)"
+                        :key="user.userId"
+                        class="selected-user-item"
+                    >
+                        {{ user.username }}
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="isGroupChat" class="group-name-section">
+                <h3 class="section-title">Group Name</h3>
+                <input
+                    type="text"
+                    placeholder="Enter group name"
+                    v-model="groupName"
+                    class="group-name-input"
+                />
+            </div>
+
             <div class="users-list">
                 <h3 class="section-title">Select Users</h3>
                 <div class="users-grid">
@@ -94,29 +117,6 @@ async function createConversation() {
 
                         <span class="username">{{ user.username }}</span>
                         <span v-if="user.isSelected" class="selected-indicator">✓</span>
-                    </div>
-                </div>
-            </div>
-
-            <div v-if="isGroupChat" class="group-name-section">
-                <h3 class="section-title">Group Name</h3>
-                <input
-                    type="text"
-                    placeholder="Enter group name"
-                    v-model="groupName"
-                    class="group-name-input"
-                />
-            </div>
-
-            <div class="selected-users-section">
-                <h3 class="section-title">Selected Users ({{ currentUsersForConversation.length - 1 }})</h3>
-                <div class="selected-users">
-                    <div
-                        v-for="user in currentUsersForConversation.slice(1)"
-                        :key="user.userId"
-                        class="selected-user-item"
-                    >
-                        {{ user.username }}
                     </div>
                 </div>
             </div>
@@ -145,6 +145,7 @@ async function createConversation() {
     max-height: 70vh;
     overflow-y: auto;
     padding: 1rem;
+    min-width: 400px
 }
 
 .section-title {
