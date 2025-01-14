@@ -85,7 +85,7 @@ func InsertMockValues(db *sql.DB) {
 	for _, sqlStatement := range sqlStatements {
 		_, err := db.Exec(sqlStatement)
 		if err != nil {
-			log.Fatal(err)
+			log.Printf("Error inserting mock values: %v", err)
 		}
 	}
 }

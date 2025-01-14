@@ -141,15 +141,11 @@ func (h *Hub) SendToConversation(conversationID int, message []byte) {
 	defer h.mu.RUnlock()
 
 	clients := h.conversationClients[conversationID]
-	fmt.Printf("Sending message to conversation %d (%d clients)\n",
-		conversationID, len(clients))
 
 	for _, client := range clients {
 		select {
 		case client.send <- message:
-			fmt.Printf("Sent message to client %d\n", client.userID)
 		default:
-			fmt.Printf("Failed to send message to client %d, closing connection\n", client.userID)
 			close(client.send)
 			delete(h.clients, client)
 		}
@@ -162,7 +158,6 @@ func (h *Hub) AddClientToConversations(client *Client) {
 
 	conversations, err := h.db.GetAllConversations(client.userID)
 	if err != nil {
-		fmt.Printf("Error getting conversations for user %d: %v\n", client.userID, err)
 		return
 	}
 
@@ -178,8 +173,6 @@ func (h *Hub) AddClientToConversations(client *Client) {
 
 		if !exists {
 			h.conversationClients[convID] = append(h.conversationClients[convID], client)
-			fmt.Printf("Added client to conversation %d, total clients: %d\n",
-				convID, len(h.conversationClients[convID]))
 		}
 	}
 }
@@ -195,8 +188,6 @@ func (h *Hub) AddConversationClient(conversationID int, client *Client) {
 	}
 
 	h.conversationClients[conversationID] = append(h.conversationClients[conversationID], client)
-	fmt.Printf("Added client to conversation %d, total clients: %d\n",
-		conversationID, len(h.conversationClients[conversationID]))
 }
 
 func (c *Client) readPump() {
@@ -220,8 +211,6 @@ func (c *Client) readPump() {
 			break
 		}
 
-		fmt.Printf("Received message: %s\n", string(message))
-
 		var wsMessage WebSocketMessage
 		if err := json.Unmarshal(message, &wsMessage); err != nil {
 			fmt.Printf("Error unmarshaling message: %v\n", err)
@@ -233,7 +222,6 @@ func (c *Client) readPump() {
 			c.hub.broadcast <- message
 
 		case "messages_seen":
-			fmt.Printf("Processing messages_seen: %+v\n", wsMessage)
 
 			messageIDs, ok := wsMessage.Payload["message_ids"].([]interface{})
 			if !ok {
@@ -253,8 +241,6 @@ func (c *Client) readPump() {
 				continue
 			}
 
-			fmt.Printf("Marking messages %v as seen by user %d\n", ids, c.userID)
-
 			err := c.hub.db.MarkMessagesSeen(c.userID, ids)
 			if err != nil {
 				fmt.Printf("Error marking messages as seen: %v\n", err)
@@ -268,7 +254,6 @@ func (c *Client) readPump() {
 				continue
 			}
 
-			fmt.Printf("Broadcasting seen status to conversation %d\n", wsMessage.ConversationID)
 			c.hub.SendToConversation(wsMessage.ConversationID, updatedMessage)
 		}
 	}
@@ -315,7 +300,6 @@ func (c *Client) writePump() {
 }
 
 func (rt *APIRouter) HandleWebSocket(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	fmt.Println("WebSocket connection attempt received")
 
 	token := r.URL.Query().Get("token")
 	if token == "" {
@@ -368,13 +352,5 @@ func (c *Client) startHeartbeat() {
 			return
 		}
 		<-ticker.C
-	}
-}
-
-func (c *Client) logState() {
-	fmt.Printf("Client state - UserID: %d, Active: %v\n", c.userID, c.isActive)
-	if c.hub != nil {
-		fmt.Printf("Hub state - Connected clients: %d, Client's conversations: %d\n",
-			len(c.hub.clients), len(c.hub.conversationClients))
 	}
 }

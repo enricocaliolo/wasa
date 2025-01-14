@@ -46,12 +46,12 @@ type AppDatabase interface {
 
 	// user operations
 	ValidateUser(id int) bool
-	GetAllUsers() []models.User
+	GetAllUsers() ([]models.User, error)
 	GetUser(username string) (models.User, error)
 	CreateUser(username string) (models.User, error)
 	// UpdateProfile(user models.User) bool
-	UpdateUsername(user models.User) bool
-	UpdatePhoto(userId int, imageData []byte) bool
+	UpdateUsername(user models.User) (bool, error)
+	UpdatePhoto(userId int, imageData []byte) (bool, error)
 
 	// conversation operations
 	GetAllConversations(id int) ([]models.Conversation, error)
@@ -107,7 +107,7 @@ func (db *appdbimpl) Ping() error {
 	return db.c.Ping()
 }
 
-func (db *appdbimpl) GetAllUsers() []models.User {
+func (db *appdbimpl) GetAllUsers() ([]models.User, error) {
 	return userDB.GetAllUsers(db.c)
 }
 
@@ -119,11 +119,11 @@ func (db *appdbimpl) CreateUser(username string) (models.User, error) {
 	return userDB.CreateUser(db.c, username)
 }
 
-func (db *appdbimpl) UpdateUsername(user models.User) bool {
+func (db *appdbimpl) UpdateUsername(user models.User) (bool, error) {
 	return userDB.UpdateUsername(db.c, user)
 }
 
-func (db *appdbimpl) UpdatePhoto(userId int, imageData []byte) bool {
+func (db *appdbimpl) UpdatePhoto(userId int, imageData []byte) (bool, error) {
 	return userDB.UpdatePhoto(db.c, userId, imageData)
 }
 

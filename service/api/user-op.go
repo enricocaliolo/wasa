@@ -38,7 +38,12 @@ func (rt *APIRouter) login(w http.ResponseWriter, r *http.Request, ps httprouter
 }
 
 func (rt *APIRouter) TestUsers(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	users := rt.db.GetAllUsers()
+	users, err := rt.db.GetAllUsers()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode("Error getting users")
+		return
+	}
 
 	w.Header().Set("content-type", "application/json")
 	_ = json.NewEncoder(w).Encode(users)
@@ -80,7 +85,12 @@ func (rt *APIRouter) changeUsername(w http.ResponseWriter, r *http.Request, ps h
 	}
 	defer r.Body.Close()
 
-	isUserUpdated := rt.db.UpdateUsername(user)
+	isUserUpdated, err := rt.db.UpdateUsername(user)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode("Error getting users")
+		return
+	}
 
 	if !isUserUpdated {
 		w.Header().Set("content-type", "application/json")
@@ -106,7 +116,12 @@ func (rt *APIRouter) changePhoto(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	isUserUpdated := rt.db.UpdatePhoto(userId, imageData)
+	isUserUpdated, err := rt.db.UpdatePhoto(userId, imageData)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode("Error getting users")
+		return
+	}
 
 	if !isUserUpdated {
 		w.WriteHeader(http.StatusConflict)

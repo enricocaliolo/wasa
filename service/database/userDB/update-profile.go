@@ -2,13 +2,13 @@ package userDB
 
 import (
 	"database/sql"
-	"log"
+	"errors"
 	"wasa/service/shared/models"
 )
 
-func UpdateUsername(db *sql.DB, user models.User) bool {
+func UpdateUsername(db *sql.DB, user models.User) (bool, error) {
 	if isUsernameTaken(db, user.Username) {
-		return false
+		return false, errors.New("Username is already taken")
 	}
 
 	statement, err := db.Prepare(`
@@ -17,25 +17,31 @@ func UpdateUsername(db *sql.DB, user models.User) bool {
     WHERE user_id = ?
 	`)
 	if err != nil {
-		log.Fatal(err)
+		return false, err
 	}
 	defer statement.Close()
 	_, err = statement.Exec(user.Username, user.ID)
-	return err == nil
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
-func UpdatePhoto(db *sql.DB, userId int, imageData []byte) bool {
+func UpdatePhoto(db *sql.DB, userId int, imageData []byte) (bool, error) {
 	statement, err := db.Prepare(`
     UPDATE User
     SET icon = COALESCE(?, icon)
     WHERE user_id = ?
 	`)
 	if err != nil {
-		return false
+		return false, err
 	}
 	defer statement.Close()
 	_, err = statement.Exec(imageData, userId)
-	return err == nil
+	if err != nil {
+		return false, nil
+	}
+	return true, nil
 }
 
 func isUsernameTaken(db *sql.DB, username string) bool {

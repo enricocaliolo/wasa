@@ -85,7 +85,7 @@ func CreateTables(db *sql.DB) {
 	for _, sqlStatement := range sqlStatements {
 		_, err := db.Exec(sqlStatement)
 		if err != nil {
-			log.Fatal(err)
+			log.Printf("Error creating table: %v", err)
 		}
 	}
 }

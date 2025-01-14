@@ -2,14 +2,13 @@ package userDB
 
 import (
 	"database/sql"
-	"log"
 	"wasa/service/shared/models"
 )
 
-func GetAllUsers(db *sql.DB) []models.User {
+func GetAllUsers(db *sql.DB) ([]models.User, error) {
 	rows, err := db.Query("SELECT * FROM User")
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -19,9 +18,9 @@ func GetAllUsers(db *sql.DB) []models.User {
 		var user models.User
 		err := rows.Scan(&user.ID, &user.Username, &user.Icon, &user.Created_at)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 		users = append(users, user)
 	}
-	return users
+	return users, nil
 }
