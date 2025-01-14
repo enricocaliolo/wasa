@@ -68,7 +68,9 @@ func (rt *APIRouter) getConversation(w http.ResponseWriter, r *http.Request, ps 
 	}
 
 	messages := rt.db.GetMessagesFromConversation(conversationID)
-
+	if messages == nil {
+		messages = []models.Message{}
+	}
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("content-type", "application/json")
 	_ = json.NewEncoder(w).Encode(messages)
@@ -380,11 +382,10 @@ func (rt *APIRouter) createConversation(w http.ResponseWriter, r *http.Request, 
 func (rt *APIRouter) addGroupMembers(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	user_id, err := getToken(r)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Set("content-type", "application/json")
-		_ = json.NewEncoder(w).Encode(err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
+
 	conversation_id, _ := strconv.Atoi(ps.ByName("conversation_id"))
 
 	isGroup, err := rt.db.IsGroup(conversation_id)
@@ -411,6 +412,49 @@ func (rt *APIRouter) addGroupMembers(w http.ResponseWriter, r *http.Request, ps 
 	if err := rt.db.AddGroupMembers(conversation_id, req.Members); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	conversation, err := rt.db.GetConversation(conversation_id)
+	if err != nil {
+		rt.baseLogger.WithError(err).Error("Failed to get conversation after adding members")
+		http.Error(w, "Failed to get updated conversation", http.StatusInternalServerError)
+		return
+	}
+
+	rt.baseLogger.WithField("conversation", conversation).Debug("Got conversation data")
+
+	wsMessage := WebSocketMessage{
+		Type:           "new_conversation",
+		ConversationID: conversation_id,
+		Payload: map[string]interface{}{
+			"conversation": conversation,
+		},
+		Timestamp: time.Now(),
+	}
+
+	messageJSON, err := json.Marshal(wsMessage)
+	if err != nil {
+		rt.baseLogger.WithError(err).Error("Failed to marshal WebSocket message")
+		http.Error(w, "Failed to create WebSocket message", http.StatusInternalServerError)
+		return
+	}
+
+	rt.baseLogger.WithField("message", string(messageJSON)).Debug("Sending WebSocket message")
+
+	for _, memberID := range req.Members {
+		rt.baseLogger.WithFields(logrus.Fields{
+			"member_id":       memberID,
+			"conversation_id": conversation_id,
+		}).Debug("Sending to user")
+
+		rt.wsHub.SendToUser(memberID, messageJSON)
+
+		if clients, ok := rt.wsHub.userConnections[memberID]; ok {
+			for _, client := range clients {
+				rt.wsHub.AddConversationClient(conversation_id, client)
+				rt.baseLogger.Debug("Added user to conversation clients")
+			}
+		}
 	}
 
 	w.WriteHeader(http.StatusOK)

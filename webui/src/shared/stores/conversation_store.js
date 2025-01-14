@@ -187,6 +187,25 @@ export const useConversationStore = defineStore("conversationStore", () => {
 		}
 	}
 
+	async function addGroupMembers({ users, conversationId }) {
+		try {
+			const members = users.map(user => user.userId);
+			await conversationAPI.addGroupMembers(conversationId, members);
+			
+			const targetConversation = conversations.value.find(
+				conv => conv.conversationId === conversationId
+			);
+			
+			if (targetConversation) {
+				targetConversation.participants.push(...users);
+			}
+	
+		} catch (error) {
+			console.error('Error adding members to group:', error);
+			throw error;
+		}
+	}
+
 	return {
 		conversations,
 		currentConversation,
@@ -206,5 +225,6 @@ export const useConversationStore = defineStore("conversationStore", () => {
 		getUserConversations,
 		init,
 		markMessagesSeen,
+		addGroupMembers
 	};
 });

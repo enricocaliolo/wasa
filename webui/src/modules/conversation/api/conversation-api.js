@@ -77,5 +77,16 @@ export const conversationAPI = {
 				throw new Error("Can't delete a direct conversation.")
 			}
 		}
+	},
+	addGroupMembers: async (conversationId, members) => {
+		const response = await api.put(`/conversations/${conversationId}/users`, {
+			members: members
+		});
+		
+		if (response.status === 200) {
+			return true;
+		} else {
+			throw new Error('Failed to add members to group');
+		}
 	}
 };

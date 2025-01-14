@@ -32,37 +32,52 @@ export function useWebSocket() {
                     );
                     
                     if (targetConversation) {
-                        targetConversation.lastMessage = newMessage;
-                        
-                        // if (conversationStore.currentConversation?.conversationId === newMessage.conversationId 
-                        //     || newMessage.isForwarded) {
-                        //     targetConversation.messages.push(newMessage);
-                        // }
-                            targetConversation.messages.push(newMessage);
+                        targetConversation.messages.push(newMessage);
 
                     }
                     break;
     
-                case 'new_conversation':
-                    const newConversation = new Conversation(wsData.payload.conversation);
-                    
-
-                    if (!newConversation.isGroup) {
-                        const otherParticipant = newConversation.participants.find(
-                            (participant) => participant.userId !== userStore.user.userId
-                        );
-                        if (otherParticipant) {
-                            newConversation.name = otherParticipant.username;
+                    case 'new_conversation':
+                        console.log('Raw conversation payload:', wsData.payload);
+                        if (!wsData.payload || !wsData.payload.conversation) {
+                            console.error('Invalid conversation payload:', wsData);
+                            return;
                         }
-                    }
-                    
-                    if (!newConversation.messages) {
-                        newConversation.messages = [];
-                    }
-                    
-                    conversationStore.addConversation(newConversation);
-                    console.log(`conversations: ${conversationStore.conversations.length}`)
-                    break;
+                        
+                        const newConversation = new Conversation(wsData.payload.conversation);
+                        console.log('Created conversation object:', newConversation);
+
+                        if (!newConversation.isGroup) {
+                            const otherParticipant = newConversation.participants.find(
+                                (participant) => participant.userId !== userStore.user.userId
+                            );
+                            if (otherParticipant) {
+                                newConversation.name = otherParticipant.username;
+                            }
+                        }
+                        
+                        if (!newConversation.messages) {
+                            newConversation.messages = [];
+                        }
+                        
+                        const existingConversation = conversationStore.conversations.find(
+                            conv => conv.conversationId === newConversation.conversationId
+                        );
+
+                        if (existingConversation) {
+                            console.log('Updating existing conversation with new data');
+                            existingConversation.participants = newConversation.participants.map(
+                                participant => new User(participant)
+                            );
+                            existingConversation.name = newConversation.name;
+                            existingConversation.photo = newConversation.photo;
+                            existingConversation.isGroup = newConversation.isGroup;
+                            console.log('Updated conversation:', existingConversation);
+                        } else {
+                            console.log('Adding new conversation');
+                            conversationStore.addConversation(newConversation);
+                        }
+                        break;
 
                     case 'messages_seen':
                         console.log('Processing messages_seen:', wsData);

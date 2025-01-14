@@ -3,6 +3,7 @@
 import { ref, onBeforeUnmount, computed } from 'vue'
 import { useConversationStore } from '../../../shared/stores/conversation_store';
 import IconConversation from '../../../shared/components/IconConversation.vue';
+import AddUsersModal from './AddUsersModal.vue';
 
 const props = defineProps({
     conversation: Object,
@@ -13,6 +14,8 @@ const conversationStore = useConversationStore()
 const newGroupName = ref('')
 const photo = ref(null)
 const photoURL = ref(null)
+
+const showAddUsersModal = ref(false);
 
 const photoChanged = async (event) => {
 	photo.value = event.target.files[0]
@@ -120,9 +123,20 @@ onBeforeUnmount(() => {
 		</div>
 	  </div>
 
-	  <div>
-		<button @click="closeDetails">Close</button>
+	  <AddUsersModal 
+			:show="showAddUsersModal"
+			:conversation="conversation"
+			@close="showAddUsersModal = false"
+		/>
+	  <div class="buttons-container">
+		<div class="add-user-button">
+			<button @click="showAddUsersModal = true">ADD USER</button>
+		</div>
+		<div>
+		  <button @click="closeDetails">Close</button>
+		</div>
 	  </div>
+
 	</div>
   </template>
   

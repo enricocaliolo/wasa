@@ -82,6 +82,7 @@ type AppDatabase interface {
 
 	MarkMessagesSeen(userID int, messageIDs []int) error
 	GetMessageSeenStatus(messageIDs []int) (map[int][]int, error)
+	GetConversation(conversation_id int) (*models.Conversation, error)
 }
 
 type appdbimpl struct {
@@ -215,4 +216,7 @@ func (db *appdbimpl) MarkMessagesSeen(userID int, messageIDs []int) error {
 }
 func (db *appdbimpl) GetMessageSeenStatus(messageIDs []int) (map[int][]int, error) {
 	return messagesdb.GetMessageSeenStatus(db.c, messageIDs)
+}
+func (db *appdbimpl) GetConversation(conversation_id int) (*models.Conversation, error) {
+	return conversationDB.GetConversation(db.c, conversation_id)
 }
