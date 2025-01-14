@@ -37,7 +37,27 @@ const seenStatus = computed(() => {
             return 'Read';
         }
         return 'Waiting';
-    }
+    } else {
+		const otherParticipants = conv.participants.filter(p => 
+            p.userId !== userStore.user.userId && 
+            p.userId !== props.message.sender.userId
+        );
+        
+        if (otherParticipants.length === 0) return '';
+        
+        const seenCount = otherParticipants.filter(p => 
+            props.message.isSeenBy(p.userId)
+        ).length;
+        
+        console.log(`Message ${props.message.messageId} seen by ${seenCount}/${otherParticipants.length} participants`);
+        
+        if (seenCount === otherParticipants.length) {
+            return 'Read';
+        } else if (seenCount > 0) {
+            return `${seenCount}/${otherParticipants.length}`;
+        }
+        return 'Waiting';
+	}
 
     return 'Waiting';
 });
