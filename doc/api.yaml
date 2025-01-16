@@ -14,12 +14,16 @@ tags:
     description: Conversation and messaging endpoints
   - name: messages
     description: Message management endpoints
+  - name: websocket
+    description: WebSocket endpoints for real-time communication
+  - name: files
+    description: File serving endpoints
 paths:
   /session:
     put:
       tags: ["auth"]
       summary: Logs in the user
-      operationId: login
+      operationId: doLogin
       description: Authenticates a user in the system. If the user does not exist, it will be created. If the user exists, the user information is returned.
       requestBody:
         description: User details for authentication
@@ -45,12 +49,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/User"
 
-  /test-users:
+  /users:
     get:
       tags: ["users"]
-      summary: Get all test users
-      operationId: TestUsers
-      description: Returns a comprehensive list of all test users in the system for development purposes
+      summary: Get all users
+      operationId: Users
+      description: Returns a comprehensive list of all test users in the system
       responses:
         "200":
           description: List of users retrieved successfully
@@ -87,7 +91,6 @@ paths:
           content:
             application/json:
               schema:
-                description: User found
                 $ref: "#/components/schemas/User"
         "404":
           description: User not found
@@ -96,7 +99,7 @@ paths:
     put:
       tags: ["users"]
       summary: Update username
-      operationId: changeUsername
+      operationId: setMyUserName
       description: Update the authenticated user's username
       requestBody:
         required: true
@@ -126,7 +129,7 @@ paths:
     put:
       tags: ["users"]
       summary: Update user photo
-      operationId: changePhoto
+      operationId: setMyPhoto
       description: Update the authenticated user's profile photo
       requestBody:
         required: true
@@ -151,7 +154,7 @@ paths:
     get:
       tags: ["conversations"]
       summary: Get user conversations
-      operationId: conversations
+      operationId: getMyConversations
       description: Retrieve all conversations for the authenticated user
       responses:
         "200":
@@ -271,7 +274,7 @@ paths:
     delete:
       tags: ["conversations"]
       summary: Leave conversation/group
-      operationId: deleteConversation
+      operationId: leaveGroup
       description: Leave a conversation or group chat
       responses:
         "202":
@@ -359,7 +362,7 @@ paths:
     put:
       tags: ["conversations"]
       summary: Update group name
-      operationId: updateGroupName
+      operationId: setGroupName
       description: Update the name of a group conversation
       requestBody:
         required: true
@@ -390,7 +393,7 @@ paths:
     put:
       tags: ["conversations"]
       summary: Update group photo
-      operationId: UpdateGroupPhoto
+      operationId: setGroupPhoto
       description: Update the photo of a group conversation
       requestBody:
         required: true
@@ -415,7 +418,7 @@ paths:
     put:
       tags: ["conversations"]
       summary: Add members to group
-      operationId: addGroupMembers
+      operationId: addToGroup
       description: Add new members to an existing group conversation
       requestBody:
         required: true
@@ -438,10 +441,131 @@ paths:
           content:
             application/json:
               schema:
+                description: Updated group conversation
                 $ref: "#/components/schemas/Conversation"
+
+  /conversations/{conversation_id}/reply:
+    parameters:
+      - $ref: "#/components/parameters/conversation_id"
+    post:
+      tags: ["messages"]
+      description: reply to a message
+      operationId: replyMessage
+      requestBody:
+        description: sending the id of the conversation and the user to be replied
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: reply content
+                  minLength: 1
+                  maxLength: 4096
+                content_type:
+                  type: string
+                  description: type of reply content
+                  enum: [text, image]
+                replied_to:
+                  type: integer
+      responses:
+        "201":
+          description: successfully replied to a message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+
+  /conversations/{conversation_id}/forward:
+    parameters:
+      - $ref: "#/components/parameters/conversation_id"
+    post:
+      tags: ["messages"]
+      description: forward a message
+      operationId: forwardMessage
+      requestBody:
+        description: Sending the id of the conversation to the forwarded message, along with the content, content_type and original_message_id
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                destination_conversation_id:
+                  type: integer
+                  description: target conversation id
+                content:
+                  type: string
+                  description: reply content
+                  minLength: 1
+                  maxLength: 4096
+                content_type:
+                  type: string
+                  description: type of reply content
+                  enum: [text, image]
+      responses:
+        "201":
+          description: successfully forwarded the message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+
+  /ws:
+    get:
+      tags: ["websocket"]
+      summary: WebSocket connection
+      operationId: HandleWebSocket
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "101":
+          description: Switching protocols to WebSocket
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                description: "Error"
+                $ref: "#/components/schemas/Error"
+
+  /files/{filepath}:
+    parameters:
+      - name: filepath
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: ["files"]
+      summary: Serve static files
+      responses:
+        "200":
+          description: File served successfully
+          content:
+            application/octet-stream:
+              schema:
+                description: File content
+                type: string
+                format: binary
 
 components:
   schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          minLength: 1
+          maxLength: 1024
+
     User:
       type: object
       description: Represents a user in the system
