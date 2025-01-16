@@ -33,7 +33,6 @@ onMounted(async () => {
 	try {
 		const users = await userAPI.getAllUsers();
 		allUsers.value = users;
-		console.log('Loaded users:', users);
 	} catch (error) {
 		console.error('Error loading users:', error);
 	}

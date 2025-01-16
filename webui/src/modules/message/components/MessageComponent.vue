@@ -52,10 +52,6 @@ const seenStatus = computed(() => {
 			props.message.isSeenBy(p.userId)
 		).length;
 
-		console.log(
-			`Message ${props.message.messageId} seen by ${seenCount}/${otherParticipants.length} participants`
-		);
-
 		if (seenCount === otherParticipants.length) {
 			return 'Read';
 		} else if (seenCount > 0) {
@@ -128,6 +124,18 @@ const formattedDate = () => {
 		minute: '2-digit',
 	}).format(props.message.sentTime);
 };
+
+const isDeleted = computed(() => {
+    return props.message?.deletedTime != null;
+});
+
+const deleteMessage = async () => {
+	await conversationStore.deleteMessage(
+		conversationStore.currentConversation.conversationId, 
+		props.message.messageId
+	);
+}
+
 </script>
 
 <template>
@@ -136,7 +144,7 @@ const formattedDate = () => {
 			class="message-container"
 			:class="isFromUser ? 'own-message' : 'not-own-message'"
 		>
-			<div class="message-actions">
+			<div v-if="!isDeleted" class="message-actions">
 				<button @click="replyMessage" class="action-button" title="Reply">
 					↩️
 				</button>
@@ -152,6 +160,13 @@ const formattedDate = () => {
 						{{ userHasReaction ? 'x' : '+' }}
 					</button>
 				</div>
+				<button 
+					v-if = "isFromUser"
+					@click="deleteMessage" 
+					class="action-button delete-button" 
+					title="Delete">
+					✕
+				</button>
 			</div>
 
 			<div v-if="message.sender.icon">
@@ -195,7 +210,12 @@ const formattedDate = () => {
 					<!-- teste -->
 				</div>
 				<div v-else class="message-content">
-					{{ message.displayContent }}
+					<span v-if="isDeleted" class="deleted-message">
+						message deleted
+					</span>
+					<span v-else>
+						{{ message.displayContent }}
+					</span>
 				</div>
 
 				<div class="reactions-container">
@@ -367,6 +387,19 @@ const formattedDate = () => {
 	transform: scale(1.2);
 }
 
+.delete-button {
+	color: #666;
+	font-size: 1rem;
+	font-weight: bold;
+	opacity: 0.7;
+	transition: all 0.2s ease;
+}
+
+.delete-button:hover {
+	color: #ff4444;
+	opacity: 1;
+}
+
 .image-message-container {
 	max-width: 300px;
 	padding: 4px;
@@ -415,5 +448,15 @@ const formattedDate = () => {
 
 .own-message .seen-status {
 	color: rgba(255, 255, 255, 0.7);
+}
+
+.deleted-message {
+    font-style: italic;
+    color: #666;
+    opacity: 0.8;
+}
+
+.own-message .deleted-message {
+    color: rgba(255, 255, 255, 0.7);
 }
 </style>

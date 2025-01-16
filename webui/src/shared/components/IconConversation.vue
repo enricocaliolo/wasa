@@ -2,7 +2,6 @@
 const props = defineProps({
 	conversation: Object,
 });
-console.log(props.conversation);
 
 const checkPhoto = () => {
 	if (props.conversation.isGroup && props.conversation.photo) {

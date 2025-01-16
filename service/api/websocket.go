@@ -241,7 +241,6 @@ func (c *Client) readPump() {
 			c.hub.broadcast <- message
 
 		case "messages_seen":
-
 			messageIDs, ok := wsMessage.Payload["message_ids"].([]interface{})
 			if !ok {
 				c.hub.logger.WithError(err).Error("Invalid message_ids format: %w", wsMessage.Payload["message_ids"])

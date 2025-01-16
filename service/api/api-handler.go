@@ -15,17 +15,18 @@ func (rt *APIRouter) Handler() http.Handler {
 
 	// conversation operations
 	rt.router.GET("/conversations", rt.authMiddleware(rt.conversations))
+	rt.router.POST("/conversations", rt.authMiddleware(rt.createConversation))
 	rt.router.GET("/conversations/:conversation_id", rt.authMiddleware(rt.getConversation))
 	rt.router.POST("/conversations/:conversation_id", rt.authMiddleware(rt.sendMessage))
 	rt.router.DELETE("/conversations/:conversation_id", rt.authMiddleware(rt.deleteConversation))
-	rt.router.POST("/conversations/:conversation_id/reply", rt.authMiddleware(rt.sendMessage))
-	rt.router.POST("/conversations/:conversation_id/forward", rt.authMiddleware(rt.sendMessage))
-	rt.router.DELETE("/conversations/:conversation_id/messages/:message_id", rt.authMiddleware(rt.deleteMessage))
 
+	rt.router.DELETE("/conversations/:conversation_id/messages/:message_id", rt.authMiddleware(rt.deleteMessage))
 	rt.router.PUT("/conversations/:conversation_id/messages/:message_id", rt.authMiddleware(rt.commentMessage))
 	rt.router.DELETE("/conversations/:conversation_id/messages/:message_id/reactions/:reaction_id", rt.authMiddleware(rt.uncommentMessage))
 
-	rt.router.POST("/conversations", rt.authMiddleware(rt.createConversation))
+	rt.router.POST("/conversations/:conversation_id/reply", rt.authMiddleware(rt.sendMessage))
+	rt.router.POST("/conversations/:conversation_id/forward", rt.authMiddleware(rt.sendMessage))
+
 	rt.router.PUT("/conversations/:conversation_id/name", rt.authMiddleware(rt.updateGroupName))
 	rt.router.PUT("/conversations/:conversation_id/photo", rt.authMiddleware(rt.UpdateGroupPhoto))
 	rt.router.PUT("/conversations/:conversation_id/users", rt.authMiddleware(rt.addGroupMembers))

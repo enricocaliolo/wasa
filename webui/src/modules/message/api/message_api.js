@@ -1,5 +1,6 @@
 import api from '../../../shared/api/api';
 import { imageConverter } from '../helper/image_converter';
+import { Message } from '../models/message';
 
 export const messagesAPI = {
 	commentMessage: async (conversation_id, message_id, comment) => {
@@ -87,6 +88,14 @@ export const messagesAPI = {
 		} catch (error) {
 			console.error('Error sending message:', error);
 			throw error;
+		}
+	},
+	deleteMessage: async (conversation_id, message_id) => {
+		const response = await api.delete(
+			`/conversations/${conversation_id}/messages/${message_id}`
+		);
+		if (response.status === 202) {
+			return new Message(response.data)
 		}
 	},
 };

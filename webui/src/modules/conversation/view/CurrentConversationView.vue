@@ -28,7 +28,6 @@ onMounted(async () => {
 			.map((message) => message.messageId);
 
 		if (unseenMessages.length > 0) {
-			console.log('Marking loaded messages as seen:', unseenMessages);
 			conversationStore.markMessagesSeen(unseenMessages);
 		}
 	}
@@ -48,7 +47,6 @@ watch(
 			.map((message) => message.messageId);
 
 		if (unseenMessages.length > 0) {
-			console.log('New unseen messages detected:', unseenMessages);
 			conversationStore.markMessagesSeen(unseenMessages);
 		}
 	},

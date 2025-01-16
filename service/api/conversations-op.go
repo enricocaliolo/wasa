@@ -148,10 +148,6 @@ func (rt *APIRouter) deleteMessage(w http.ResponseWriter, r *http.Request, ps ht
 		return
 	}
 
-	// todo: might need to check if message is from conversation for API calls
-	// since, from the UI, we always will delete from the conversation itself,
-	// might not need it
-
 	exists, _ = rt.db.IsMessageFromUser(message_id, user_id)
 	if !exists {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -160,7 +156,7 @@ func (rt *APIRouter) deleteMessage(w http.ResponseWriter, r *http.Request, ps ht
 		return
 	}
 
-	_, err = rt.db.DeleteMessage(message_id)
+	deletedMessage, err := rt.db.DeleteMessage(message_id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Header().Set("content-type", "application/json")
@@ -168,9 +164,28 @@ func (rt *APIRouter) deleteMessage(w http.ResponseWriter, r *http.Request, ps ht
 		return
 	}
 
+	wsMessage := WebSocketMessage{
+		Type:           "message_deletion",
+		ConversationID: deletedMessage.ConversationID,
+		Payload: map[string]interface{}{
+			"message": deletedMessage,
+		},
+		Timestamp: time.Now(),
+	}
+
+	messageJSON, err := json.Marshal(wsMessage)
+	if err == nil {
+		rt.baseLogger.WithFields(logrus.Fields{
+			"conversation_id": deletedMessage.ConversationID,
+			"message_type":    "new_message",
+			"recipient_count": len(rt.wsHub.conversationClients[deletedMessage.ConversationID]),
+		}).Debug("Broadcasting message via WebSocket")
+		rt.wsHub.SendToConversation(deletedMessage.ConversationID, messageJSON)
+	}
+
 	w.WriteHeader(http.StatusAccepted)
 	w.Header().Set("content-type", "application/json")
-	_ = json.NewEncoder(w).Encode("succesfully deleted message")
+	_ = json.NewEncoder(w).Encode(deletedMessage)
 
 }
 

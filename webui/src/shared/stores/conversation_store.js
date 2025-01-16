@@ -203,6 +203,26 @@ export const useConversationStore = defineStore('conversationStore', () => {
 		}
 	}
 
+	async function deleteMessage(conversation_id, message_id) {
+		try {
+			const deletedMessage = await messagesAPI.deleteMessage(conversation_id, message_id);
+			const conversation = conversations.value.find(
+				(conv) => conv.conversationId === conversation_id
+			);
+			if (conversation) {
+				const messageIndex = conversation.messages.findIndex(
+					(message) => message.messageId === message_id
+				);
+				if (messageIndex !== -1) {
+					conversation.messages[messageIndex] = deletedMessage;
+				}
+			}
+		} catch (error) {
+			console.error('Error deleting message:', error);
+			throw error;
+		}
+	}
+
 	return {
 		conversations,
 		currentConversation,
@@ -223,5 +243,6 @@ export const useConversationStore = defineStore('conversationStore', () => {
 		init,
 		markMessagesSeen,
 		addGroupMembers,
+		deleteMessage
 	};
 });

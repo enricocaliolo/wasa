@@ -107,6 +107,19 @@ export function useWebSocket() {
 					}
 					break;
 				}
+
+				case 'message_deletion': {
+					const deletedMessage = new Message(wsData.payload.message);
+					const targetConversation = conversationStore.conversations.find(
+						(conv) => conv.conversationId === deletedMessage.conversationId
+					);
+					targetConversation.messages = targetConversation.messages.map(msg => {
+						if (msg.messageId === deletedMessage.messageId) {
+							return deletedMessage;
+						}
+						return msg;
+					});
+				}
 			}
 		} catch (error) {
 			console.error('Error processing WebSocket message:', error);
@@ -216,7 +229,6 @@ export function useWebSocket() {
 	};
 
 	onMounted(() => {
-		console.log('Component mounted, initializing WebSocket');
 		connectWebSocket();
 	});
 

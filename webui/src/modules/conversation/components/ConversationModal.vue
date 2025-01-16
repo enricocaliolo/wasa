@@ -71,7 +71,7 @@ async function createConversation() {
 </script>
 
 <template>
-	<BaseModal :show="show" title="Create Conversation" @close="closeModal">
+	<BaseModal title="Create Conversation" @close="closeModal">
 		<div class="modal-content">
 			<div class="selected-users-section">
 				<h3 class="section-title">
