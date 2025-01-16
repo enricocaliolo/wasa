@@ -88,7 +88,8 @@ func New(cfg Config) (RouterInterface, error) {
 		userConnections:     make(map[int][]*Client),
 		conversationClients: make(map[int][]*Client),
 		db:                  cfg.Database,
-		reconnectTimeout:    5 * time.Minute, // Pass the database here
+		reconnectTimeout:    5 * time.Minute,
+		logger:              cfg.Logger.(*logrus.Logger),
 	}
 	go hub.run()
 

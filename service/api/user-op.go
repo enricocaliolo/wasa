@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"wasa/service/shared/models"
@@ -25,7 +26,7 @@ func (rt *APIRouter) login(w http.ResponseWriter, r *http.Request, ps httprouter
 	username := req.Username
 
 	user, err := rt.db.GetUser(username)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		user, err = rt.db.CreateUser(username)
 		if err != nil {
 			return
@@ -87,8 +88,9 @@ func (rt *APIRouter) changeUsername(w http.ResponseWriter, r *http.Request, ps h
 
 	isUserUpdated, err := rt.db.UpdateUsername(user)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_ = json.NewEncoder(w).Encode("Error getting users")
+		w.Header().Set("content-type", "application/json")
+		w.WriteHeader(http.StatusConflict)
+		_ = json.NewEncoder(w).Encode(err)
 		return
 	}
 

@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"wasa/service/api/responses"
 	"wasa/service/shared/helper"
 	"wasa/service/shared/models"
 
@@ -67,7 +66,12 @@ func (rt *APIRouter) getConversation(w http.ResponseWriter, r *http.Request, ps 
 		return
 	}
 
-	messages := rt.db.GetMessagesFromConversation(conversationID)
+	messages, err := rt.db.GetMessagesFromConversation(conversationID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(err)
+		return
+	}
 	if messages == nil {
 		messages = []models.Message{}
 	}
@@ -103,14 +107,18 @@ func (rt *APIRouter) deleteConversation(w http.ResponseWriter, r *http.Request, 
 
 	_, err = rt.db.RemoveUserFromConversation(conversationID, user_id)
 	if err != nil {
-		responses.SendError(w, err, http.StatusInternalServerError)
+		w.Header().Set("content-type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode("Could not remove user from conversation")
 		return
 	}
 
 	if count == 1 {
 		_, err = rt.db.DeleteConversation(conversationID)
 		if err != nil {
-			responses.SendError(w, err, http.StatusInternalServerError)
+			w.Header().Set("content-type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			_ = json.NewEncoder(w).Encode("Could not delete conversation.")
 			return
 		}
 	}

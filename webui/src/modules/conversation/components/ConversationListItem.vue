@@ -42,7 +42,6 @@ const getLastMessage = computed(() => {
     const conversation = conversationStore.conversations.find(
         (c) => c.conversationId === props.conversation.conversationId
     );
-	console.log(conversation.messages)
 
     if (conversation.messages.length === 0) {
         return '';

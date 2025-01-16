@@ -21,11 +21,11 @@ func IsUserInConversation(db *sql.DB, userID int, conversationID int) (bool, err
         FROM "ConversationParticipants"
         WHERE conversation_id = ? AND user_id = ?`
 
-    var count int
-    err = db.QueryRow(a, conversationID, userID).Scan(&count)
-    if err != nil {
-        return false, err
-    }
+	var count int
+	err = db.QueryRow(a, conversationID, userID).Scan(&count)
+	if err != nil {
+		return false, err
+	}
 
 	return exists, nil
 }

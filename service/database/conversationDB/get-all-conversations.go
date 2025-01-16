@@ -3,11 +3,11 @@ package conversationDB
 import (
 	"database/sql"
 	"log"
+	messagesdb "wasa/service/database/messagesDB"
 	"wasa/service/shared/models"
 )
 
 func GetAllConversations(db *sql.DB, userID int) ([]models.Conversation, error) {
-	// First query to get conversations
 	conversationsQuery := `
     SELECT 
         c.conversation_id,
@@ -53,8 +53,6 @@ func GetAllConversations(db *sql.DB, userID int) ([]models.Conversation, error) 
 		}
 
 		conv.Name = name
-
-		// Query for participants
 		participantsQuery := `
             SELECT 
                 u.user_id,
@@ -83,9 +81,12 @@ func GetAllConversations(db *sql.DB, userID int) ([]models.Conversation, error) 
 			}
 			participants = append(participants, user)
 		}
+		if err = participantRows.Err(); err != nil {
+			return nil, err
+		}
+
 		conv.Participants = participants
 
-		// Query for messages with replied to messages
 		messagesQuery := `
             SELECT 
                 m.message_id,
@@ -116,6 +117,7 @@ func GetAllConversations(db *sql.DB, userID int) ([]models.Conversation, error) 
 		defer messageRows.Close()
 
 		var messages []models.Message
+		var messageIDs []int
 		for messageRows.Next() {
 			var msg models.Message
 			var sender models.User
@@ -145,6 +147,7 @@ func GetAllConversations(db *sql.DB, userID int) ([]models.Conversation, error) 
 				&repliedToMsg.Content,
 				&repliedToMsg.ContentType,
 			)
+
 			if err != nil {
 				log.Printf("Error scanning message: %v", err)
 				continue
@@ -165,11 +168,26 @@ func GetAllConversations(db *sql.DB, userID int) ([]models.Conversation, error) 
 					ContentType: repliedToMsg.ContentType.String,
 				}
 			}
-
+			messageIDs = append(messageIDs, msg.ID)
 			messages = append(messages, msg)
 		}
+		if err = messageRows.Err(); err != nil {
+			return nil, err
+		}
 
-		// Query for reactions
+		seenStatus, err := messagesdb.GetMessageSeenStatus(db, messageIDs)
+		if err != nil {
+			log.Printf("Error getting message seen status: %v", err)
+		} else {
+			for i := range messages {
+				if seenBy, ok := seenStatus[messages[i].ID]; ok {
+					messages[i].SeenBy = seenBy
+				} else {
+					messages[i].SeenBy = []int{}
+				}
+			}
+		}
+
 		reactionQuery := `
             SELECT 
                 r.reaction_id,
@@ -216,8 +234,10 @@ func GetAllConversations(db *sql.DB, userID int) ([]models.Conversation, error) 
 			r.User = u
 			reactionMap[r.MessageID] = append(reactionMap[r.MessageID], r)
 		}
+		if err = reactionRows.Err(); err != nil {
+			return nil, err
+		}
 
-		// Attach reactions to messages
 		for i := range messages {
 			if reactions, ok := reactionMap[messages[i].ID]; ok {
 				messages[i].Reactions = reactions

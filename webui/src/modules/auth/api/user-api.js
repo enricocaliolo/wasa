@@ -57,7 +57,7 @@ export const userAPI = {
 			return user;
 		} catch (e) {
 			if (e.response.status === 409) {
-				return new Error("Username already exists! Choose another.")
+				throw new Error("Username already exists! Choose another.")
 			}
 		}
 	},

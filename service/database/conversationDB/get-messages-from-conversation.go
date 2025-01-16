@@ -8,7 +8,7 @@ import (
 	"wasa/service/shared/models"
 )
 
-func GetMessagesFromConversation(db *sql.DB, conversation_id int) []models.Message {
+func GetMessagesFromConversation(db *sql.DB, conversation_id int) ([]models.Message, error) {
 	query := `
         SELECT 
             m.message_id,
@@ -39,7 +39,7 @@ func GetMessagesFromConversation(db *sql.DB, conversation_id int) []models.Messa
 	rows, err := db.Query(query, conversation_id)
 	if err != nil {
 		log.Printf("Error querying messages: %v", err)
-		return nil
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -88,7 +88,6 @@ func GetMessagesFromConversation(db *sql.DB, conversation_id int) []models.Messa
 		msg.ConversationID = conversation_id
 		msg.Sender = sender
 
-		// Process seen_by string into array
 		msg.SeenBy = make([]int, 0)
 		if seenByStr.Valid && seenByStr.String != "" {
 			seenByStrArr := strings.Split(seenByStr.String, ",")
@@ -109,6 +108,9 @@ func GetMessagesFromConversation(db *sql.DB, conversation_id int) []models.Messa
 		}
 
 		messages = append(messages, msg)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
 	}
 
 	reactionQuery := `
@@ -131,7 +133,7 @@ func GetMessagesFromConversation(db *sql.DB, conversation_id int) []models.Messa
 	reactionRows, err := db.Query(reactionQuery, conversation_id)
 	if err != nil {
 		log.Printf("Error querying reactions: %v", err)
-		return messages
+		return messages, err
 	}
 	defer reactionRows.Close()
 
@@ -155,6 +157,9 @@ func GetMessagesFromConversation(db *sql.DB, conversation_id int) []models.Messa
 		r.User = u
 		reactionMap[r.MessageID] = append(reactionMap[r.MessageID], r)
 	}
+	if err = reactionRows.Err(); err != nil {
+		return nil, err
+	}
 
 	for i := range messages {
 		if reactions, ok := reactionMap[messages[i].ID]; ok {
@@ -162,5 +167,5 @@ func GetMessagesFromConversation(db *sql.DB, conversation_id int) []models.Messa
 		}
 	}
 
-	return messages
+	return messages, nil
 }

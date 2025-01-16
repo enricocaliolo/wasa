@@ -26,8 +26,7 @@ export class Message {
             : null;
         this.isForwarded = data.is_forwarded;
         this.seenBy = Array.isArray(data.seen_by) ? data.seen_by : [];
-        
-        console.log('Message created with seenBy:', this.seenBy); // Debug log
+
     }
 
     isSeenBy(userId) {
@@ -35,13 +34,11 @@ export class Message {
     }
 
     addSeenBy(userId) {
-        console.log('Adding seen by:', userId, 'Current seenBy:', this.seenBy); // Debug log
         if (!Array.isArray(this.seenBy)) {
             this.seenBy = [];
         }
         if (!this.seenBy.includes(userId)) {
             this.seenBy.push(userId);
-            console.log('Updated seenBy:', this.seenBy); // Debug log
         }
     }
 

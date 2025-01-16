@@ -4,3 +4,4 @@
 /open-node-test.sh
 /webui-teste
 static/icons
+service/.golangci.yml

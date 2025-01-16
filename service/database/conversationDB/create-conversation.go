@@ -3,7 +3,6 @@ package conversationDB
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"wasa/service/shared/models"
 )
 
@@ -22,7 +21,7 @@ func CreateConversation(db *sql.DB, members []int, name string) (models.Conversa
     `, name, isGroup).Scan(&conversation.ID, &conversation.Name, &conversation.Is_group, &conversation.Created_at)
 
 	if err != nil {
-		return conversation, fmt.Errorf("creating conversation: %w", err)
+		return conversation, err
 	}
 
 	for _, member := range members {
@@ -31,7 +30,7 @@ func CreateConversation(db *sql.DB, members []int, name string) (models.Conversa
             VALUES (?, ?)
         `, conversation.ID, member)
 		if err != nil {
-			return conversation, fmt.Errorf("adding participant %d: %w", member, err)
+			return conversation, err
 		}
 	}
 	participantsQuery := `
@@ -45,7 +44,7 @@ func CreateConversation(db *sql.DB, members []int, name string) (models.Conversa
 
 	participantRows, err := db.Query(participantsQuery, conversation.ID)
 	if err != nil {
-		return conversation, fmt.Errorf("querying participants: %w", err)
+		return conversation, err
 	}
 	defer participantRows.Close()
 
@@ -58,13 +57,13 @@ func CreateConversation(db *sql.DB, members []int, name string) (models.Conversa
 			&user.Icon,
 		)
 		if err != nil {
-			return conversation, fmt.Errorf("scanning participant: %w", err)
+			return conversation, err
 		}
 		participants = append(participants, user)
 	}
 
 	if err = participantRows.Err(); err != nil {
-		return conversation, fmt.Errorf("iterating participants: %w", err)
+		return conversation, err
 	}
 
 	conversation.Participants = participants

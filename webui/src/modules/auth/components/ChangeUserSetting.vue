@@ -43,14 +43,6 @@ const saveChanges = async () => {
 	try {
 		if (newUsername.value !== '') {
 			const user = await userStore.updateUsername(newUsername.value);
-			if (user instanceof Error) {
-				showError.value = true;
-				errorMessage.value = "Username already taken!";
-				setTimeout(() => {
-					showError.value = false;
-				}, 5000);
-				return;
-			}
 		} else if (icon.value) {
 			await userStore.updateIcon(icon.value);
 		}
@@ -59,7 +51,12 @@ const saveChanges = async () => {
 		iconURL.value = null;
 		emit("close");
 	} catch (e) {
-		console.log(e);
+		showError.value = true;
+		errorMessage.value = "Username already taken!";
+		setTimeout(() => {
+			showError.value = false;
+		}, 5000);
+		return;
 	}
 };
 </script>

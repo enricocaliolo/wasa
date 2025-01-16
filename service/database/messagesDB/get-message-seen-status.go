@@ -27,7 +27,7 @@ func GetMessageSeenStatus(db *sql.DB, messageIDs []int) (map[int][]int, error) {
 
 	rows, err := db.Query(query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("error querying message seen status: %v", err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -40,13 +40,13 @@ func GetMessageSeenStatus(db *sql.DB, messageIDs []int) (map[int][]int, error) {
 	for rows.Next() {
 		var messageID, userID int
 		if err := rows.Scan(&messageID, &userID); err != nil {
-			return nil, fmt.Errorf("error scanning row: %v", err)
+			return nil, err
 		}
 		seenStatus[messageID] = append(seenStatus[messageID], userID)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating rows: %v", err)
+		return nil, err
 	}
 
 	return seenStatus, nil

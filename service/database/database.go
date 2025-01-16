@@ -55,7 +55,7 @@ type AppDatabase interface {
 
 	// conversation operations
 	GetAllConversations(id int) ([]models.Conversation, error)
-	GetMessagesFromConversation(id int) []models.Message
+	GetMessagesFromConversation(id int) ([]models.Message, error)
 	IsUserInConversation(conversation_id int, user_id int) (bool, error)
 	SendMessage(models.Message) (*models.Message, error)
 	ReplyToMessage(models.Message) (*models.Message, error)
@@ -136,7 +136,7 @@ func (db *appdbimpl) GetAllConversations(id int) ([]models.Conversation, error) 
 	return conversationDB.GetAllConversations(db.c, id)
 }
 
-func (db *appdbimpl) GetMessagesFromConversation(id int) []models.Message {
+func (db *appdbimpl) GetMessagesFromConversation(id int) ([]models.Message, error) {
 	return conversationDB.GetMessagesFromConversation(db.c, id)
 }
 

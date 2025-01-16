@@ -2,7 +2,6 @@ package conversationDB
 
 import (
 	"database/sql"
-	"fmt"
 	"wasa/service/shared/models"
 )
 
@@ -21,7 +20,7 @@ func GetConversation(db *sql.DB, conversation_id int) (*models.Conversation, err
 		&conversation.Created_at,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("error fetching conversation: %v", err)
+		return nil, err
 	}
 
 	participantsQuery := `
@@ -32,7 +31,7 @@ func GetConversation(db *sql.DB, conversation_id int) (*models.Conversation, err
     `
 	participantsRows, err := db.Query(participantsQuery, conversation_id)
 	if err != nil {
-		return nil, fmt.Errorf("error fetching participants: %v", err)
+		return nil, err
 	}
 	defer participantsRows.Close()
 
@@ -40,9 +39,12 @@ func GetConversation(db *sql.DB, conversation_id int) (*models.Conversation, err
 	for participantsRows.Next() {
 		var user models.User
 		if err := participantsRows.Scan(&user.ID, &user.Username, &user.Icon); err != nil {
-			return nil, fmt.Errorf("error scanning participant: %v", err)
+			return nil, err
 		}
 		conversation.Participants = append(conversation.Participants, user)
+	}
+	if err = participantsRows.Err(); err != nil {
+		return nil, err
 	}
 
 	return conversation, nil

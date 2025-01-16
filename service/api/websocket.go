@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"sync"
 	"time"
 	"wasa/service/database"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/julienschmidt/httprouter"
+	"github.com/sirupsen/logrus"
 )
 
 var upgrader = websocket.Upgrader{
@@ -40,9 +40,10 @@ type Hub struct {
 	mu                  sync.RWMutex
 	db                  database.AppDatabase
 	reconnectTimeout    time.Duration
+	logger              *logrus.Logger
 }
 
-func NewHub(db database.AppDatabase) *Hub {
+func NewHub(db database.AppDatabase, logger *logrus.Logger) *Hub {
 	return &Hub{
 		clients:             make(map[*Client]bool),
 		broadcast:           make(chan []byte),
@@ -52,6 +53,7 @@ func NewHub(db database.AppDatabase) *Hub {
 		conversationClients: make(map[int][]*Client),
 		db:                  db,
 		reconnectTimeout:    5 * time.Minute,
+		logger:              logger,
 	}
 }
 
@@ -76,6 +78,10 @@ func (h *Hub) run() {
 		case client := <-h.unregister:
 			h.mu.Lock()
 			if _, ok := h.clients[client]; ok {
+				client.mu.Lock()
+				client.isActive = false
+				client.mu.Unlock()
+
 				delete(h.clients, client)
 				close(client.send)
 
@@ -192,13 +198,24 @@ func (h *Hub) AddConversationClient(conversationID int, client *Client) {
 
 func (c *Client) readPump() {
 	defer func() {
+		if r := recover(); r != nil {
+			c.hub.logger.WithField("recover", r).Error("Recovered in readPump")
+		}
 		c.hub.unregister <- c
 		c.conn.Close()
 	}()
 
-	c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+	err := c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+	if err != nil {
+		c.hub.logger.WithError(err).Error("Error setting read deadline")
+		return
+	}
 	c.conn.SetPongHandler(func(string) error {
-		c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+		err := c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+		if err != nil {
+			c.hub.logger.WithError(err).Error("Error setting read deadline")
+			return err
+		}
 		return nil
 	})
 
@@ -206,14 +223,16 @@ func (c *Client) readPump() {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				fmt.Printf("error: %v", err)
+				if !websocket.IsCloseError(err, websocket.CloseNoStatusReceived) {
+					c.hub.logger.WithError(err).Error("Unexpected close error")
+				}
 			}
 			break
 		}
 
 		var wsMessage WebSocketMessage
 		if err := json.Unmarshal(message, &wsMessage); err != nil {
-			fmt.Printf("Error unmarshaling message: %v\n", err)
+			c.hub.logger.WithError(err).Error("Error unmarshaling message")
 			continue
 		}
 
@@ -225,7 +244,7 @@ func (c *Client) readPump() {
 
 			messageIDs, ok := wsMessage.Payload["message_ids"].([]interface{})
 			if !ok {
-				fmt.Printf("Invalid message_ids format: %v\n", wsMessage.Payload["message_ids"])
+				c.hub.logger.WithError(err).Error("Invalid message_ids format: %w", wsMessage.Payload["message_ids"])
 				continue
 			}
 
@@ -237,20 +256,20 @@ func (c *Client) readPump() {
 			}
 
 			if len(ids) == 0 {
-				fmt.Printf("No valid message IDs found\n")
+				c.hub.logger.WithError(err).Error("No message IDs found")
 				continue
 			}
 
 			err := c.hub.db.MarkMessagesSeen(c.userID, ids)
 			if err != nil {
-				fmt.Printf("Error marking messages as seen: %v\n", err)
+				c.hub.logger.WithError(err).Error("Error marking messages seen")
 				continue
 			}
 
 			wsMessage.Payload["user_id"] = c.userID
 			updatedMessage, err := json.Marshal(wsMessage)
 			if err != nil {
-				fmt.Printf("Error marshaling updated message: %v\n", err)
+				c.hub.logger.WithError(err).Error("Error marshaling updated message")
 				continue
 			}
 
@@ -262,16 +281,32 @@ func (c *Client) readPump() {
 func (c *Client) writePump() {
 	ticker := time.NewTicker(54 * time.Second)
 	defer func() {
+		if r := recover(); r != nil {
+			c.hub.logger.WithField("recover", r).Error("Recovered in writePump")
+		}
 		ticker.Stop()
-		c.conn.Close()
+		c.mu.Lock()
+		if c.isActive {
+			c.isActive = false
+			_ = c.conn.Close()
+		}
+		c.mu.Unlock()
 	}()
 
 	for {
 		select {
 		case message, ok := <-c.send:
-			c.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			err := c.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			if err != nil {
+				// c.hub.logger.WithError(err).Error("Error setting write deadline")
+				return
+			}
 			if !ok {
-				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				err := c.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				if err != nil {
+					// c.hub.logger.WithError(err).Error("Error writing close message")
+					return
+				}
 				return
 			}
 
@@ -279,19 +314,35 @@ func (c *Client) writePump() {
 			if err != nil {
 				return
 			}
-			w.Write(message)
+			_, err = w.Write(message)
+			if err != nil {
+				// c.hub.logger.WithError(err).Error("Error writing message")
+				return
+			}
 
 			n := len(c.send)
 			for i := 0; i < n; i++ {
-				w.Write([]byte{'\n'})
-				w.Write(<-c.send)
+				_, err := w.Write([]byte{'\n'})
+				if err != nil {
+					c.hub.logger.WithError(err).Error("Error writing newline")
+					return
+				}
+				_, err = w.Write(<-c.send)
+				if err != nil {
+					c.hub.logger.WithError(err).Error("Error writing newline")
+					return
+				}
 			}
 
 			if err := w.Close(); err != nil {
 				return
 			}
 		case <-ticker.C:
-			c.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			err := c.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			if err != nil {
+				c.hub.logger.WithError(err).Error("Error setting write deadline")
+				return
+			}
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
 			}
@@ -338,17 +389,26 @@ func (rt *APIRouter) HandleWebSocket(w http.ResponseWriter, r *http.Request, ps 
 
 func (c *Client) startHeartbeat() {
 	ticker := time.NewTicker(30 * time.Second)
-	defer ticker.Stop()
+	defer func() {
+		if r := recover(); r != nil {
+			c.hub.logger.WithField("recover", r).Error("Recovered in heartbeat")
+		}
+		ticker.Stop()
+	}()
 
 	for {
 		c.mu.RLock()
-		if !c.isActive {
-			c.mu.RUnlock()
-			return
-		}
+		isActive := c.isActive
 		c.mu.RUnlock()
 
+		if !isActive {
+			return
+		}
+
 		if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+			c.mu.Lock()
+			c.isActive = false
+			c.mu.Unlock()
 			return
 		}
 		<-ticker.C

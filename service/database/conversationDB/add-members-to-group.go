@@ -2,7 +2,6 @@ package conversationDB
 
 import (
 	"database/sql"
-	"fmt"
 )
 
 func AddGroupMembers(db *sql.DB, conversation_id int, members []int) error {
@@ -12,7 +11,7 @@ func AddGroupMembers(db *sql.DB, conversation_id int, members []int) error {
             VALUES (?, ?)
         `, conversation_id, member)
 		if err != nil {
-			return fmt.Errorf("adding member %d: %w", member, err)
+			return err
 		}
 	}
 	return nil

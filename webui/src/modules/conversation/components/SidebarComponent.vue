@@ -18,6 +18,7 @@ const showUserConfig = ref(false);
 onMounted(async () => {
 	try {
 		await conversationStore.getUserConversations()
+		console.log(conversationStore.conversations	)
 	} catch (error) {
 		console.error("Failed to fetch conversations:", error);
 	}

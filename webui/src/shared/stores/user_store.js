@@ -15,9 +15,12 @@ export const useUserStore = defineStore("userStore", () => {
 	}
 
 	async function updateUsername(_username) {
-		const response = await userAPI.changeUsername(_username);
-		if(response){
-			user.value.username = _username;
+		try{
+			const response = await userAPI.changeUsername(_username);
+			if(response){
+				user.value.username = _username;
+		}} catch(e) {
+			throw e
 		}
 	}
 
