@@ -2,7 +2,6 @@ package messagesdb
 
 import (
 	"database/sql"
-	"fmt"
 	"strings"
 )
 
@@ -11,19 +10,15 @@ func GetMessageSeenStatus(db *sql.DB, messageIDs []int) (map[int][]int, error) {
 		return make(map[int][]int), nil
 	}
 
-	args := make([]interface{}, len(messageIDs))
 	placeholders := make([]string, len(messageIDs))
+	args := make([]interface{}, len(messageIDs))
 	for i, id := range messageIDs {
-		args[i] = id
 		placeholders[i] = "?"
+		args[i] = id
 	}
 
-	query := fmt.Sprintf(`
-        SELECT message_id, user_id
-        FROM MessageSeen
-        WHERE message_id IN (%s)
-        ORDER BY message_id, seen_at
-    `, strings.Join(placeholders, ","))
+	query := "SELECT message_id, user_id FROM MessageSeen WHERE message_id IN (" +
+		strings.Join(placeholders, ",") + ") ORDER BY message_id, seen_at"
 
 	rows, err := db.Query(query, args...)
 	if err != nil {
@@ -32,7 +27,6 @@ func GetMessageSeenStatus(db *sql.DB, messageIDs []int) (map[int][]int, error) {
 	defer rows.Close()
 
 	seenStatus := make(map[int][]int)
-
 	for _, messageID := range messageIDs {
 		seenStatus[messageID] = []int{}
 	}
@@ -43,10 +37,6 @@ func GetMessageSeenStatus(db *sql.DB, messageIDs []int) (map[int][]int, error) {
 			return nil, err
 		}
 		seenStatus[messageID] = append(seenStatus[messageID], userID)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, err
 	}
 
 	return seenStatus, nil
