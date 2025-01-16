@@ -1,4 +1,4 @@
-import { User } from "@/modules/auth/models/user";
+import { User } from '@/modules/auth/models/user';
 
 export class Reaction {
 	constructor(data) {

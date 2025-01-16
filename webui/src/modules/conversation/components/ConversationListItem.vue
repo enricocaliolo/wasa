@@ -1,9 +1,8 @@
 <script setup>
-import {computed} from 'vue'
-import { useConversationStore } from "@/shared/stores/conversation_store";
-import api from "@/shared/api/api";
-import { conversationAPI } from "../api/conversation-api";
-import IconConversation from "../../../shared/components/IconConversation.vue";
+import { computed } from 'vue';
+import { useConversationStore } from '@/shared/stores/conversation_store';
+import { conversationAPI } from '../api/conversation-api';
+import IconConversation from '../../../shared/components/IconConversation.vue';
 
 const props = defineProps({
 	conversation: Object,
@@ -23,15 +22,16 @@ const conversationStore = useConversationStore();
 
 async function getConversation(_conversation) {
 	try {
-		
-		const conversation = conversationStore.conversations.find((c) => c.conversationId === _conversation.conversationId);
-		if(!conversation) {
+		const conversation = conversationStore.conversations.find(
+			(c) => c.conversationId === _conversation.conversationId
+		);
+		if (!conversation) {
 			const messages = await conversationAPI.getConversation(
-				conversation.conversationId,
+				conversation.conversationId
 			);
 			conversation.messages = messages || [];
 		}
-		
+
 		conversationStore.setCurrentConversation(conversation);
 	} catch (e) {
 		console.log(e);
@@ -39,48 +39,44 @@ async function getConversation(_conversation) {
 }
 
 const getLastMessage = computed(() => {
-    const conversation = conversationStore.conversations.find(
-        (c) => c.conversationId === props.conversation.conversationId
-    );
+	const conversation = conversationStore.conversations.find(
+		(c) => c.conversationId === props.conversation.conversationId
+	);
 
-    if (conversation.messages.length === 0) {
-        return '';
-    }
+	if (conversation.messages.length === 0) {
+		return '';
+	}
 
-    const lastMessage = conversation.messages[conversation.messages.length - 1];
-    const messageContent = lastMessage.displayContent;
+	const lastMessage = conversation.messages[conversation.messages.length - 1];
+	const messageContent = lastMessage.displayContent;
 
-    return conversation.isGroup 
-        ? `${lastMessage.sender.username}: ${messageContent} - ${formattedDate(lastMessage.sentTime)}`
-        : messageContent + ' - ' + formattedDate(lastMessage.sentTime);
+	return conversation.isGroup
+		? `${lastMessage.sender.username}: ${messageContent} - ${formattedDate(lastMessage.sentTime)}`
+		: messageContent + ' - ' + formattedDate(lastMessage.sentTime);
 });
 
 const formattedDate = (sentTime) => {
-	return	new Intl.DateTimeFormat('en-US', {
-  hour: '2-digit',
-  minute: '2-digit'
-}).format(sentTime)
-}
-
+	return new Intl.DateTimeFormat('en-US', {
+		hour: '2-digit',
+		minute: '2-digit',
+	}).format(sentTime);
+};
 </script>
 
 <template>
 	<div class="conversation-preview" @click="getConversation(conversation)">
-		<IconConversation :conversation="props.conversation"/>
+		<IconConversation :conversation="props.conversation" />
 		<div class="last-message-container">
 			<span class="name">
 				{{ conversation.name }}
 			</span>
-			
+
 			<span>{{ getLastMessage }} </span>
 		</div>
 	</div>
 </template>
 
 <style scoped>
-
-
-
 .conversation-preview {
 	height: 72px;
 	width: 100%;

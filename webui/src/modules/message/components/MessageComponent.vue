@@ -1,9 +1,9 @@
 <script setup>
-import { useUserStore } from "@/shared/stores/user_store";
-import { computed } from "vue";
-import { useConversationStore } from "../../../shared/stores/conversation_store";
-import ForwardMessageModal from "./ForwardMessageModal.vue";
-import { ref, onMounted } from "vue";
+import { useUserStore } from '@/shared/stores/user_store';
+import { computed } from 'vue';
+import { useConversationStore } from '../../../shared/stores/conversation_store';
+import ForwardMessageModal from './ForwardMessageModal.vue';
+import { ref, onMounted } from 'vue';
 
 const props = defineProps({
 	message: Object,
@@ -14,58 +14,61 @@ const conversationStore = useConversationStore();
 const showModal = ref(false);
 
 const showEmojiPicker = ref(false);
-const emojis = ["👍", "❤️", "😊", "😂", "😮", "😢"];
+const emojis = ['👍', '❤️', '😊', '😂', '😮', '😢'];
 const userReaction = ref(null);
 
 const seenStatus = computed(() => {
-    if (!props.message || !props.message.sender) return '';
+	if (!props.message || !props.message.sender) return '';
 
-    if (!isFromUser.value) {
-        return '';
-    }
-
-    const conv = conversationStore.currentConversation;
-    const isDirectMessage = !conv.isGroup;
-    
-    if (!props.message.seenBy || props.message.seenBy.length === 0) {
-        return 'Waiting';
-    }
-
-    if (isDirectMessage) {
-        const otherUser = conv.participants.find(p => p.userId !== userStore.user.userId);
-        if (otherUser && props.message.isSeenBy(otherUser.userId)) {
-            return 'Read';
-        }
-        return 'Waiting';
-    } else {
-		const otherParticipants = conv.participants.filter(p => 
-            p.userId !== userStore.user.userId && 
-            p.userId !== props.message.sender.userId
-        );
-        
-        if (otherParticipants.length === 0) return '';
-        
-        const seenCount = otherParticipants.filter(p => 
-            props.message.isSeenBy(p.userId)
-        ).length;
-        
-        console.log(`Message ${props.message.messageId} seen by ${seenCount}/${otherParticipants.length} participants`);
-        
-        if (seenCount === otherParticipants.length) {
-            return 'Read';
-        } else if (seenCount > 0) {
-            return `${seenCount}/${otherParticipants.length}`;
-        }
-        return 'Waiting';
+	if (!isFromUser.value) {
+		return '';
 	}
 
-    return 'Waiting';
+	const conv = conversationStore.currentConversation;
+	const isDirectMessage = !conv.isGroup;
+
+	if (!props.message.seenBy || props.message.seenBy.length === 0) {
+		return 'Waiting';
+	}
+
+	if (isDirectMessage) {
+		const otherUser = conv.participants.find(
+			(p) => p.userId !== userStore.user.userId
+		);
+		if (otherUser && props.message.isSeenBy(otherUser.userId)) {
+			return 'Read';
+		}
+		return 'Waiting';
+	} else {
+		const otherParticipants = conv.participants.filter(
+			(p) =>
+				p.userId !== userStore.user.userId &&
+				p.userId !== props.message.sender.userId
+		);
+
+		if (otherParticipants.length === 0) return '';
+
+		const seenCount = otherParticipants.filter((p) =>
+			props.message.isSeenBy(p.userId)
+		).length;
+
+		console.log(
+			`Message ${props.message.messageId} seen by ${seenCount}/${otherParticipants.length} participants`
+		);
+
+		if (seenCount === otherParticipants.length) {
+			return 'Read';
+		} else if (seenCount > 0) {
+			return `${seenCount}/${otherParticipants.length}`;
+		}
+		return 'Waiting';
+	}
 });
 
 onMounted(() => {
 	if (props.message.reactions) {
 		const reaction = props.message.reactions.find(
-			(r) => r.user.userId === userStore.user.userId,
+			(r) => r.user.userId === userStore.user.userId
 		);
 		if (reaction) {
 			userReaction.value = reaction;
@@ -85,7 +88,7 @@ const addReaction = async (emoji) => {
 	try {
 		const reaction = await conversationStore.addReaction(
 			props.message.messageId,
-			emoji,
+			emoji
 		);
 		userReaction.value = reaction;
 
@@ -100,7 +103,7 @@ const handleEmojiButton = async () => {
 		if (userReaction.value) {
 			await conversationStore.deleteReaction(
 				props.message.messageId,
-				userReaction.value.reactionId,
+				userReaction.value.reactionId
 			);
 			userReaction.value = null;
 			return;
@@ -120,12 +123,11 @@ const userHasReaction = computed(() => {
 });
 
 const formattedDate = () => {
-	return	new Intl.DateTimeFormat('en-US', {
-  hour: '2-digit',
-  minute: '2-digit'
-}).format(props.message.sentTime)
-}
-
+	return new Intl.DateTimeFormat('en-US', {
+		hour: '2-digit',
+		minute: '2-digit',
+	}).format(props.message.sentTime);
+};
 </script>
 
 <template>
@@ -135,18 +137,10 @@ const formattedDate = () => {
 			:class="isFromUser ? 'own-message' : 'not-own-message'"
 		>
 			<div class="message-actions">
-				<button
-					@click="replyMessage"
-					class="action-button"
-					title="Reply"
-				>
+				<button @click="replyMessage" class="action-button" title="Reply">
 					↩️
 				</button>
-				<button
-					@click="showModal = true"
-					class="action-button"
-					title="Forward"
-				>
+				<button @click="showModal = true" class="action-button" title="Forward">
 					↪️
 				</button>
 				<div class="emoji-picker-container">
@@ -155,13 +149,17 @@ const formattedDate = () => {
 						class="action-button"
 						title="Reaction"
 					>
-						{{ userHasReaction ? "x" : "+" }}
+						{{ userHasReaction ? 'x' : '+' }}
 					</button>
 				</div>
 			</div>
 
 			<div v-if="message.sender.icon">
-				<img class="sender-icon" :src="`${message.sender.displayIcon}`" alt="User icon">
+				<img
+					class="sender-icon"
+					:src="`${message.sender.displayIcon}`"
+					alt="User icon"
+				/>
 			</div>
 
 			<div class="message-box">
@@ -200,32 +198,29 @@ const formattedDate = () => {
 					{{ message.displayContent }}
 				</div>
 
-				<div
-					class="reactions-container"
-				>
-					<div v-if="message.reactions.length > 0" class="reactions-bubble" @click="showEmojis">
+				<div class="reactions-container">
+					<div
+						v-if="message.reactions.length > 0"
+						class="reactions-bubble"
+						@click="showEmojis"
+					>
 						<div class="reactions-list">
 							<span
-								v-for="reaction in message.reactions.slice(
-									0,
-									2,
-								)"
+								v-for="reaction in message.reactions.slice(0, 2)"
 								:key="reaction.id"
 							>
 								{{ reaction.reaction }}
 							</span>
 							<span v-if="message.reactions.length > 2">...</span>
 						</div>
-						<span class="reactions-count">{{
-							message.reactions.length
-						}}</span>
+						<span class="reactions-count">{{ message.reactions.length }}</span>
 					</div>
 					<div v-else></div>
 					<div class="sent-time">
 						<span>{{ formattedDate() }}</span>
 						<span v-if="seenStatus" class="seen-status">
-                            {{ seenStatus }}
-                        </span>
+							{{ seenStatus }}
+						</span>
 					</div>
 				</div>
 
@@ -405,20 +400,20 @@ const formattedDate = () => {
 }
 
 .message-footer {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: #666;
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	gap: 8px;
+	font-size: 12px;
+	color: #666;
 }
 
 .seen-status {
-    color: #666;
-    font-style: italic;
+	color: #666;
+	font-style: italic;
 }
 
 .own-message .seen-status {
-    color: rgba(255, 255, 255, 0.7);
+	color: rgba(255, 255, 255, 0.7);
 }
 </style>

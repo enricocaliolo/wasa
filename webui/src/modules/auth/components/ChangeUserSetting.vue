@@ -1,29 +1,29 @@
 <script setup>
-import { ref, onBeforeUnmount } from "vue";
-import { useUserStore } from "../../../shared/stores/user_store";
-import { useConversationStore } from "../../../shared/stores/conversation_store";
+import { ref, onBeforeUnmount } from 'vue';
+import { useUserStore } from '../../../shared/stores/user_store';
+import { useConversationStore } from '../../../shared/stores/conversation_store';
 
 const props = defineProps({
 	user: Object,
 });
 
-const emit = defineEmits(["close"]);
+const emit = defineEmits(['close']);
 
 const userStore = useUserStore();
 const conversationStore = useConversationStore();
 
-const showError = ref(false)
-const errorMessage = ref('')
+const showError = ref(false);
+const errorMessage = ref('');
 
 const icon = ref(null);
 const iconURL = ref(null);
 
-const newUsername = ref('')
+const newUsername = ref('');
 
 const onIconChange = (event) => {
 	icon.value = event.target.files[0];
 
-	if (icon) {
+	if (icon.value) {
 		if (iconURL.value) {
 			URL.revokeObjectURL(iconURL.value);
 		}
@@ -42,17 +42,17 @@ onBeforeUnmount(() => {
 const saveChanges = async () => {
 	try {
 		if (newUsername.value !== '') {
-			const user = await userStore.updateUsername(newUsername.value);
+			await userStore.updateUsername(newUsername.value);
 		} else if (icon.value) {
 			await userStore.updateIcon(icon.value);
 		}
-		conversationStore.setCurrentConversation(null)
+		conversationStore.setCurrentConversation(null);
 		icon.value = null;
 		iconURL.value = null;
-		emit("close");
-	} catch (e) {
+		emit('close');
+	} catch {
 		showError.value = true;
-		errorMessage.value = "Username already taken!";
+		errorMessage.value = 'Username already taken!';
 		setTimeout(() => {
 			showError.value = false;
 		}, 5000);
@@ -85,7 +85,7 @@ const saveChanges = async () => {
 						:src="iconURL || `${userStore.user.displayIcon}`"
 						alt="Current icon"
 						class="icon-preview"
-					/>	
+					/>
 					<input
 						type="file"
 						@change="onIconChange"
@@ -96,9 +96,7 @@ const saveChanges = async () => {
 			</div>
 
 			<button class="save-button" @click="emit('close')">Cancel</button>
-			<button class="save-button" @click="saveChanges">
-				Save changes
-			</button>
+			<button class="save-button" @click="saveChanges">Save changes</button>
 		</div>
 	</div>
 </template>
@@ -210,10 +208,10 @@ const saveChanges = async () => {
 }
 
 .error-message {
-    background-color: red;
-    color: white;
-    padding: 10px;
-    border-radius: 4px;
-    margin-bottom: 16px;
+	background-color: red;
+	color: white;
+	padding: 10px;
+	border-radius: 4px;
+	margin-bottom: 16px;
 }
 </style>

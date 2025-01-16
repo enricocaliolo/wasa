@@ -7,7 +7,7 @@
 .clearfix::after {
 	display: block;
 	clear: both;
-	content: "";
+	content: '';
 }
 .text-bg-primary {
 	color: #fff !important;
@@ -104,7 +104,7 @@
 .ratio::before {
 	display: block;
 	padding-top: var(--bs-aspect-ratio);
-	content: "";
+	content: '';
 }
 .ratio > * {
 	position: absolute;
@@ -252,7 +252,7 @@
 	bottom: 0;
 	right: 0;
 	z-index: 1;
-	content: "";
+	content: '';
 }
 .text-truncate {
 	overflow: hidden;
@@ -492,17 +492,11 @@
 }
 .border-danger {
 	--bs-border-opacity: 1;
-	border-color: rgba(
-		var(--bs-danger-rgb),
-		var(--bs-border-opacity)
-	) !important;
+	border-color: rgba(var(--bs-danger-rgb), var(--bs-border-opacity)) !important;
 }
 .border-light {
 	--bs-border-opacity: 1;
-	border-color: rgba(
-		var(--bs-light-rgb),
-		var(--bs-border-opacity)
-	) !important;
+	border-color: rgba(var(--bs-light-rgb), var(--bs-border-opacity)) !important;
 }
 .border-dark {
 	--bs-border-opacity: 1;
@@ -510,10 +504,7 @@
 }
 .border-white {
 	--bs-border-opacity: 1;
-	border-color: rgba(
-		var(--bs-white-rgb),
-		var(--bs-border-opacity)
-	) !important;
+	border-color: rgba(var(--bs-white-rgb), var(--bs-border-opacity)) !important;
 }
 .border-1 {
 	--bs-border-width: 1px;
@@ -1235,17 +1226,11 @@
 }
 .bg-danger {
 	--bs-bg-opacity: 1;
-	background-color: rgba(
-		var(--bs-danger-rgb),
-		var(--bs-bg-opacity)
-	) !important;
+	background-color: rgba(var(--bs-danger-rgb), var(--bs-bg-opacity)) !important;
 }
 .bg-light {
 	--bs-bg-opacity: 1;
-	background-color: rgba(
-		var(--bs-light-rgb),
-		var(--bs-bg-opacity)
-	) !important;
+	background-color: rgba(var(--bs-light-rgb), var(--bs-bg-opacity)) !important;
 }
 .bg-dark {
 	--bs-bg-opacity: 1;
@@ -1253,17 +1238,11 @@
 }
 .bg-black {
 	--bs-bg-opacity: 1;
-	background-color: rgba(
-		var(--bs-black-rgb),
-		var(--bs-bg-opacity)
-	) !important;
+	background-color: rgba(var(--bs-black-rgb), var(--bs-bg-opacity)) !important;
 }
 .bg-white {
 	--bs-bg-opacity: 1;
-	background-color: rgba(
-		var(--bs-white-rgb),
-		var(--bs-bg-opacity)
-	) !important;
+	background-color: rgba(var(--bs-white-rgb), var(--bs-bg-opacity)) !important;
 }
 .bg-body {
 	--bs-bg-opacity: 1;

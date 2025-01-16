@@ -1,12 +1,12 @@
-import axios from "axios";
-import { useUserStore } from "../stores/user_store";
+import axios from 'axios';
+import { useUserStore } from '../stores/user_store';
 
 const api = axios.create({
 	baseURL: __API_URL__,
 	timeout: 5000,
 	headers: {
-		"Content-Type": "application/json",
-		"Access-Control-Allow-Origin": "*",
+		'Content-Type': 'application/json',
+		'Access-Control-Allow-Origin': '*',
 	},
 });
 

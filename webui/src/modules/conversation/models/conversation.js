@@ -1,7 +1,7 @@
 // import { Message } from '@/modules/message/models/message'
 
-import { User } from "../../auth/models/user";
-import { Message } from "../../message/models/message";
+import { User } from '../../auth/models/user';
+import { Message } from '../../message/models/message';
 
 export class Conversation {
 	constructor(data) {
@@ -10,7 +10,9 @@ export class Conversation {
 		this.photo = data.photo;
 		this.isGroup = data.is_group;
 		this.createdAt = new Date(data.created_at);
-		this.participants = data.participants.map((participant) => new User(participant))
+		this.participants = data.participants.map(
+			(participant) => new User(participant)
+		);
 		this.messages = data.messages
 			? data.messages.map((messageDto) => new Message(messageDto))
 			: [];
@@ -27,7 +29,9 @@ export class Conversation {
 			photo: this.photo,
 			is_group: this.isGroup,
 			created_at: this.createdAt.toISOString(),
-			conversation_participants: this.participants.map((participant) => participant.toJSON()),
+			conversation_participants: this.participants.map((participant) =>
+				participant.toJSON()
+			),
 			messages: this.messages.map((message) => message.toJSON()) || [],
 		};
 	}

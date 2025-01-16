@@ -3,14 +3,14 @@ defineProps({
 	show: Boolean,
 	title: {
 		type: String,
-		default: "",
+		default: '',
 	},
 });
 
-const emit = defineEmits(["close"]);
+const emit = defineEmits(['close']);
 
 function closeModal() {
-	emit("close");
+	emit('close');
 }
 </script>
 

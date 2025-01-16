@@ -1,26 +1,26 @@
-import { ref } from "vue";
-import { defineStore } from "pinia";
-import { messagesAPI } from "@/modules/message/api/message_api";
-import { useUserStore } from "./user_store";
-import { Message } from "../../modules/message/models/message";
-import { Reaction } from "../../modules/message/models/reaction";
-import { conversationAPI } from "../../modules/conversation/api/conversation-api";
-import { imageConverter } from "../../modules/message/helper/image_converter";
-import { useWebSocket } from "../api/websocket";
+import { ref } from 'vue';
+import { defineStore } from 'pinia';
+import { messagesAPI } from '@/modules/message/api/message_api';
+import { useUserStore } from './user_store';
+import { Message } from '../../modules/message/models/message';
+import { Reaction } from '../../modules/message/models/reaction';
+import { conversationAPI } from '../../modules/conversation/api/conversation-api';
+import { imageConverter } from '../../modules/message/helper/image_converter';
+import { useWebSocket } from '../api/websocket';
 
-export const useConversationStore = defineStore("conversationStore", () => {
+export const useConversationStore = defineStore('conversationStore', () => {
 	const userStore = useUserStore();
 
 	const conversations = ref([]);
 	const currentConversation = ref();
 	const replyMessage = ref(null);
-	const showGroupDetails = ref(false)
+	const showGroupDetails = ref(false);
 
 	function init() {
-        if (!conversations.value) {
-            conversations.value = [];
-        }
-    }
+		if (!conversations.value) {
+			conversations.value = [];
+		}
+	}
 
 	function setCurrentConversation(conversation) {
 		currentConversation.value = conversation;
@@ -29,20 +29,20 @@ export const useConversationStore = defineStore("conversationStore", () => {
 	async function getUserConversations() {
 		conversations.value = await conversationAPI.getUserConversations();
 	}
-	
-	async function createConversation({currentUsers, groupName}) {
+
+	async function createConversation({ currentUsers, groupName }) {
 		if (currentUsers.length > 2 && !groupName) {
-			alert("Please, insert a group name");
+			alert('Please, insert a group name');
 			return;
 		} else if (currentUsers.length === 2) {
 			groupName = currentUsers[1].username;
 		}
-	
+
 		const conversation = await conversationAPI.createConversation(
 			currentUsers.map((user) => user.userId),
-			groupName,
+			groupName
 		);
-	
+
 		if (currentUsers.length === 2) {
 			conversation.name = currentUsers[1].username;
 		}
@@ -50,12 +50,12 @@ export const useConversationStore = defineStore("conversationStore", () => {
 
 	function addConversation(conv) {
 		const existingConv = conversations.value.find(
-			c => c.conversationId === conv.conversationId
+			(c) => c.conversationId === conv.conversationId
 		);
-		
+
 		if (!existingConv) {
 			conversations.value.push(conv);
-			
+
 			if (conversations.value.length === 1) {
 				setCurrentConversation(conv);
 			}
@@ -67,8 +67,8 @@ export const useConversationStore = defineStore("conversationStore", () => {
 	}
 
 	async function toggleGroupDetails(value) {
-		if(currentConversation.value.isGroup) {
-			showGroupDetails.value = value
+		if (currentConversation.value.isGroup) {
+			showGroupDetails.value = value;
 		}
 	}
 
@@ -76,12 +76,12 @@ export const useConversationStore = defineStore("conversationStore", () => {
 		const data = await messagesAPI.commentMessage(
 			currentConversation.value.conversationId,
 			message_id,
-			_reaction,
+			_reaction
 		);
 		const reaction = Reaction.fromJSON(data);
 
 		const messageToUpdate = currentConversation.value.messages.find(
-			(message) => message.messageId === message_id,
+			(message) => message.messageId === message_id
 		);
 
 		if (messageToUpdate) {
@@ -98,13 +98,13 @@ export const useConversationStore = defineStore("conversationStore", () => {
 		await messagesAPI.uncommentMessage(
 			currentConversation.value.conversationId,
 			message_id,
-			reaction_id,
+			reaction_id
 		);
 
 		for (const message of currentConversation.value.messages) {
 			if (message.messageId === message_id) {
 				message.reactions = message.reactions.filter(
-					(reaction) => reaction.reactionId !== reaction_id,
+					(reaction) => reaction.reactionId !== reaction_id
 				);
 			}
 		}
@@ -115,36 +115,32 @@ export const useConversationStore = defineStore("conversationStore", () => {
 	async function updateGroupName(name) {
 		await conversationAPI.updateGroupName(
 			currentConversation.value.conversationId,
-			name,
+			name
 		);
-		currentConversation.value.name = name
-		return
+		currentConversation.value.name = name;
+		return;
 	}
 
 	async function updateGroupPhoto(photo) {
 		await conversationAPI.updateGroupPhoto(
 			currentConversation.value.conversationId,
-			photo,
-		)
-		currentConversation.value.photo = await imageConverter.fileToBase64(photo)
-		return
+			photo
+		);
+		currentConversation.value.photo = await imageConverter.fileToBase64(photo);
+		return;
 	}
 
 	async function leaveGroup() {
-		try{
-			await conversationAPI.leaveGroup(currentConversation.value.conversationId)
-			conversations.value = conversations.value.filter(
-				(conv) => conv.conversationId !== currentConversation.value.conversationId
-			)
-			currentConversation.value = null
-		} catch(e) {
-			throw e
-		}
+		await conversationAPI.leaveGroup(currentConversation.value.conversationId);
+		conversations.value = conversations.value.filter(
+			(conv) => conv.conversationId !== currentConversation.value.conversationId
+		);
+		currentConversation.value = null;
 	}
 
 	async function sendMessage({
 		content,
-		content_type = "text",
+		content_type = 'text',
 		replied_to_message = null,
 		source_conversation_id = null,
 		destination_conversation_id = null,
@@ -170,15 +166,15 @@ export const useConversationStore = defineStore("conversationStore", () => {
 
 	const { sendMessagesSeen } = useWebSocket();
 
-    async function markMessagesSeen(messageIds) {
+	async function markMessagesSeen(messageIds) {
 		if (!currentConversation.value) return;
-	
+
 		try {
 			sendMessagesSeen(currentConversation.value.conversationId, messageIds);
-			
-			messageIds.forEach(messageId => {
+
+			messageIds.forEach((messageId) => {
 				const message = currentConversation.value.messages.find(
-					m => m.messageId === messageId
+					(m) => m.messageId === messageId
 				);
 				if (message) {
 					message.addSeenBy(userStore.user.userId);
@@ -191,17 +187,16 @@ export const useConversationStore = defineStore("conversationStore", () => {
 
 	async function addGroupMembers({ users, conversationId }) {
 		try {
-			const members = users.map(user => user.userId);
+			const members = users.map((user) => user.userId);
 			await conversationAPI.addGroupMembers(conversationId, members);
-			
+
 			const targetConversation = conversations.value.find(
-				conv => conv.conversationId === conversationId
+				(conv) => conv.conversationId === conversationId
 			);
-			
+
 			if (targetConversation) {
 				targetConversation.participants.push(...users);
 			}
-	
 		} catch (error) {
 			console.error('Error adding members to group:', error);
 			throw error;
@@ -227,6 +222,6 @@ export const useConversationStore = defineStore("conversationStore", () => {
 		getUserConversations,
 		init,
 		markMessagesSeen,
-		addGroupMembers
+		addGroupMembers,
 	};
 });

@@ -48,12 +48,11 @@
 	--bs-black-rgb: 0, 0, 0;
 	--bs-body-color-rgb: 33, 37, 41;
 	--bs-body-bg-rgb: 255, 255, 255;
-	--bs-font-sans-serif: system-ui, -apple-system, "Segoe UI", Roboto,
-		"Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif,
-		"Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
-		"Noto Color Emoji";
+	--bs-font-sans-serif: system-ui, -apple-system, 'Segoe UI', Roboto,
+		'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif,
+		'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 	--bs-font-monospace: SFMono-Regular, Menlo, Monaco, Consolas,
-		"Liberation Mono", "Courier New", monospace;
+		'Liberation Mono', 'Courier New', monospace;
 	--bs-gradient: linear-gradient(
 		180deg,
 		rgba(255, 255, 255, 0.15),
@@ -328,7 +327,7 @@ button,
 select {
 	text-transform: none;
 }
-[role="button"] {
+[role='button'] {
 	cursor: pointer;
 }
 select {
@@ -337,20 +336,20 @@ select {
 select:disabled {
 	opacity: 1;
 }
-[list]:not([type="date"]):not([type="datetime-local"]):not([type="month"]):not(
-		[type="week"]
-	):not([type="time"])::-webkit-calendar-picker-indicator {
+[list]:not([type='date']):not([type='datetime-local']):not([type='month']):not(
+		[type='week']
+	):not([type='time'])::-webkit-calendar-picker-indicator {
 	display: none !important;
 }
-[type="button"],
-[type="reset"],
-[type="submit"],
+[type='button'],
+[type='reset'],
+[type='submit'],
 button {
 	-webkit-appearance: button;
 }
-[type="button"]:not(:disabled),
-[type="reset"]:not(:disabled),
-[type="submit"]:not(:disabled),
+[type='button']:not(:disabled),
+[type='reset']:not(:disabled),
+[type='submit']:not(:disabled),
 button:not(:disabled) {
 	cursor: pointer;
 }
@@ -395,14 +394,14 @@ legend + * {
 ::-webkit-inner-spin-button {
 	height: auto;
 }
-[type="search"] {
+[type='search'] {
 	outline-offset: -2px;
 	-webkit-appearance: textfield;
 }
-[type="email"],
-[type="number"],
-[type="tel"],
-[type="url"] {
+[type='email'],
+[type='number'],
+[type='tel'],
+[type='url'] {
 	direction: ltr;
 }
 ::-webkit-search-decoration {

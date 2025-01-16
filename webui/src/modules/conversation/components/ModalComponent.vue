@@ -1,9 +1,9 @@
 <script setup>
-import { userAPI } from "@/modules/auth/api/user-api";
-import { ref } from "vue";
-import { conversationAPI } from "../api/conversation-api";
-import { useConversationStore } from "@/shared/stores/conversation_store";
-import { useUserStore } from "@/shared/stores/user_store";
+import { userAPI } from '@/modules/auth/api/user-api';
+import { ref } from 'vue';
+import { conversationAPI } from '../api/conversation-api';
+import { useConversationStore } from '@/shared/stores/conversation_store';
+import { useUserStore } from '@/shared/stores/user_store';
 
 defineProps({
 	show: Boolean,
@@ -12,27 +12,27 @@ defineProps({
 const conversationStore = useConversationStore();
 const userStore = useUserStore();
 
-const emit = defineEmits(["close", "submit"]);
+const emit = defineEmits(['close', 'submit']);
 
-const searchInput = ref("");
-const groupName = ref("");
+const searchInput = ref('');
+const groupName = ref('');
 const currentUsers = ref([userStore.user]);
 
 async function addUser() {
 	const user = await userAPI.findUser(searchInput.value);
 	currentUsers.value.push(user);
-	searchInput.value = "";
+	searchInput.value = '';
 }
 
 function closeModal() {
-	searchInput.value = "";
+	searchInput.value = '';
 	currentUsers.value = [];
-	emit("close");
+	emit('close');
 }
 
 async function createConversation() {
-	if (currentUsers.value.length > 2 && groupName.value == "") {
-		alert("Please, insert a group name");
+	if (currentUsers.value.length > 2 && groupName.value == '') {
+		alert('Please, insert a group name');
 		return;
 	} else if (currentUsers.value.length === 2) {
 		groupName.value = currentUsers.value[1].username;
@@ -40,7 +40,7 @@ async function createConversation() {
 
 	const conversation = await conversationAPI.createConversation(
 		currentUsers.value.map((user) => user.userId),
-		groupName.value,
+		groupName.value
 	);
 	conversationStore.addConversation(conversation);
 	closeModal();
@@ -61,11 +61,7 @@ async function createConversation() {
 			</header>
 			<div v-if="currentUsers.length > 2" class="group-name">
 				<b>Group name:</b>
-				<input
-					type="text"
-					placeholder="Group name"
-					v-model="groupName"
-				/>
+				<input type="text" placeholder="Group name" v-model="groupName" />
 			</div>
 			<div class="current-users" v-if="currentUsers.length != 0">
 				<div v-for="user in currentUsers" :key="user.userId">

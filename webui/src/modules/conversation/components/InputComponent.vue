@@ -1,9 +1,9 @@
 <script setup>
-import { useConversationStore } from "@/shared/stores/conversation_store";
-import { ref, onBeforeUnmount } from "vue";
+import { useConversationStore } from '@/shared/stores/conversation_store';
+import { ref, onBeforeUnmount } from 'vue';
 
 const conversationStore = useConversationStore();
-const messageInput = ref("");
+const messageInput = ref('');
 const selectedImage = ref(null);
 const file = ref(null);
 const fileInput = ref(null);
@@ -14,7 +14,7 @@ const sendMessage = async () => {
 			content: messageInput.value,
 			replied_to_message: -1,
 		});
-		messageInput.value = "";
+		messageInput.value = '';
 		conversationStore.setReplyMessage(null);
 		return;
 	}
@@ -22,16 +22,16 @@ const sendMessage = async () => {
 	if (file.value) {
 		await conversationStore.sendMessage({
 			content: file.value,
-			content_type: "image",
+			content_type: 'image',
 		});
 		selectedImage.value = null;
 		file.value = null;
-		messageInput.value = "";
-		fileInput.value.value = "";
+		messageInput.value = '';
+		fileInput.value.value = '';
 		return;
 	}
 	await conversationStore.sendMessage({ content: messageInput.value });
-	messageInput.value = "";
+	messageInput.value = '';
 };
 
 const onFileSelected = (event) => {
@@ -50,13 +50,11 @@ onBeforeUnmount(() => {
 	<footer class="input-wrapper">
 		<div v-if="conversationStore.replyMessage">
 			{{
-				conversationStore.replyMessage.contentType === "image"
-					? "Image"
+				conversationStore.replyMessage.contentType === 'image'
+					? 'Image'
 					: conversationStore.replyMessage.content
 			}}
-			<button @click="conversationStore.setReplyMessage(null)">
-				RESET
-			</button>
+			<button @click="conversationStore.setReplyMessage(null)">RESET</button>
 		</div>
 		<div>
 			<div class="container">

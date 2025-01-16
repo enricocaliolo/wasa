@@ -1,19 +1,19 @@
 <script setup>
-import { userAPI } from "@/modules/auth/api/user-api";
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { userAPI } from '@/modules/auth/api/user-api';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
-const username = ref("");
+const username = ref('');
 
 const handleLogin = async () => {
 	try {
 		await userAPI.login(username.value);
-		router.push("/");
+		router.push('/');
 	} catch (error) {
 		alert(error);
-		console.error("Login failed:", error);
+		console.error('Login failed:', error);
 	}
 };
 </script>

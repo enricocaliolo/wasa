@@ -3,9 +3,7 @@ export class User {
 		this.userId = data.user_id;
 		this.username = data.username;
 		this.icon = data.icon;
-		this.createdAt = data.created_at
-			? new Date(data.created_at)
-			: undefined;
+		this.createdAt = data.created_at ? new Date(data.created_at) : undefined;
 	}
 
 	static fromJSON(json) {
@@ -25,5 +23,6 @@ export class User {
 		if (this.icon) {
 			return `data:image/jpeg;base64,${this.icon}`;
 		}
+		return null;
 	}
 }

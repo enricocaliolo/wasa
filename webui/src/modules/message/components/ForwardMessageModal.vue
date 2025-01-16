@@ -1,15 +1,15 @@
 <script setup>
-import { ref } from "vue";
-import { useConversationStore } from "../../../shared/stores/conversation_store";
+import { ref } from 'vue';
+import { useConversationStore } from '../../../shared/stores/conversation_store';
 
 const props = defineProps({
 	show: Boolean,
 	message: Object,
 });
 
-const emit = defineEmits(["close"]);
+const emit = defineEmits(['close']);
 
-const searchInput = ref("");
+const searchInput = ref('');
 const selectedConversation = ref(null);
 const conversationStore = useConversationStore();
 
@@ -18,20 +18,19 @@ const selectConversation = (conversation) => {
 };
 
 function closeModal() {
-	searchInput.value = "";
+	searchInput.value = '';
 	selectedConversation.value = null;
-	emit("close");
+	emit('close');
 }
 
 async function forwardMessage() {
 	if (selectedConversation.value === null) {
-		alert("Please select a conversation to forward the message to.");
+		alert('Please select a conversation to forward the message to.');
 	}
 
 	const source_conversation_id =
 		conversationStore.currentConversation.conversationId;
-	const destination_conversation_id =
-		selectedConversation.value.conversationId;
+	const destination_conversation_id = selectedConversation.value.conversationId;
 
 	await conversationStore.sendMessage({
 		content: props.message.content,
@@ -63,9 +62,7 @@ async function forwardMessage() {
 				@click="selectConversation(conversation)"
 			>
 				<div class="conversation-content">
-					<span
-						v-if="selectedConversation === conversation"
-						class="check-mark"
+					<span v-if="selectedConversation === conversation" class="check-mark"
 						>✓</span
 					>
 					{{ conversation.name }}
@@ -75,10 +72,7 @@ async function forwardMessage() {
 
 		<template #footer>
 			<button @click="closeModal">Cancel</button>
-			<button
-				@click="forwardMessage"
-				:disabled="selectedConversation === null"
-			>
+			<button @click="forwardMessage" :disabled="selectedConversation === null">
 				Forward
 			</button>
 		</template>
