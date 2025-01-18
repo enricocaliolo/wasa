@@ -1,19 +1,10 @@
-FROM golang:1.17-alpine AS builder
-
-RUN apk add --no-cache git build-base
-
+FROM golang:1.19.1 AS builder
 WORKDIR /src/
-
 COPY . .
+RUN go build -o /app/webapi ./cmd/webapi
 
-RUN go build -o /app/webapi ./cmd/webapi/
-
-FROM alpine:latest
-
+FROM debian:bullseye
 WORKDIR /app/
-
 COPY --from=builder /app/webapi ./
-
 EXPOSE 3000
-
 CMD ["./webapi"]
