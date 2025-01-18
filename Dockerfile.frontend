@@ -1,14 +1,19 @@
-FROM node:lts as builder
+FROM node:20-alpine AS builder
+
 WORKDIR /app
-COPY webui webui
-WORKDIR /app/webui
 
-# First install all dependencies including vite and any dev dependencies
-RUN npm install -g vite
-RUN npm install
+RUN corepack enable && corepack prepare yarn@4.5.0 --activate
 
-# Then run the build command
-RUN npm run build-prod
+COPY webui/package.json webui/yarn.lock ./
+
+RUN yarn install
+
+COPY webui/ ./
+
+RUN yarn run build-prod
 
 FROM nginx:stable
-COPY --from=builder /app/webui/dist /usr/share/nginx/html
+
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+EXPOSE 80
