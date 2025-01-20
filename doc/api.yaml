@@ -145,7 +145,6 @@ paths:
           content:
             application/json:
               schema:
-                description: User with updated photo
                 $ref: "#/components/schemas/User"
         "409":
           description: Photo update failed
@@ -201,7 +200,6 @@ paths:
           content:
             application/json:
               schema:
-                description: Created conversation
                 $ref: "#/components/schemas/Conversation"
 
   /conversations/{conversation_id}:
@@ -268,7 +266,6 @@ paths:
           content:
             application/json:
               schema:
-                description: Sent message
                 $ref: "#/components/schemas/Message"
     
     delete:
@@ -307,7 +304,6 @@ paths:
           content:
             application/json:
               schema:
-                description: Success message
                 $ref: "#/components/schemas/Message"
     
     put:
@@ -353,7 +349,6 @@ paths:
           content:
             application/json:
               schema:
-                description: Success message
                 $ref: "#/components/schemas/Message"
 
   /conversations/{conversation_id}/name:
@@ -384,7 +379,6 @@ paths:
           content:
             application/json:
               schema:
-                description: Updated group conversation
                 $ref: "#/components/schemas/Conversation"
 
   /conversations/{conversation_id}/photo:
@@ -409,7 +403,6 @@ paths:
           content:
             application/json:
               schema:
-                description: Updated group conversation
                 $ref: "#/components/schemas/Conversation"
 
   /conversations/{conversation_id}/users:
@@ -441,7 +434,6 @@ paths:
           content:
             application/json:
               schema:
-                description: Updated group conversation
                 $ref: "#/components/schemas/Conversation"
 
   /conversations/{conversation_id}/reply:
@@ -532,7 +524,6 @@ paths:
           content:
             application/json:
               schema:
-                description: "Error"
                 $ref: "#/components/schemas/Error"
 
   /files/{filepath}:
