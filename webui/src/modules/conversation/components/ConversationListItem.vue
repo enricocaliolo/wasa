@@ -39,20 +39,22 @@ async function getConversation(_conversation) {
 }
 
 const getLastMessage = computed(() => {
-	const conversation = conversationStore.conversations.find(
-		(c) => c.conversationId === props.conversation.conversationId
-	);
+    const conversation = conversationStore.conversations.find(
+        (c) => c.conversationId === props.conversation.conversationId
+    );
 
-	if (conversation.messages.length === 0) {
-		return '';
-	}
+    if (conversation.messages.length === 0) {
+        return '';
+    }
 
-	const lastMessage = conversation.messages[conversation.messages.length - 1];
-	const messageContent = lastMessage.displayContent;
+    const lastMessage = conversation.messages[conversation.messages.length - 1];
+    const messageContent = lastMessage.contentType === 'image' 
+        ? '📷 photo'
+        : lastMessage.displayContent;
 
-	return conversation.isGroup
-		? `${lastMessage.sender.username}: ${messageContent} - ${formattedDate(lastMessage.sentTime)}`
-		: messageContent + ' - ' + formattedDate(lastMessage.sentTime);
+    return conversation.isGroup
+        ? `${lastMessage.sender.username}: ${messageContent} - ${formattedDate(lastMessage.sentTime)}`
+        : messageContent + ' - ' + formattedDate(lastMessage.sentTime);
 });
 
 const formattedDate = (sentTime) => {

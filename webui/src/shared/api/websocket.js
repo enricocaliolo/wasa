@@ -26,7 +26,6 @@ export function useWebSocket() {
 			switch (wsData.type) {
 				case 'new_message': {
 					const newMessage = new Message(wsData.payload.message);
-					console.log(`newMessage: ${newMessage}`);
 
 					const targetConversation = conversationStore.conversations.find(
 						(conv) => conv.conversationId === newMessage.conversationId
@@ -39,14 +38,12 @@ export function useWebSocket() {
 				}
 
 				case 'new_conversation': {
-					console.log('Raw conversation payload:', wsData.payload);
 					if (!wsData.payload || !wsData.payload.conversation) {
 						console.error('Invalid conversation payload:', wsData);
 						return;
 					}
 
 					const newConversation = new Conversation(wsData.payload.conversation);
-					console.log('Created conversation object:', newConversation);
 
 					if (!newConversation.isGroup) {
 						const otherParticipant = newConversation.participants.find(
@@ -66,7 +63,6 @@ export function useWebSocket() {
 					);
 
 					if (existingConversation) {
-						console.log('Updating existing conversation with new data');
 						existingConversation.participants =
 							newConversation.participants.map(
 								(participant) => new User(participant)
@@ -74,16 +70,13 @@ export function useWebSocket() {
 						existingConversation.name = newConversation.name;
 						existingConversation.photo = newConversation.photo;
 						existingConversation.isGroup = newConversation.isGroup;
-						console.log('Updated conversation:', existingConversation);
 					} else {
-						console.log('Adding new conversation');
 						conversationStore.addConversation(newConversation);
 					}
 					break;
 				}
 
 				case 'messages_seen': {
-					console.log('Processing messages_seen:', wsData);
 					const { user_id, message_ids } = wsData.payload;
 
 					if (!Array.isArray(message_ids)) {
@@ -147,8 +140,6 @@ export function useWebSocket() {
 				},
 				timestamp: new Date(),
 			};
-
-			console.log('Sending messages_seen:', message); // Debug log
 			ws.value.send(JSON.stringify(message));
 		} catch (e) {
 			console.log(e);
