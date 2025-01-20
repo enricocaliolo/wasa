@@ -5,6 +5,7 @@ import { Message } from '../../modules/message/models/message';
 import { useUserStore } from '../stores/user_store';
 import { Conversation } from '../../modules/conversation/models/conversation';
 import { User } from '../../modules/auth/models/user';
+import { Reaction } from '../../modules/message/models/reaction';
 
 export function useWebSocket() {
 	const ws = ref(null);
@@ -112,6 +113,47 @@ export function useWebSocket() {
 						}
 						return msg;
 					});
+				}
+
+				case 'reaction_update': {
+					const targetConversation = conversationStore.conversations.find(
+						(conv) => conv.conversationId === wsData.conversation_id
+					);
+				
+					if (targetConversation) {
+						const messageId = wsData.payload.reaction.message_id;
+						const messageToUpdate = targetConversation.messages.find(
+							(msg) => msg.messageId === messageId
+						);
+				
+						if (messageToUpdate) {
+							if (!messageToUpdate.reactions) {
+								messageToUpdate.reactions = [];
+							}
+							messageToUpdate.reactions.push(new Reaction(wsData.payload.reaction));
+						}
+					}
+					break;
+				}
+
+				case 'reaction_deletion': {
+					const { reaction } = wsData.payload;
+					
+					const targetConversation = conversationStore.conversations.find(
+						(conv) => conv.conversationId === wsData.conversation_id
+					);
+				
+					if (targetConversation) {
+						const targetMessage = targetConversation.messages.find(
+							(msg) => msg.messageId === reaction.message_id
+						);
+						if (targetMessage) {
+							targetMessage.reactions = targetMessage.reactions.filter(
+								(r) => r.reactionId !== reaction.reaction_id
+							);
+						}
+					}
+					break;
 				}
 			}
 		} catch (error) {

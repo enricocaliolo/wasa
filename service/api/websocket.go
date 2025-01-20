@@ -273,6 +273,27 @@ func (c *Client) readPump() {
 			}
 
 			c.hub.SendToConversation(wsMessage.ConversationID, updatedMessage)
+
+		case "reaction_update":
+			{
+				if _, ok := wsMessage.Payload["reaction"].(map[string]interface{}); ok {
+					updatedMessage, err := json.Marshal(wsMessage)
+					if err != nil {
+						c.hub.logger.WithError(err).Error("Error marshaling reaction update")
+						continue
+					}
+					c.hub.SendToConversation(wsMessage.ConversationID, updatedMessage)
+				}
+			}
+		case "reaction_delete":
+			if _, ok := wsMessage.Payload["reaction"].(map[string]interface{}); ok {
+				updatedMessage, err := json.Marshal(wsMessage)
+				if err != nil {
+					c.hub.logger.WithError(err).Error("Error marshaling reaction deletion")
+					continue
+				}
+				c.hub.SendToConversation(wsMessage.ConversationID, updatedMessage)
+			}
 		}
 	}
 }

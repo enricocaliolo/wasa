@@ -69,7 +69,7 @@ type AppDatabase interface {
 	GetMessage(message_id int, conversation_id int) (models.Message, error)
 	DeleteMessage(message_id int) (models.Message, error)
 	CommentMessage(user_id int, message_id int, reaction string) (models.Reaction, error)
-	UncommentMessage(reaction_id int) (bool, error)
+	UncommentMessage(reaction_id int) (models.Reaction, error)
 	IsReactionFromUser(user_id int, reaction_id int) (bool, error)
 
 	UpdateGroupName(conversation_id int, name string) (bool, error)
@@ -184,7 +184,7 @@ func (db *appdbimpl) CommentMessage(user_id int, message_id int, reaction string
 	return messagesdb.CommentMessage(db.c, user_id, message_id, reaction)
 }
 
-func (db *appdbimpl) UncommentMessage(reaction_id int) (bool, error) {
+func (db *appdbimpl) UncommentMessage(reaction_id int) (models.Reaction, error) {
 	return messagesdb.UncommentMessage(db.c, reaction_id)
 }
 

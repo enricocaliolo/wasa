@@ -79,18 +79,6 @@ export const useConversationStore = defineStore('conversationStore', () => {
 			_reaction
 		);
 		const reaction = Reaction.fromJSON(data);
-
-		const messageToUpdate = currentConversation.value.messages.find(
-			(message) => message.messageId === message_id
-		);
-
-		if (messageToUpdate) {
-			if (!messageToUpdate.reactions) {
-				messageToUpdate.reactions = [];
-			}
-			messageToUpdate.reactions.push(reaction);
-		}
-
 		return reaction;
 	}
 
@@ -100,14 +88,6 @@ export const useConversationStore = defineStore('conversationStore', () => {
 			message_id,
 			reaction_id
 		);
-
-		for (const message of currentConversation.value.messages) {
-			if (message.messageId === message_id) {
-				message.reactions = message.reactions.filter(
-					(reaction) => reaction.reactionId !== reaction_id
-				);
-			}
-		}
 
 		return;
 	}

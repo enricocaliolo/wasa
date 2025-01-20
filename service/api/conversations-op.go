@@ -225,6 +225,25 @@ func (rt *APIRouter) commentMessage(w http.ResponseWriter, r *http.Request, ps h
 		return
 	}
 
+	wsMessage := WebSocketMessage{
+		Type:           "reaction_update",
+		ConversationID: conversationID,
+		Payload: map[string]interface{}{
+			"reaction": new_reaction,
+		},
+		Timestamp: time.Now(),
+	}
+
+	messageJSON, err := json.Marshal(wsMessage)
+	if err == nil {
+		rt.baseLogger.WithFields(logrus.Fields{
+			"conversation_id": conversationID,
+			"message_type":    "reaction_update",
+			"recipient_count": len(rt.wsHub.conversationClients[conversationID]),
+		}).Debug("Broadcasting reaction via WebSocket")
+		rt.wsHub.SendToConversation(conversationID, messageJSON)
+	}
+
 	w.WriteHeader(http.StatusAccepted)
 	w.Header().Set("content-type", "application/json")
 	_ = json.NewEncoder(w).Encode(new_reaction)
@@ -258,12 +277,31 @@ func (rt *APIRouter) uncommentMessage(w http.ResponseWriter, r *http.Request, ps
 		return
 	}
 
-	_, err = rt.db.UncommentMessage(reaction_id)
+	deletedReaction, err := rt.db.UncommentMessage(reaction_id)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("content-type", "application/json")
 		_ = json.NewEncoder(w).Encode(err)
 		return
+	}
+
+	wsMessage := WebSocketMessage{
+		Type:           "reaction_deletion",
+		ConversationID: conversationID,
+		Payload: map[string]interface{}{
+			"reaction": deletedReaction,
+		},
+		Timestamp: time.Now(),
+	}
+
+	messageJSON, err := json.Marshal(wsMessage)
+	if err == nil {
+		rt.baseLogger.WithFields(logrus.Fields{
+			"conversation_id": conversationID,
+			"message_type":    "reaction_deletion",
+			"recipient_count": len(rt.wsHub.conversationClients[conversationID]),
+		}).Debug("Broadcasting reaction via WebSocket")
+		rt.wsHub.SendToConversation(conversationID, messageJSON)
 	}
 
 	w.WriteHeader(http.StatusAccepted)
@@ -582,7 +620,6 @@ func (rt *APIRouter) sendMessage(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	// Broadcast the message via WebSocket
 	wsMessage := WebSocketMessage{
 		Type:           "new_message",
 		ConversationID: message.ConversationID,
