@@ -4,9 +4,13 @@ import { ref } from 'vue';
 import { userAPI } from '../../modules/auth/api/user-api';
 import { imageConverter } from '../../modules/message/helper/image_converter';
 import router from '../router/router';
+import { useWebSocket } from '../api/websocket'
 
 export const useUserStore = defineStore('userStore', () => {
 	const user = ref(User.fromJSON({}));
+
+	const { disconnect } = useWebSocket();
+
 	function setUser(_user) {
 		user.value = _user;
 	}
@@ -29,6 +33,7 @@ export const useUserStore = defineStore('userStore', () => {
 	}
 
 	async function logout() {
+		disconnect()
 		setUser(User.fromJSON({}));
 		localStorage.removeItem('username');
 		router.push({path: '/login', replace: true,});

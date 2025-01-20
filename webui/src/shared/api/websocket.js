@@ -1,5 +1,5 @@
 // useWebSocket.js
-import { ref, onUnmounted, onMounted } from 'vue';
+import { ref, onUnmounted, onMounted, watch, onUpdated } from 'vue';
 import { useConversationStore } from '../stores/conversation_store';
 import { Message } from '../../modules/message/models/message';
 import { useUserStore } from '../stores/user_store';
@@ -212,6 +212,14 @@ export function useWebSocket() {
 			return;
 		}
 
+		if (ws.value) {
+            try {
+                ws.value.close();
+            } catch (e) {
+                console.error('Error closing existing connection:', e);
+            }
+        }
+
 		const wsUrl = `ws://localhost:3000/ws?token=${userStore.user.userId}`;
 
 		if (ws.value && ws.value.readyState === WebSocket.OPEN) {
@@ -261,13 +269,21 @@ export function useWebSocket() {
 		reconnectInterval.value = 1000;
 	};
 
+
 	onMounted(() => {
-		connectWebSocket();
+		if (userStore.user?.userId) {
+            connectWebSocket();
+        }
 	});
 
-	onUnmounted(() => {
-		disconnect();
-	});
+	onUpdated(() => {
+        if (userStore.user?.userId && !isConnected.value && hasInitialConnection.value) {
+            connectWebSocket();
+        } else if (!userStore.user?.userId && isConnected.value) {
+            disconnect();
+        }
+    });
+
 
 	return {
 		isConnected,
