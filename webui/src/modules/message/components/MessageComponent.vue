@@ -201,25 +201,26 @@ const deleteMessage = async () => {
 					</div>
 				</div>
 
-				<div
-					v-if="message.contentType === 'image'"
-					class="image-message-container"
-				>
-					<img
-						:src="message.displayContent"
-						alt="Message image"
-						class="message-image"
-					/>
-					<!-- teste -->
-				</div>
-				<div v-else class="message-content">
-					<span v-if="isDeleted" class="deleted-message">
-						message deleted
-					</span>
-					<span v-else>
-						{{ message.displayContent }}
-					</span>
-				</div>
+				<div v-if="isDeleted" class="message-content">
+    <span class="deleted-message">
+        message deleted
+    </span>
+</div>
+<template v-else>
+    <div
+        v-if="message.contentType === 'image'"
+        class="image-message-container"
+    >
+        <img
+            :src="message.displayContent"
+            alt="Message image"
+            class="message-image"
+        />
+    </div>
+    <div v-else class="message-content">
+        {{ message.displayContent }}
+    </div>
+</template>
 
 				<div class="reactions-container">
 					<div
