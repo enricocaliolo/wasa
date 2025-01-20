@@ -3,6 +3,7 @@ import { User } from '../../modules/auth/models/user';
 import { ref } from 'vue';
 import { userAPI } from '../../modules/auth/api/user-api';
 import { imageConverter } from '../../modules/message/helper/image_converter';
+import router from '../router/router';
 
 export const useUserStore = defineStore('userStore', () => {
 	const user = ref(User.fromJSON({}));
@@ -27,5 +28,11 @@ export const useUserStore = defineStore('userStore', () => {
 		return;
 	}
 
-	return { user, setUser, getUser, updateUsername, updateIcon };
+	async function logout() {
+		setUser(User.fromJSON({}));
+		localStorage.removeItem('username');
+		router.push({path: '/login', replace: true,});
+	}
+
+	return { user, setUser, getUser, updateUsername, updateIcon, logout, };
 });

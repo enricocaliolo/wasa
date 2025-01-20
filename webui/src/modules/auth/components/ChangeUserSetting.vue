@@ -59,11 +59,19 @@ const saveChanges = async () => {
 		return;
 	}
 };
+
+const logout = () => {
+	userStore.logout();
+};
+
 </script>
 
 <template>
 	<div class="user-settings">
-		<h2 class="title">User Settings</h2>
+		<header>
+			<h2 class="title">User Settings</h2>
+			<button @click="logout">logout</button>
+		</header>
 		<p v-if="showError" class="error-message">{{ errorMessage }}</p>
 
 		<div class="settings-form">
@@ -102,6 +110,12 @@ const saveChanges = async () => {
 </template>
 
 <style scoped>
+
+header {
+	display: flex;
+	justify-content: space-between;
+}
+
 .user-settings {
 	max-width: 600px;
 	margin: 0 auto;
