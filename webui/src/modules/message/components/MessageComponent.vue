@@ -3,15 +3,18 @@ import { useUserStore } from '@/shared/stores/user_store';
 import { computed } from 'vue';
 import { useConversationStore } from '../../../shared/stores/conversation_store';
 import ForwardMessageModal from './ForwardMessageModal.vue';
+import ReactionDetailsModal from './ReactionDetailsModal.vue';
 import { ref, onMounted } from 'vue';
 
 const props = defineProps({
 	message: Object,
 });
+console.log(props.message);
 
 const userStore = useUserStore();
 const conversationStore = useConversationStore();
-const showModal = ref(false);
+const showForwardModal = ref(false);
+const showReactionsModal = ref(false)
 
 const showEmojiPicker = ref(false);
 const emojis = ['👍', '❤️', '😊', '😂', '😮', '😢'];
@@ -148,7 +151,7 @@ const deleteMessage = async () => {
 				<button @click="replyMessage" class="action-button" title="Reply">
 					↩️
 				</button>
-				<button @click="showModal = true" class="action-button" title="Forward">
+				<button @click="showForwardModal = true" class="action-button" title="Forward">
 					↪️
 				</button>
 				<div class="emoji-picker-container">
@@ -224,7 +227,7 @@ const deleteMessage = async () => {
 						class="reactions-bubble"
 						@click="showEmojis"
 					>
-						<div class="reactions-list">
+						<div class="reactions-list" @click="showReactionsModal = true">
 							<span
 								v-for="reaction in message.reactions.slice(0, 2)"
 								:key="reaction.id"
@@ -258,8 +261,13 @@ const deleteMessage = async () => {
 		</div>
 		<ForwardMessageModal
 			:message="message"
-			:show="showModal"
-			@close="showModal = false"
+			:show="showForwardModal"
+			@close="showForwardModal = false"
+		/>
+		<ReactionDetailsModal
+			:reactions="message.reactions"
+			:show="showReactionsModal"
+			@close="showReactionsModal = false"
 		/>
 	</div>
 </template>
