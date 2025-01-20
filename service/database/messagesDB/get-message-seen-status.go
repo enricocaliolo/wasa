@@ -38,6 +38,9 @@ func GetMessageSeenStatus(db *sql.DB, messageIDs []int) (map[int][]int, error) {
 		}
 		seenStatus[messageID] = append(seenStatus[messageID], userID)
 	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
 
 	return seenStatus, nil
 }

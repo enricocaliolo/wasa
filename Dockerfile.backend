@@ -1,10 +1,12 @@
-FROM golang:1.19.1 AS builder
-WORKDIR /src/
+FROM golang:1.23.4 AS go_build
+WORKDIR /build
 COPY . .
-RUN go build -o /app/webapi ./cmd/webapi
+RUN go build ./cmd/webapi
 
-FROM debian:bullseye
-WORKDIR /app/
-COPY --from=builder /app/webapi ./
+FROM ubuntu:latest
+WORKDIR /backend
+COPY --from=go_build /build/webapi .
+# Create a volume mount point
+VOLUME /backend/data
 EXPOSE 3000
 CMD ["./webapi"]

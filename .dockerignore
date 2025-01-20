@@ -1,0 +1,23 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+vendor/
+**/__debug_bin*
+**/debug.test
+**/node_modules
+**/.yarn/cache
+**/.yarn/unplugged
+**/.yarn/build-state.yml
+**/.yarn/install-state.gz
+**/.pnp.*
+**/dist
+**/build
+**/tmp
+**/*.log
+.env
+**/__debug_*
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
