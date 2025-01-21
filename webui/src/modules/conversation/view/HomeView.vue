@@ -18,9 +18,6 @@ const currentConversationStore = useConversationStore();
 </template>
 
 <style scoped>
-* {
-	border: 1px solid red;
-}
 
 main {
 	height: 100vh;
@@ -33,6 +30,6 @@ main {
 }
 
 .current-conversation {
-	background-color: red;
+	background-color: grey;
 }
 </style>

@@ -3,12 +3,14 @@ import { ref, onBeforeUnmount, computed } from 'vue';
 import { useConversationStore } from '../../../shared/stores/conversation_store';
 import IconConversation from '../../../shared/components/IconConversation.vue';
 import AddUsersModal from './AddUsersModal.vue';
+import { useUserStore } from '../../../shared/stores/user_store';
 
 const props = defineProps({
 	conversation: Object,
 });
 
 const conversationStore = useConversationStore();
+const userStore = useUserStore()
 
 const newGroupName = ref('');
 const photo = ref(null);
@@ -123,7 +125,7 @@ onBeforeUnmount(() => {
 				class="participant-item"
 			>
 				<p>{{ participant.username }}</p>
-				<button v-if="index === 0" @click="leaveGroup">Leave</button>
+				<button v-if="participant.username == userStore.user.username" @click="leaveGroup">Leave</button>
 			</div>
 		</div>
 

@@ -59,7 +59,7 @@ const filteredConversations = computed(() => {
 			>
 			</ConversationListItem>
 		</div>
-		<div v-else>NO CONVERSATIONS</div>
+		<div v-else class="no-conversation-text">NO CONVERSATIONS</div>
 	</div>
 </template>
 
@@ -71,6 +71,13 @@ header {
 }
 
 .conversations-box {
-	background-color: blue;
+	background-color: rgb(175, 175, 195);
+}
+
+.no-conversation-text {
+	height: 80%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 </style>

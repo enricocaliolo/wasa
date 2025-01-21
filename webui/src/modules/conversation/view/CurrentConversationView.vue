@@ -13,6 +13,7 @@ const props = defineProps({
 
 const conversationStore = useConversationStore();
 const userStore = useUserStore();
+console.log(userStore.user);
 
 function changeGroupName() {
 	conversationStore.toggleGroupDetails(!conversationStore.showGroupDetails);

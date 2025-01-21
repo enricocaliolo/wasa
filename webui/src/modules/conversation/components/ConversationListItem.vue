@@ -82,11 +82,11 @@ const formattedDate = (sentTime) => {
 .conversation-preview {
 	height: 72px;
 	width: 100%;
-	background-color: green;
+	background-color: rgb(169, 169, 169);
 	padding: 0.25rem;
 	margin-top: 1rem;
-	border: 1px solid gold;
 	display: flex;
+	border: 1px solid black;
 }
 
 .name {
