@@ -154,7 +154,7 @@ const deleteMessage = async () => {
 				<button @click="showForwardModal = true" class="action-button" title="Forward">
 					↪️
 				</button>
-				<div class="emoji-picker-container">
+				<div v-if="message.sender.username !== userStore.user.username" class="emoji-picker-container">
 					<button
 						@click="handleEmojiButton"
 						class="action-button"
