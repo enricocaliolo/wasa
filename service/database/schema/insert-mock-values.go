@@ -7,17 +7,17 @@ import (
 
 func InsertMockValues(db *sql.DB) {
 	sqlStatements := []string{
-		`INSERT INTO "User" (username) VALUES
-		('enrico'),
-		('jane_smith'),
-		('bob_wilson'),
-		('alice_green'),
-		('charlie_brown'),
-		('diana_prince'),
-		('bruce_wayne'),
-		('peter_parker'),
-		('tony_stark'),
-		('steve_rogers');`,
+		// `INSERT INTO "User" (username) VALUES
+		// ('enrico'),
+		// ('jane_smith'),
+		// ('bob_wilson'),
+		// ('alice_green'),
+		// ('charlie_brown'),
+		// ('diana_prince'),
+		// ('bruce_wayne'),
+		// ('peter_parker'),
+		// ('tony_stark'),
+		// ('steve_rogers');`,
 
 		// `INSERT INTO "Conversation" (name, is_group) VALUES
 		// (NULL, FALSE),

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onUpdated, computed } from 'vue';
 import { userAPI } from '@/modules/auth/api/user-api';
 import { useConversationStore } from '@/shared/stores/conversation_store';
 import { useUserStore } from '@/shared/stores/user_store';
@@ -11,17 +11,16 @@ const emit = defineEmits(['close']);
 
 const groupName = ref('');
 const currentUsersForConversation = ref([userStore.user]);
-const allUsers = ref([]);
+const availableUsersData = ref([]);
+const loading = ref(false);
 
 const availableUsers = computed(() => {
-	return allUsers.value
-		.filter((user) => user.userId !== userStore.user.userId)
-		.map((user) => ({
-			...user,
-			isSelected: currentUsersForConversation.value.some(
-				(selectedUser) => selectedUser.userId === user.userId
-			),
-		}));
+  return availableUsersData.value.map((user) => ({
+    ...user,
+    isSelected: currentUsersForConversation.value.some(
+      (selectedUser) => selectedUser.userId === user.userId
+    ),
+  }));
 });
 
 const isGroupChat = computed(
@@ -32,15 +31,6 @@ const isCreateButtonDisabled = computed(
 		currentUsersForConversation.value.length < 2 ||
 		(isGroupChat.value && !groupName.value)
 );
-
-onMounted(async () => {
-	try {
-		const users = await userAPI.getAllUsers();
-		allUsers.value = users;
-	} catch (error) {
-		console.error('Error loading users:', error);
-	}
-});
 
 function toggleUser(user) {
 	const index = currentUsersForConversation.value.findIndex(
@@ -61,6 +51,20 @@ function closeModal() {
 	emit('close');
 }
 
+async function fetchAvailableUsers() {
+  loading.value = true;
+  try {
+    const users = await userAPI.getAllUsers();
+    availableUsersData.value = users.filter(
+      (user) => user.userId !== userStore.user.userId
+    );
+  } catch (error) {
+    console.error('Error loading available users:', error);
+  } finally {
+    loading.value = false;
+  }
+}
+
 async function createConversation() {
 	await conversationStore.createConversation({
 		currentUsers: currentUsersForConversation.value,
@@ -68,6 +72,11 @@ async function createConversation() {
 	});
 	closeModal();
 }
+
+onUpdated(() => {
+  fetchAvailableUsers();
+});
+
 </script>
 
 <template>
