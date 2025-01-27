@@ -6,7 +6,7 @@ RUN go build ./cmd/webapi
 FROM ubuntu:latest
 WORKDIR /backend
 COPY --from=go_build /build/webapi .
-# Create a volume mount point
+
 VOLUME /backend/data
 EXPOSE 3000
 CMD ["./webapi"]
